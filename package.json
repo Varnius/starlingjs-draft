@@ -1,0 +1,43 @@
+{
+  "name": "starling-js",
+  "private": true,
+  "version": "1.0.0",
+  "description": "StarlingJS",
+  "main": "./src/index.js",
+  "scripts": {
+    "compile": "NODE_ENV=production rimraf dist && NODE_ENV=production webpack --config webpack.config.prod.js && cp -R static/* dist/",
+    "start": "node server.js",
+    "build": "npm run compile",
+    "test": "eslint src && NODE_ENV=production mocha  -r babel-register './tests/tests.js' './tests/**/*.spec.js' --timeout 1000",
+    "test:watch": "NODE_ENV=production mocha  -r babel-register './tests/tests.js' './tests/**/*.spec.js' --reporter nyan --watch --timeout 1000"
+  },
+  "author": "Simonas Pauliukevičius",
+  "devDependencies": {
+    "babel-core": "^6.10.4",
+    "babel-eslint": "^6.1.2",
+    "babel-loader": "^6.2.4",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-es2017": "^6.9.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "chai": "^4.1.2",
+    "chalk": "^1.1.3",
+    "eslint": "^3.6.0",
+    "eslint-config-airbnb": "^12.0.0",
+    "eslint-plugin-babel": "^3.3.0",
+    "eslint-plugin-import": "^1.10.2",
+    "express": "^4.14.0",
+    "file-loader": "^0.9.0",
+    "json-loader": "^0.5.4",
+    "mocha": "^4.0.1",
+    "null-loader": "^0.1.1",
+    "rimraf": "^2.5.3",
+    "sinon": "^4.0.2",
+    "sinon-chai": "^2.14.0",
+    "webpack": "3.7.1",
+    "webpack-dev-middleware": "^1.12.0"
+  },
+  "dependencies": {
+    "gl-constants": "^1.0.0",
+    "ramda": "^0.25.0"
+  }
+}

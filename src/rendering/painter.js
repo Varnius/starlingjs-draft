@@ -102,7 +102,6 @@ export default class Painter {
      *  painters; instead, use the global painter found on the Starling instance. */
     constructor(canvas)
     {
-        this.onContextCreated();
         this._context = canvas.getContext('webgl2', { antialias: false, depth: true, stencil: true });
 
         if (!this._context)

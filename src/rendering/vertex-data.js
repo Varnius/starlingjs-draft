@@ -193,7 +193,6 @@ export default class VertexData {
      *  Beware, though, that the copy-operation becomes much more expensive when the formats
      *  differ.</p>
      */
-    // todo: convert this below ahahahah
     copyTo(target, targetVertexID = 0, matrix = null, vertexID = 0, numVertices = -1)
     {
         const { _numVertices, _tinted, _rawData, _attributes } = this;

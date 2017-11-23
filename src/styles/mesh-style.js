@@ -246,7 +246,6 @@ export default class MeshStyle extends EventDispatcher {
 
         if (_target !== target)
         {
-            if (_target) console.log(_target.removeEventListener)
             if (_target) _target.removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
             if (vertexData) vertexData.format = this.vertexFormat;
 

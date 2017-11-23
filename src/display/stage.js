@@ -5,6 +5,7 @@ import Matrix3D from '../math/matrix3d';
 import Point from '../math/point';
 import Vector3D from '../math/vector3d';
 import MatrixUtil from '../utils/math-util';
+import Event from '../events/event';
 
 import RectangleUtil from '../utils/rectangle-util';
 
@@ -51,8 +52,10 @@ export default class Stage extends DisplayObjectContainer {
     static sMatrix3D = new Matrix3D();
 
     /** @private */
-    Stage(width, height, color = 0)
+    constructor(width, height, color = 0)
     {
+        super();
+
         this._width = width;
         this._height = height;
         this._color = color;
@@ -169,6 +172,7 @@ export default class Stage extends DisplayObjectContainer {
     /** @private */
     removeEnterFrameListener(listener)
     {
+        console.log(this._enterFrameListeners)
         const index = this._enterFrameListeners.indexOf(listener);
         if (index >= 0) this._enterFrameListeners.splice(index, 1);
     }

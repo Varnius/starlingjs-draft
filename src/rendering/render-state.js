@@ -54,10 +54,10 @@ export default class RenderState {
     /** @private */ _modelviewMatrix;
 
     static CULLING_VALUES = [
-        Context3DTriangleFace.NONE,
-        Context3DTriangleFace.FRONT,
-        Context3DTriangleFace.BACK,
-        Context3DTriangleFace.FRONT_AND_BACK,
+        //Context3DTriangleFace.NONE,
+        //Context3DTriangleFace.FRONT,
+        //Context3DTriangleFace.BACK,
+        //Context3DTriangleFace.FRONT_AND_BACK,
     ];
 
     _miscOptions;
@@ -124,7 +124,7 @@ export default class RenderState {
     {
         this.alpha = 1.0;
         this.blendMode = BlendMode.NORMAL;
-        this.culling = Context3DTriangleFace.NONE;
+        //this.culling = Context3DTriangleFace.NONE;
         this.modelviewMatrix3D = null;
         this.renderTarget = null;
         this.clipRect = null;
@@ -318,7 +318,7 @@ export default class RenderState {
     {
         if (value !== BlendMode.AUTO && this._blendMode !== value)
         {
-            if (this._onDrawRequired !== null) this._onDrawRequired();
+            if (this._onDrawRequired) this._onDrawRequired();
             this._blendMode = value;
         }
     }
@@ -386,7 +386,7 @@ export default class RenderState {
     {
         if (!RectangleUtil.compare(this._clipRect, value))
         {
-            if (this._onDrawRequired !== null) this._onDrawRequired();
+            if (this._onDrawRequired) this._onDrawRequired();
             if (value)
             {
                 if (this._clipRect === null) this._clipRect = Pool.getRectangle();

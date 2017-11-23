@@ -577,7 +577,7 @@ export default class DisplayObject extends EventDispatcher {
 
     removeEnterFrameListenerFromStage()
     {
-        if (Starling.current) Starling.current.stage.removeEnterFrameListener(this); // todo: FIXME!!!
+        Starling.current.stage.removeEnterFrameListener(this);
     }
 
     // properties

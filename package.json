@@ -5,7 +5,7 @@
   "description": "StarlingJS",
   "main": "./src/index.js",
   "scripts": {
-    "compile": "NODE_ENV=production rimraf dist && NODE_ENV=production webpack --config webpack.config.prod.js && cp -R static/* dist/",
+    "compile": "NODE_ENV=production rimraf dist && NODE_ENV=production webpack --progress --config webpack.config.prod.js",
     "start": "node server.js",
     "build": "npm run compile",
     "test": "eslint src && NODE_ENV=production mocha  -r babel-register './tests/tests.js' './tests/**/*.spec.js' --timeout 1000",

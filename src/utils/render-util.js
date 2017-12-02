@@ -7,11 +7,12 @@ export default class RenderUtil {
     /** Clears the render context with a certain color and alpha value. */
     static clear(rgb = 0, alpha = 0.0)
     {
-        Starling.context.clear(
-            Color.getRed(rgb) / 255.0,
-            Color.getGreen(rgb) / 255.0,
-            Color.getBlue(rgb) / 255.0,
-            alpha);
+        //Starling.context.clear(
+        //    Color.getRed(rgb) / 255.0,
+        //    Color.getGreen(rgb) / 255.0,
+        //    Color.getBlue(rgb) / 255.0,
+        //    alpha);
+        console.log('todo: clear')
     }
 
     /** Returns the flags that are required for AGAL texture lookup,
@@ -46,7 +47,7 @@ export default class RenderUtil {
      */
     static getTextureVariantBits(texture)
     {
-        if (texture === null) return 0;
+        if (!texture) return 0;
 
         let bitField = 0;
         let formatBits = 0;

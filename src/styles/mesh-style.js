@@ -155,7 +155,7 @@ export default class MeshStyle extends EventDispatcher {
         {
             const newTexture = meshStyle._texture;
 
-            if (_texture === null && newTexture === null) return true;
+            if (!_texture && !newTexture) return true;
             else if (_texture && newTexture)
                 return _textureBase === meshStyle._textureBase &&
                     _textureSmoothing === meshStyle._textureSmoothing &&

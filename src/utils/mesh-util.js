@@ -47,7 +47,7 @@ export default class MeshUtil {
     /** Calculates the bounds of the given vertices in the target coordinate system. */
     static calculateBounds(vertexData, sourceSpace, targetSpace, out = null)
     {
-        if (out === null) out = new Rectangle();
+        if (!out) out = new Rectangle();
 
         const { sPoint3D, sMatrix3D, sMatrix } = MeshUtil;
         const stage = sourceSpace.stage;

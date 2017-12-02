@@ -4,7 +4,7 @@ import Matrix from '../math/matrix';
 import Matrix3D from '../math/matrix3d';
 import Point from '../math/point';
 import Vector3D from '../math/vector3d';
-import MatrixUtil from '../utils/math-util';
+import MatrixUtil from '../utils/matrix-util';
 import Event from '../events/event';
 
 import RectangleUtil from '../utils/rectangle-util';
@@ -136,7 +136,7 @@ export default class Stage extends DisplayObjectContainer {
      *  spawned up by 'stageWidth' and 'stageHeight') in another coordinate system. */
     getStageBounds(targetSpace, out = null)
     {
-        if (out === null) out = new Rectangle();
+        if (!out) out = new Rectangle();
 
         out.setTo(0, 0, this._width, this._height);
         this.getTransformationMatrix(targetSpace, Stage.sMatrix);
@@ -154,7 +154,6 @@ export default class Stage extends DisplayObjectContainer {
     getCameraPosition(space = null, out = null)
     {
         this.getTransformationMatrix3D(space, Stage.sMatrix3D);
-
         return MatrixUtil.transformCoords3D(Stage.sMatrix3D,
             this._width / 2 + this._projectionOffset.x, this._height / 2 + this._projectionOffset.y,
             -this.focalLength, out);
@@ -172,7 +171,6 @@ export default class Stage extends DisplayObjectContainer {
     /** @private */
     removeEnterFrameListener(listener)
     {
-        console.log(this._enterFrameListeners)
         const index = this._enterFrameListeners.indexOf(listener);
         if (index >= 0) this._enterFrameListeners.splice(index, 1);
     }

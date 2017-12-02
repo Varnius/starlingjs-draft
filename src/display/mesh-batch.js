@@ -1,5 +1,6 @@
 import Mesh from './mesh';
 
+import IndexData from '../rendering/index-data';
 import VertexData from '../rendering/vertex-data';
 
 import MatrixUtil from '../utils/matrix-util';
@@ -116,8 +117,8 @@ export default class MeshBatch extends Mesh {
     addMesh(mesh, matrix = null, alpha = 1.0, subset = null, ignoreTransformations = false)
     {
         if (ignoreTransformations) matrix = null;
-        else if (matrix === null) matrix = mesh.transformationMatrix;
-        if (subset === null) subset = MeshBatch.sFullMeshSubset;
+        else if (!matrix) matrix = mesh.transformationMatrix;
+        if (!subset) subset = MeshBatch.sFullMeshSubset;
 
         const targetVertexID = this._vertexData.numVertices;
         const targetIndexID = this._indexData.numIndices;

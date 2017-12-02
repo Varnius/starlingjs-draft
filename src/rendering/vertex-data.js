@@ -1,4 +1,4 @@
-import R from 'ramda';
+import { STATIC_DRAW, ARRAY_BUFFER } from 'gl-constants';
 
 import Point from '../math/point';
 import Rectangle from '../math/rectangle';
@@ -124,7 +124,7 @@ export default class VertexData {
      */
     constructor(format = null, initialCapacity = 4)
     {
-        if (format === null) this._format = MeshStyle.VERTEX_FORMAT;
+        if (!format) this._format = MeshStyle.VERTEX_FORMAT;
         else if (format instanceof VertexDataFormat) this._format = format;
         else if (typeof (format) === 'string' || format instanceof String) this._format = VertexDataFormat.fromString(format);
         else throw new Error('[ArgumentError] \'format\' must be String or VertexDataFormat');
@@ -211,7 +211,7 @@ export default class VertexData {
         {
             const attribute = target.format.attributes[i];
 
-            if (!R.find(R.propEq('name', attribute.name), _attributes)) continue;
+            if (!_attributes.find(a => a.name === attribute.name)) continue;
 
             for (let j = targetVertexID; j < (targetVertexID + numVertices) * attribute.size; ++j)
             {
@@ -494,13 +494,13 @@ export default class VertexData {
         const { _numVertices, _rawData } = this;
         const { sHelperPoint } = VertexData;
 
-        if (out === null) out = new Rectangle();
+        if (!out) out = new Rectangle();
         if (numVertices < 0 || vertexID + numVertices > _numVertices)
             numVertices = _numVertices - vertexID;
 
         if (numVertices === 0)
         {
-            if (matrix == null)
+            if (!matrix)
                 out.setEmpty();
             else
             {
@@ -515,7 +515,7 @@ export default class VertexData {
             const attribute = this.getAttribute(attrName);
             let x, y, i;
 
-            if (matrix === null)
+            if (!matrix)
             {
                 for (i = 0; i < numVertices; ++i)
                 {
@@ -817,33 +817,38 @@ export default class VertexData {
     /** Indicates if the VertexData instances contains an attribute with the specified name. */
     hasAttribute(attrName)
     {
-        return this.getAttribute(attrName) != null;
+        return !!this.getAttribute(attrName);
     }
 
     // VertexBuffer helpers
 
     /** Creates a vertex buffer object with the right size to fit the complete data.
      *  Optionally, the current data is uploaded right away. */
-    createVertexBuffer(upload = false, bufferUsage = 'staticDraw')
+    uploadToVertexBuffer(bufferUsage = STATIC_DRAW)
     {
-        const context = Starling.context;
-        if (context === null) throw new Error('[MissingContextError]');
         if (this._numVertices === 0) return null;
+        const gl = Starling.context;
+        if (!gl) throw new Error('[MissingContextError]');
+        const { _numAttributes, _rawData, _attributes } = this;
 
-        const buffer = context.createVertexBuffer(this._numVertices, this._vertexSize / 4, bufferUsage);
+        console.log('implemented: create&upload to vertex buffer')
 
-        if (upload) this.uploadToVertexBuffer(buffer);
-        return buffer;
-    }
+        const vertexArray = gl.createVertexArray();
+        gl.bindVertexArray(vertexArray);
 
-    /** Uploads the complete data (or a section of it) to the given vertex buffer. */
-    uploadToVertexBuffer(buffer, vertexID = 0, numVertices = -1)
-    {
-        if (numVertices < 0 || vertexID + numVertices > this._numVertices)
-            numVertices = this._numVertices - vertexID;
+        for (let attributeIndex = 0; attributeIndex < _numAttributes; ++attributeIndex)
+        {
+            const attribute = _attributes[attributeIndex];
+            const buffer = gl.createBuffer();
 
-        if (numVertices > 0)
-            buffer.uploadFromByteArray(this._rawData, 0, vertexID, numVertices);
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, _rawData[attribute.name], bufferUsage);
+            gl.enableVertexAttribArray(attributeIndex);
+            gl.vertexAttribPointer(attributeIndex, 3, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        }
+
+        return vertexArray;
     }
 
     getAttribute(attrName)
@@ -1005,12 +1010,6 @@ export default class VertexData {
     get vertexSize()
     {
         return this._vertexSize;
-    }
-
-    /** The size (in bytes) of the raw vertex data. */
-    get size()
-    {
-        return this._numVertices * this._vertexSize;
     }
 
     static getBufferTypeForAttribute(attribute)

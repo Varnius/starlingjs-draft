@@ -13,7 +13,7 @@ export default class EventDispatcher {
 
         const listeners = this._eventListeners[type];
 
-        if (listeners == null)
+        if (!listeners)
         {
             this._eventListeners[type] = [listener];
         }
@@ -182,8 +182,8 @@ export default class EventDispatcher {
     hasEventListener(type, listener = null)
     {
         const listeners = this._eventListeners ? this._eventListeners[type] : null;
-        if (listeners === null) return false;
-        if (listener !== null) return listeners.indexOf(listener) !== -1;
+        if (!listeners) return false;
+        if (listener) return listeners.indexOf(listener) !== -1;
         return listeners.length !== 0;
     }
 }

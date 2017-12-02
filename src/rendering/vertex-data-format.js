@@ -149,7 +149,7 @@ export default class VertexDataFormat {
     {
         const { _attributes } = this;
 
-        if (format !== null && format !== '')
+        if (!!format && format !== '')
         {
             _attributes.length = 0;
             this._format = '';

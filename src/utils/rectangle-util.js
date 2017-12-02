@@ -17,7 +17,7 @@ export default class RectangleUtil {
      *  this method returns an empty Rectangle object with its properties set to 0. */
     static intersect(rect1, rect2, out = null)
     {
-        if (out === null) out = new Rectangle();
+        if (!out) out = new Rectangle();
 
         const left = rect1.x > rect2.x ? rect1.x : rect2.x;
         const right = rect1.right < rect2.right ? rect1.right : rect2.right;
@@ -45,7 +45,7 @@ export default class RectangleUtil {
     static fit(rectangle, into, scaleMode = 'showAll', pixelPerfect = false, out = null)
     {
         if (!ScaleMode.isValid(scaleMode)) throw new Error('[ArgumentError] Invalid scaleMode: ' + scaleMode);
-        if (out === null) out = new Rectangle();
+        if (!out) out = new Rectangle();
 
         let width = rectangle.width;
         let height = rectangle.height;
@@ -130,7 +130,7 @@ export default class RectangleUtil {
      *  instead of creating a new object. */
     static getBounds(rectangle, matrix, out = null)
     {
-        if (out === null) out = new Rectangle();
+        if (!out) out = new Rectangle();
 
         let minX = Number.MAX_VALUE, maxX = -Number.MAX_VALUE;
         let minY = Number.MAX_VALUE, maxY = -Number.MAX_VALUE;
@@ -158,8 +158,8 @@ export default class RectangleUtil {
      *  instead of creating a new object.</p> */
     static getBoundsProjected(rectangle, matrix, camPos, out = null)
     {
-        if (out === null) out = new Rectangle();
-        if (camPos === null) throw new Error('[ArgumentError] camPos must not be null');
+        if (!out) out = new Rectangle();
+        if (!camPos) throw new Error('[ArgumentError] camPos must not be null');
 
         let minX = Number.MAX_VALUE, maxX = -Number.MAX_VALUE;
         let minY = Number.MAX_VALUE, maxY = -Number.MAX_VALUE;
@@ -189,10 +189,10 @@ export default class RectangleUtil {
     /** Returns a vector containing the positions of the four edges of the given rectangle. */
     static getPositions(rectangle, out = null)
     {
-        if (out === null) out = []; // length 4
+        if (!out) out = []; // length 4
 
         for (let i = 0; i < 4; ++i)
-            if (out[i] === null) out[i] = new Point();
+            if (!out[i]) out[i] = new Point();
 
         out[0].x = rectangle.left;
         out[0].y = rectangle.top;
@@ -209,8 +209,8 @@ export default class RectangleUtil {
      *  they are equal (with the given accuracy 'e'). */
     static compare(r1, r2, e = 0.0001)
     {
-        if (r1 === null) return r2 === null;
-        else if (r2 === null) return false;
+        if (!r1) return !r2;
+        else if (!r2) return false;
 
         return r1.x > r2.x - e && r1.x < r2.x + e &&
             r1.y > r2.y - e && r1.y < r2.y + e &&

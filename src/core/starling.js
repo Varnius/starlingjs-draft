@@ -22,7 +22,6 @@ export default class Starling extends EventDispatcher {
     _frameID;
     _leftMouseDown;
     _statsDisplay;
-    _started;
     _rendering;
     //_supportHighResolutions:Boolean;
     _skipUnchangedFrames;
@@ -35,10 +34,10 @@ export default class Starling extends EventDispatcher {
     static sCurrent;
     static sAll = [];
 
-    constructor(rootClass, canvas, viewPort = null)
+    constructor(rootClass, canvas, viewPort = null, window)
     {
         super();
-        
+
         if (!canvas) throw new Error('[ArgumentError] Canvas must not be null');
         if (!viewPort) viewPort = new Rectangle(0, 0, canvas.width, canvas.height); // ???
 
@@ -63,7 +62,8 @@ export default class Starling extends EventDispatcher {
         //    stage.addEventListener(touchEventType, onTouch, false, 0, true);
 
         // register other event handlers
-        //stage.addEventListener(Event.ENTER_FRAME, onEnterFrame, false, 0, true);
+
+        window.requestAnimationFrame(this.nextFrame);
         //stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey, false, 0, true);
         //stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
         //stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
@@ -89,7 +89,7 @@ export default class Starling extends EventDispatcher {
 
     initializeRoot()
     {
-        if (!this._root && !this._rootClass)
+        if (!this._root && this._rootClass)
         {
             this._root = new this._rootClass();
             if (!this._root) throw new Error('Invalid root class: ' + this._rootClass);
@@ -101,7 +101,7 @@ export default class Starling extends EventDispatcher {
 
     /** Calls <code>advanceTime()</code> (with the time that has passed since the last frame)
      *  and <code>render()</code>. */
-    nextFrame()
+    nextFrame = highp =>
     {
         const now = new Date().getTime() / 1000.0;
         let passedTime = now - this._frameTimestamp;
@@ -110,12 +110,14 @@ export default class Starling extends EventDispatcher {
         // to avoid overloading time-based animations, the maximum delta is truncated.
         if (passedTime > 1.0) passedTime = 1.0;
 
-        // after about 25 days, 'getTimer()' will roll over. A rare event, but still ...
-        //if (passedTime < 0.0) passedTime = 1.0 / _nativeStage.frameRate;
+        if (this._rendering) {
+            //console.log('FRAME', highp, now)
+            this.advanceTime(passedTime);
+            this.render();
+        }
 
-        this.advanceTime(passedTime);
-        this.render();
-    }
+        //window.requestAnimationFrame(this.nextFrame); todo: NOTICE ME SENPAI!!!
+    };
 
     /** Dispatches ENTER_FRAME events on the display list, advances the Juggler
      *  and processes touches. */
@@ -150,18 +152,19 @@ export default class Starling extends EventDispatcher {
         {
             this.dispatchEventWith(Event.RENDER);
 
-            const shareContext = this._painter.shareContext;
+            //const shareContext = this._painter.shareContext;
             const scaleX = this._viewPort.width / this._stage.stageWidth;
             const scaleY = this._viewPort.height / this._stage.stageHeight;
             const stageColor = this._stage.color;
 
             this._painter.nextFrame();
             this._painter.pixelSize = 1.0 / this.contentScaleFactor;
+
             this._painter.state.setProjectionMatrix(
                 this._viewPort.x < 0 ? -this._viewPort.x / scaleX : 0.0,
                 this._viewPort.y < 0 ? -this._viewPort.y / scaleY : 0.0,
-                this._clippedViewPort.width / scaleX,
-                this._clippedViewPort.height / scaleY,
+                this._viewPort.width / scaleX,
+                this._viewPort.height / scaleY,
                 this._stage.stageWidth, this._stage.stageHeight, this._stage.cameraPosition);
 
             if (!this.shareContext)
@@ -210,10 +213,29 @@ export default class Starling extends EventDispatcher {
             //setRequiresRedraw();
         }
     }
+
     makeCurrent = () =>
     {
         Starling.sCurrent = this;
     };
+
+    // Public API
+
+    start()
+    {
+        this._rendering = true;
+        this._frameTimestamp = new Date().getTime() / 1000.0;
+    }
+
+    stop()
+    {
+        this._rendering = false;
+    }
+
+    get isStarted()
+    {
+        return this._rendering;
+    }
 
     get contentScaleFactor()
     {
@@ -225,8 +247,23 @@ export default class Starling extends EventDispatcher {
         return this._stage;
     }
 
+    get context()
+    {
+        return this._painter.context;
+    }
+
     static get current()
     {
         return Starling.sCurrent;
+    }
+
+    static get context()
+    {
+        return Starling.sCurrent ? Starling.sCurrent.context : null;
+    }
+
+    static get painter()
+    {
+        return Starling.sCurrent ? Starling.sCurrent._painter : null;
     }
 }

@@ -15,7 +15,7 @@ export default class MatrixUtil {
      *  the result will be stored in this matrix instead of creating a new object. */
     static convertTo3D(matrix, out = null)
     {
-        if (out === null) out = new Matrix3D();
+        if (!out) out = new Matrix3D();
         const { sRawData } = MatrixUtil;
 
         sRawData[0] = matrix.a;
@@ -33,7 +33,7 @@ export default class MatrixUtil {
      *  describing a pure 2D transformation. */
     static convertTo2D(matrix3D, out = null)
     {
-        if (out === null) out = new Matrix();
+        if (!out) out = new Matrix();
         const { sRawData2 } = MatrixUtil;
 
         matrix3D.copyRawDataTo(sRawData2);
@@ -85,7 +85,7 @@ export default class MatrixUtil {
      *  a new object. */
     static transformCoords(matrix, x, y, out = null)
     {
-        if (out === null) out = new Point();
+        if (!out) out = new Point();
 
         out.x = matrix.a * x + matrix.c * y + matrix.tx;
         out.y = matrix.d * y + matrix.b * x + matrix.ty;
@@ -311,10 +311,10 @@ export default class MatrixUtil {
                                              out = null)
     {
         const { sPoint3D, sMatrixData } = MatrixUtil;
-        if (out === null) out = new Matrix3D();
+        if (!out) out = new Matrix3D();
         if (stageWidth <= 0) stageWidth = width;
         if (stageHeight <= 0) stageHeight = height;
-        if (cameraPos === null)
+        if (!cameraPos)
         {
             cameraPos = sPoint3D;
             cameraPos.setTo(
@@ -355,7 +355,7 @@ export default class MatrixUtil {
     /** Creates a orthographic projection matrix suitable for 2D rendering. */
     static createOrthographicProjectionMatrix(x, y, width, height, out = null)
     {
-        if (out === null) out = new Matrix();
+        if (!out) out = new Matrix();
 
         out.setTo(2.0 / width, 0, 0, -2.0 / height, -(2 * x + width) / width, (2 * y + height) / height);
 

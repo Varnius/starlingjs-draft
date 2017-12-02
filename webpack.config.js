@@ -1,16 +1,21 @@
+const path = require('path');
+
 module.exports = {
     devtool: '#eval-cheap-module-source-map',
-    entry: './src/index.js',
+    entry: {
+        examples: './examples/index.js',
+    },
     output: {
         path: '/dist',
-        filename: 'bundle.js',
+        filename: '[name].bundle.js',
+        publicPath: '/static/',
     },
     stats: {
         errorDetails: true,
     },
     module: {
         rules: [
-            { test: /\.js?/, use: 'babel-loader', include: 'src' },
+            { test: /\.js?/, use: 'babel-loader', include: path.join(__dirname, 'src') },
         ],
     },
 };

@@ -84,7 +84,7 @@ export default class RenderState {
     {
         const { _clipRect } = this;
 
-        if (this._onDrawRequired != null)
+        if (!!this._onDrawRequired)
         {
             const currentTarget = this._renderTarget ? this._renderTarget.base : null;
             const nextTarget = renderState._renderTarget ? renderState._renderTarget.base : null;
@@ -136,7 +136,7 @@ export default class RenderState {
         if (this._projectionMatrix3D) this._projectionMatrix3D.identity();
         else this._projectionMatrix3D = new Matrix3D();
 
-        if (this._mvpMatrix3D === null) this._mvpMatrix3D = new Matrix3D();
+        if (!this._mvpMatrix3D) this._mvpMatrix3D = new Matrix3D();
     }
 
     // matrix methods / properties
@@ -153,7 +153,7 @@ export default class RenderState {
      */
     transformModelviewMatrix3D(matrix)
     {
-        if (this._modelviewMatrix3D === null)
+        if (!this._modelviewMatrix3D)
             this._modelviewMatrix3D = Pool.getMatrix3D();
 
         this._modelviewMatrix3D.prepend(MatrixUtil.convertTo3D(this._modelviewMatrix, RenderState.sMatrix3D));
@@ -223,7 +223,7 @@ export default class RenderState {
     {
         if (value)
         {
-            if (this._modelviewMatrix3D === null) this._modelviewMatrix3D = Pool.getMatrix3D(false);
+            if (!this._modelviewMatrix3D) this._modelviewMatrix3D = Pool.getMatrix3D(false);
             this._modelviewMatrix3D.copyFrom(value);
         }
         else if (this._modelviewMatrix3D)
@@ -280,7 +280,7 @@ export default class RenderState {
 
         if (currentTarget !== newTarget || optionsChange)
         {
-            if (_onDrawRequired != null) _onDrawRequired();
+            if (!!_onDrawRequired) _onDrawRequired();
 
             this._renderTarget = target;
             this._miscOptions = (_miscOptions & 0xffffff00) | newOptions;
@@ -362,7 +362,7 @@ export default class RenderState {
     {
         if (this.culling !== value)
         {
-            if (this._onDrawRequired !== null) this._onDrawRequired();
+            if (!!this._onDrawRequired) this._onDrawRequired();
 
             const index = RenderState.CULLING_VALUES.indexOf(value);
             if (index === -1) throw new Error('[ArgumentError] Invalid culling mode');
@@ -389,7 +389,7 @@ export default class RenderState {
             if (this._onDrawRequired) this._onDrawRequired();
             if (value)
             {
-                if (this._clipRect === null) this._clipRect = Pool.getRectangle();
+                if (!this._clipRect) this._clipRect = Pool.getRectangle();
                 this._clipRect.copyFrom(value);
             }
             else if (this._clipRect)
@@ -418,7 +418,7 @@ export default class RenderState {
      *  Returns <code>true</code> if the 3D modelview matrix contains a value. */
     get is3D()
     {
-        return this._modelviewMatrix3D !== null;
+        return !!this._modelviewMatrix3D;
     }
 
     /** @private

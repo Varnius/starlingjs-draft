@@ -26,7 +26,7 @@ export default class DisplayObject extends EventDispatcher {
     static sHelperMatrix = new Matrix();
     static sHelperMatrixAlt = new Matrix();
     static sHelperMatrix3D = new Matrix3D();
-    static sHelperMatrixAlt3DD = new Matrix3D();
+    static sHelperMatrixAlt3D = new Matrix3D();
     static sMaskWarningShown = false;
 
     _x = 0.0;
@@ -209,7 +209,7 @@ export default class DisplayObject extends EventDispatcher {
 
             const helperPoint = localPoint === sHelperPoint ? new Point() : sHelperPoint;
             MatrixUtil.transformPoint(DisplayObject.sHelperMatrixAlt, localPoint, helperPoint);
-            return _mask.hitTest(helperPoint) !== null;
+            return !!_mask.hitTest(helperPoint);
         }
 
         return true;
@@ -400,7 +400,7 @@ export default class DisplayObject extends EventDispatcher {
     {
         // check for a recursion
         let ancestor = value;
-        while (ancestor !== this && ancestor != null)
+        while (ancestor !== this && !!ancestor)
             ancestor = ancestor._parent;
 
         if (ancestor === this)
@@ -420,7 +420,7 @@ export default class DisplayObject extends EventDispatcher {
     /** @private */
     get isMask()
     {
-        return this._maskee !== null;
+        return !!this._maskee;
     }
 
     // render cache
@@ -443,10 +443,11 @@ export default class DisplayObject extends EventDispatcher {
         const frameID = Starling.frameID;
 
         this._lastParentOrSelfChangeFrameID = frameID;
+
         this._hasVisibleArea = (
             _alpha !== 0.0
             && _visible
-            && _maskee === null
+            && !_maskee
             && _scaleX !== 0.0
             && _scaleY !== 0.0
         );
@@ -560,7 +561,7 @@ export default class DisplayObject extends EventDispatcher {
     /** @inheritDoc */
     removeEventListeners(type = null)
     {
-        if ((type === null || type === Event.ENTER_FRAME) && this.hasEventListener(Event.ENTER_FRAME))
+        if ((!type || type === Event.ENTER_FRAME) && this.hasEventListener(Event.ENTER_FRAME))
         {
             this.removeEventListener(Event.ADDED_TO_STAGE, this.addEnterFrameListenerToStage);
             this.removeEventListener(Event.REMOVED_FROM_STAGE, this.removeEnterFrameListenerFromStage);
@@ -688,7 +689,7 @@ export default class DisplayObject extends EventDispatcher {
     {
         // this method needs to be overridden in 3D-supporting subclasses (like Sprite3D).
 
-        if (this._transformationMatrix3D === null)
+        if (!this._transformationMatrix3D)
             this._transformationMatrix3D = new Matrix3D();
 
         return MatrixUtil.convertTo3D(this.transformationMatrix, this._transformationMatrix3D);
@@ -700,7 +701,7 @@ export default class DisplayObject extends EventDispatcher {
         return this._is3D;
     }
 
-    /** Indicates if the mouse cursor should transform into a hand while it's over the sprite.
+    /** Indicates if th e mouse cursor should transform into a hand while it's over the sprite.
      *  @default false */
     get useHandCursor()
     {

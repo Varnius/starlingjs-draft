@@ -3,19 +3,36 @@ import Rectangle from './rectangle';
 
 export default class Matrix3D {
 
-    _data = [];
-
-    constructor(v = [
+    static identity = new Float32Array([
         1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1,
-    ]) // todo: is gut?
+    ]);
+
+    _data = new Float32Array(16);
+
+    constructor(v = Matrix3D.identity)
     {
         const le = v.length;
         for (let i = 0; i < le; ++i)
         {
             this._data[i] = v[i];
+        }
+    }
+
+    get rawData()
+    {
+        return this._data;
+    }
+
+    identity()
+    {
+        const identity = Matrix3D.identity;
+        const le = identity.length;
+        for (let i = 0; i < le; ++i)
+        {
+            this._data[i] = identity[i];
         }
     }
 
@@ -780,5 +797,28 @@ export default class Matrix3D {
         target[13] = this.m31;
         target[14] = this.m32;
         target[15] = this.m33;
+    }
+
+    copyRawDataFrom(target)
+    {
+        const { _data } = this;
+        
+        _data[0] = target[0];
+        _data[1] = target[1];
+        _data[2] = target[2];
+        _data[3] = target[3];
+        _data[4] = target[4];
+        _data[5] = target[5];
+        _data[6] = target[6];
+        _data[7] = target[7];
+
+        _data[8] = target[8];
+        _data[9] = target[9];
+        _data[10] = target[10];
+        _data[11] = target[11];
+        _data[12] = target[12];
+        _data[13] = target[13];
+        _data[14] = target[14];
+        _data[15] = target[15];
     }
 }

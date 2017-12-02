@@ -1,19 +1,20 @@
 const webpack = require('webpack');
+const path = require('path');
 
 module.exports = {
     devtool: 'source-map',
-    entry: './src/index.js',
+    entry: path.join(__dirname, './src/index.js'),
     output: {
-        path: '/dist',
-        filename: '[name].bundle.js',
-        sourceMapFilename: '[file].map',
+        path: path.join(__dirname, './dist'),
+        filename: 'bundle.js',
+        //sourceMapFilename: '[file].map',
     },
     stats: {
         errorDetails: true,
     },
     module: {
         rules: [
-            { test: /\.js?/, use: 'babel-loader', include: 'src' },
+            { test: /\.js?/, use: 'babel-loader', include: path.join(__dirname, 'src') },
         ],
     },
     plugins: [

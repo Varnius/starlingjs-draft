@@ -53,9 +53,9 @@ export default class BatchProcessor {
      */
     addMesh(mesh, state, subset = null, ignoreTransformations = false)
     {
-        const { _currentBatch, _cacheToken } = this;
+        const { _cacheToken } = this;
 
-        if (subset === null)
+        if (!subset)
         {
             subset = BatchProcessor.sMeshSubset;
             subset.vertexID = subset.indexID = 0;
@@ -70,7 +70,7 @@ export default class BatchProcessor {
 
         if (subset.numVertices > 0)
         {
-            if (_currentBatch === null || !_currentBatch.canAddMesh(mesh, subset.numVertices))
+            if (!this._currentBatch || !this._currentBatch.canAddMesh(mesh, subset.numVertices))
             {
                 this.finishBatch();
 
@@ -81,10 +81,10 @@ export default class BatchProcessor {
                 this._batches[this._batches.length] = this._currentBatch;
             }
 
-            const matrix = state ? this.state._modelviewMatrix : null;
-            const alpha = state ? this.state._alpha : 1.0;
+            const matrix = state ? state._modelviewMatrix : null;
+            const alpha = state ? state._alpha : 1.0;
 
-            _currentBatch.addMesh(mesh, matrix, alpha, subset, ignoreTransformations);
+            this._currentBatch.addMesh(mesh, matrix, alpha, subset, ignoreTransformations);
             _cacheToken.vertexID += subset.numVertices;
             _cacheToken.indexID += subset.numIndices;
         }
@@ -101,7 +101,7 @@ export default class BatchProcessor {
             this._currentBatch = null;
             this._currentStyleType = null;
 
-            if (this._onBatchComplete !== null)
+            if (this._onBatchComplete)
                 this._onBatchComplete(meshBatch);
         }
     }
@@ -163,11 +163,11 @@ export default class BatchProcessor {
 }
 
 class BatchPool {
-    _batchLists; // todo: dic
+    _batchLists;
 
     constructor()
     {
-        this._batchLists = {};
+        this._batchLists = new Map();
     }
 
     purge()
@@ -184,7 +184,7 @@ class BatchPool {
     get(styleType)
     {
         let batchList = this._batchLists[styleType];
-        if (batchList === null)
+        if (!batchList)
         {
             batchList = [];
             this._batchLists[styleType] = batchList;
@@ -198,7 +198,7 @@ class BatchPool {
     {
         const styleType = meshBatch.style.type;
         let batchList = this._batchLists[styleType];
-        if (batchList === null)
+        if (!batchList)
         {
             batchList = [];
             this._batchLists[styleType] = batchList;

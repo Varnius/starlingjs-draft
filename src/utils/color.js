@@ -136,7 +136,7 @@ export default class Color {
      *  between 0 and 1. */
     static toVector(color, out = null)
     {
-        if (out === null) out = [];
+        if (!out) out = [];
 
         out[0] = ((color >> 16) & 0xff) / 255.0;
         out[1] = ((color >> 8) & 0xff) / 255.0;

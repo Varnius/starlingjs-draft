@@ -85,7 +85,7 @@ export default class Painter {
     _stateStackLength;
 
     // shared data
-    static sSharedData = {};
+    static sSharedData = new Map();
 
     // helper objects
     static sMatrix = new Matrix();
@@ -154,7 +154,7 @@ export default class Painter {
         if (!this._shareContext)
         {
             this._context.dispose(false);
-            Painter.sSharedData = {};
+            Painter.sSharedData = new Map();
         }
     }
 
@@ -183,9 +183,7 @@ export default class Painter {
      *  this name has been registered. */
     getProgram(name)
     {
-        console.log('TODO');
-        return null;
-        //return this.programs[name] instanceof Program ? this.programs[name] : null;
+        return this.programs[name];
     }
 
     /** Indicates if a program is registered under a certain name. */
@@ -219,8 +217,7 @@ export default class Painter {
      *  @param blendMode            Replaces the current blend mode; except for 'auto', which
      *                              means the current value remains unchanged.
      */
-    setStateTo(transformationMatrix, alphaFactor = 1.0,
-               blendMode = 'auto')
+    setStateTo(transformationMatrix, alphaFactor = 1.0, blendMode = 'auto')
     {
         if (transformationMatrix) MatrixUtil.prependMatrix(this._state._modelviewMatrix, transformationMatrix);
         if (alphaFactor !== 1.0) this._state._alpha *= alphaFactor;
@@ -456,10 +453,10 @@ export default class Painter {
     }
 
     /** Finishes the current mesh batch and prepares the next one. */
-    finishMeshBatch()
+    finishMeshBatch = () =>
     {
         this._batchProcessor.finishBatch();
-    }
+    };
 
     /** Completes all unfinished batches, cleanup procedures. */
     finishFrame()
@@ -487,6 +484,7 @@ export default class Painter {
     {
         // update batch processors
         this._batchProcessor = this.swapBatchProcessors();
+
         this._batchProcessor.clear();
         this._batchProcessorSpec.clear();
 
@@ -568,7 +566,7 @@ export default class Painter {
         if (object) this._batchCacheExclusions[this._batchCacheExclusions.length] = object;
     }
 
-    drawBatch(meshBatch)
+    drawBatch = meshBatch =>
     {
         this.pushState();
 
@@ -591,7 +589,7 @@ export default class Painter {
     {
         this.applyBlendMode();
         this.applyRenderTarget();
-        this.applyClipRect();
+        //this.applyClipRect(); // todo: implement
         this.applyCulling();
     }
 
@@ -629,7 +627,8 @@ export default class Painter {
 
         if (culling !== this._actualCulling)
         {
-            this._context.setCulling(culling);
+            //this._context.setCulling(culling);
+            console.log('todo: setCulling')
             this._actualCulling = culling;
         }
     }
@@ -646,12 +645,17 @@ export default class Painter {
             {
                 const antiAlias = _state.renderTargetAntiAlias;
                 const depthAndStencil = _state.renderTargetSupportsDepthAndStencil;
-                _context.setRenderToTexture(target, depthAndStencil, antiAlias);
+                //_context.setRenderToTexture(target, depthAndStencil, antiAlias);
+                console.log('todo: setRenderToTexture')
             }
             else
-                _context.setRenderToBackBuffer();
+            {
+                //_context.setRenderToBackBuffer();
+                console.log('todo: setRenderToBackBuffer')
+            }
 
-            _context.setStencilReferenceValue(this.stencilReferenceValue);
+            //_context.setStencilReferenceValue(this.stencilReferenceValue);
+            console.log('todo: setStencilReferenceValue')
             this._actualRenderTargetOptions = options;
             this._actualRenderTarget = target;
         }
@@ -865,22 +869,22 @@ export default class Painter {
      *  be available for all Starling instances that use this stage3D / context. */
     get sharedData()
     {
-        let data = Painter.sSharedData[this.stage3D]; //todo: dictionary
-        if (data === null)
+        let data = Painter.sSharedData[this._context];
+        if (!data)
         {
-            data = {};
-            Painter.sSharedData[this.stage3D] = data;
+            data = new Map();
+            Painter.sSharedData[this._context] = data;
         }
         return data;
     }
 
     get programs() // eslint-disable-line
     {
-        let programs = Painter.sharedData[Painter.PROGRAM_DATA_NAME]; // todo: dic
-        if (programs === null)
+        let programs = this.sharedData[Painter.PROGRAM_DATA_NAME];
+        if (!programs)
         {
-            programs = {};
-            Painter.sharedData[Painter.PROGRAM_DATA_NAME] = programs;
+            programs = new Map();
+            this.sharedData[Painter.PROGRAM_DATA_NAME] = programs;
         }
         return programs;
     }

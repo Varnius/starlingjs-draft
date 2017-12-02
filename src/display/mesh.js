@@ -41,8 +41,8 @@ export default class Mesh extends DisplayObject {
     {
         super();
 
-        if (vertexData === null) throw new Error('[ArgumentError] VertexData must not be null');
-        if (indexData === null) throw new Error('[ArgumentError] IndexData must not be null');
+        if (!vertexData) throw new Error('[ArgumentError] VertexData must not be null');
+        if (!indexData) throw new Error('[ArgumentError] IndexData must not be null');
 
         this._vertexData = vertexData;
         this._indexData = indexData;
@@ -119,7 +119,7 @@ export default class Mesh extends DisplayObject {
     {
         let meshStyle;
 
-        if (Mesh.sDefaultStyleFactory !== null)
+        if (!!Mesh.sDefaultStyleFactory)
         {
             if (Mesh.sDefaultStyleFactory.length === 0) meshStyle = Mesh.sDefaultStyleFactory();
             else meshStyle = Mesh.sDefaultStyleFactory(this);

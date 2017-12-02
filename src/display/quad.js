@@ -107,7 +107,7 @@ export default class Quad extends Mesh {
     {
         const { _bounds, isRotated, x, y, pivotY, pivotX } = this;
         const { sMatrix3D, sPoint3D, sMatrix } = Quad;
-        if (out === null) out = new Rectangle();
+        if (!out) out = new Rectangle();
 
         if (targetSpace === this) // optimization
         {
@@ -196,7 +196,8 @@ export default class Quad extends Mesh {
      *  objects can make use of a texture frame, only a property on the Quad class can do that.
      *  </p>
      */
-    get texture() {
+    get texture()
+    {
         return super.texture;
     }
 

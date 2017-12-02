@@ -1,5 +1,5 @@
 import Effect from './effect';
-
+import TextureSmoothing from '../textures/texture-smoothing';
 import RenderUtil from '../utils/render-util';
 
 /** An effect drawing a mesh of textured vertices.

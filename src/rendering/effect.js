@@ -1,8 +1,8 @@
 import Starling from '../core/starling';
-
+import { STATIC_DRAW } from 'gl-constants';
 import VertexDataFormat from './vertex-data-format';
-
 import Matrix3D from '../math/matrix3d';
+import Program from './program';
 
 /** An effect encapsulates all steps of a Stage3D draw operation. It configures the
  *  render context and sets up shader programs as well as index- and vertex-buffers, thus
@@ -82,7 +82,6 @@ export default class Effect {
     static VERTEX_FORMAT = VertexDataFormat.fromString('position:float2');
 
     _vertexBuffer;
-    _vertexBufferSize; // in bytes
     _indexBuffer;
     _indexBufferSize;  // in number of indices
     _indexBufferUsesQuadLayout;
@@ -98,11 +97,11 @@ export default class Effect {
     constructor()
     {
         this._mvpMatrix3D = new Matrix3D();
-        this._programBaseName = getQualifiedClassName(this);
+        this._programBaseName = this.constructor.name; // todo: vs getQualifiedClassName
 
         // Handle lost context (using conventional Flash event for weak listener support)
-        Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
-            this.onContextCreated, false, 20, true);
+        //Starling.current.stage3D.addEventListener(Event.CONTEXT3D_CREATE,
+        //    this.onContextCreated, false, 20, true);
     }
 
     /** Purges the index- and vertex-buffers. */
@@ -159,31 +158,9 @@ export default class Effect {
      *                     <code>Context3DBufferUsage</code>. Only used when the method call
      *                     causes the creation of a new index buffer.
      */
-    uploadIndexData(indexData, bufferUsage = 'staticDraw')
+    uploadIndexData(indexData, bufferUsage = STATIC_DRAW)
     {
-        const numIndices = indexData.numIndices;
-        const isQuadLayout = indexData.useQuadLayout;
-        const wasQuadLayout = this._indexBufferUsesQuadLayout;
-
-        if (this._indexBuffer)
-        {
-            if (numIndices <= this._indexBufferSize)
-            {
-                if (!isQuadLayout || !wasQuadLayout)
-                {
-                    indexData.uploadToIndexBuffer(this._indexBuffer);
-                    this._indexBufferUsesQuadLayout = isQuadLayout && numIndices === this._indexBufferSize;
-                }
-            }
-            else
-                this.purgeBuffers(false, true);
-        }
-        if (this._indexBuffer === null)
-        {
-            this._indexBuffer = indexData.createIndexBuffer(true, bufferUsage);
-            this._indexBufferSize = numIndices;
-            this._indexBufferUsesQuadLayout = isQuadLayout;
-        }
+        this._indexBuffer = indexData.uploadToIndexBuffer(bufferUsage);
     }
 
     /** Uploads the given vertex data to the internal vertex buffer. If the buffer is too
@@ -194,21 +171,9 @@ export default class Effect {
      *                     <code>Context3DBufferUsage</code>. Only used when the method call
      *                     causes the creation of a new vertex buffer.
      */
-    uploadVertexData(vertexData,
-                     bufferUsage = 'staticDraw')
+    uploadVertexData(vertexData, bufferUsage = STATIC_DRAW)
     {
-        if (this._vertexBuffer)
-        {
-            if (vertexData.size <= this._vertexBufferSize)
-                vertexData.uploadToVertexBuffer(this._vertexBuffer);
-            else
-                this.purgeBuffers(true, false);
-        }
-        if (this._vertexBuffer === null)
-        {
-            this._vertexBuffer = vertexData.createVertexBuffer(true, bufferUsage);
-            this._vertexBufferSize = vertexData.size;
-        }
+        this._vertexBuffer = vertexData.uploadToVertexBuffer(bufferUsage);
     }
 
     // rendering
@@ -222,10 +187,11 @@ export default class Effect {
         if (numTriangles === 0) return;
 
         const context = Starling.context;
-        if (context === null) throw new Error('[MissingContextError]');
+        if (!context) throw new Error('[MissingContextError]');
 
         this.beforeDraw(context);
-        context.drawTriangles(this.indexBuffer, firstIndex, numTriangles);
+        //context.drawTriangles(this.indexBuffer, firstIndex, numTriangles);
+        console.log('todo: implement drawTriangles')
         this.afterDraw(context);
     }
 
@@ -238,19 +204,29 @@ export default class Effect {
      *    <li><code>va0</code> — vertex position (xy)</li>
      *  </ul>
      */
-    beforeDraw(context)
+    beforeDraw(gl)
     {
-        this.program.activate(context);
-        this.vertexFormat.setVertexBufferAt(0, this.vertexBuffer, 'position');
-        context.setProgramConstantsFromMatrix(Context3DProgramType.VERTEX, 0, this.mvpMatrix3D, true);
+        this.program.activate(gl);
+
+        const nativeProgram = this.program.nativeProgram;
+
+        console.log('implemented: Effect: bind vertex array, set uniforms');
+
+        gl.bindVertexArray(this._vertexBuffer); // todo: rename to vertexArray
+        gl.bindAttribLocation(nativeProgram, 0, 'a_position');
+
+        const mvpMatrixLoc = gl.getUniformLocation(nativeProgram, 'u_mvpMatrix');
+        gl.uniformMatrix4fv(mvpMatrixLoc, false, this.mvpMatrix3D.rawData);
     }
 
     /** This method is called by <code>render</code>, directly after
      *  <code>context.drawTriangles</code>. Resets vertex buffer attributes.
      */
-    afterDraw(context)
+    afterDraw(gl)
     {
-        context.setVertexBufferAt(0, null);
+        //context.setVertexBufferAt(0, null);
+        console.log('implemented: unbind vertex array');
+        gl.bindVertexArray(null);
     }
 
     // program management
@@ -262,15 +238,32 @@ export default class Effect {
      *
      *  <p>The basic implementation always outputs pure white.</p>
      */
-    createProgram() // eslint-disable-line
+    createProgram()
     {
-        const vertexShader = [
-            'm44 op, va0, vc0', // 4x4 matrix transform to output clipspace
-            'seq v0, va0, va0',  // this is a hack that always produces '1'
-        ].join('\n');
+        const vertexShader = `#version 300 es
+            uniform mat4 u_viewProj;
 
-        const fragmentShader =
-            'mov oc, v0';       // output color: white
+            in vec4 a_position;
+
+            out vec4 v_color;
+
+            void main() {
+                gl_Position = u_viewProj * a_position;
+                v_color = vec4(1, 1, 1, 1);
+            }
+        `;
+
+        const fragmentShader = `#version 300 es
+            precision highp float;
+
+            in vec4 v_color;
+
+            out vec4 color;
+
+            void main() {
+               color = vec4(1, 0, 0, 1);  // red
+            }
+        `;
 
         return Program.fromSource(vertexShader, fragmentShader);
     }
@@ -312,7 +305,7 @@ export default class Effect {
         const variantName = this.programVariantName;
         let nameCache = Effect.sProgramNameCache[baseName];
 
-        if (nameCache === null)
+        if (!nameCache)
         {
             nameCache = new Map();
             Effect.sProgramNameCache[baseName] = nameCache;
@@ -320,7 +313,7 @@ export default class Effect {
 
         let name = nameCache[variantName];
 
-        if (name === null)
+        if (!name)
         {
             if (variantName) name = baseName + '#' + variantName.toString(16);
             else name = baseName;
@@ -340,7 +333,7 @@ export default class Effect {
         const painter = Starling.painter;
         let program = painter.getProgram(name);
 
-        if (program === null)
+        if (!program)
         {
             program = this.createProgram();
             painter.registerProgram(name, program);
@@ -398,11 +391,5 @@ export default class Effect {
     get vertexBuffer()
     {
         return this._vertexBuffer;
-    }
-
-    /** The current size of the vertex buffer (in blocks of 32 bits). */
-    get vertexBufferSize()
-    {
-        return this._vertexBufferSize;
     }
 }

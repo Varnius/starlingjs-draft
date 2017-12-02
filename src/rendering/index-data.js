@@ -1,3 +1,6 @@
+import { STATIC_DRAW } from 'gl-constants';
+import Starling from '../core/starling';
+
 /** The IndexData class manages a raw list of vertex indices, allowing direct upload
  *  to Stage3D index buffers. <em>You only have to work with this class if you're writing
  *  your own rendering code (e.g. if you create custom display objects).</em>
@@ -396,27 +399,22 @@ export default class IndexData {
 
     // IndexBuffer helpers
 
-    /** Creates an index buffer object with the right size to fit the complete data.
-     *  Optionally, the current data is uploaded right away. */
-    //createIndexBuffer(upload = false, bufferUsage = 'staticDraw')
-    //{
-    //if (_numIndices == 0) return null;
-    //
-    //var buffer:IndexBuffer3D = context.createIndexBuffer(_numIndices, bufferUsage);
-    //
-    //if (upload) uploadToIndexBuffer(buffer);
-    //return buffer;
-    //}
 
     /** Uploads the complete data (or a section of it) to the given index buffer. */
-    //uploadToIndexBuffer(buffer, indexID = 0, numIndices = -1)
-    //{
-    //if (numIndices < 0 || indexID + numIndices > _numIndices)
-    //    numIndices = _numIndices - indexID;
-    //
-    //if (numIndices > 0)
-    //    buffer.uploadFromByteArray(rawData, 0, indexID, numIndices);
-    //}
+    uploadToIndexBuffer(bufferUsage = STATIC_DRAW)
+    {
+        if (this._numIndices === 0) return null;
+        const gl = Starling.context;
+
+        console.log('implemented: create&upload to index buffer')
+
+        const indexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._rawData, bufferUsage);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        return indexBuffer;
+    }
 
     // properties
 
@@ -477,12 +475,6 @@ export default class IndexData {
         this.numIndices = value * 6;
     }
 
-    /** The number of bytes required for each index value. */
-    //get indexSizeInBytes()
-    //{
-    //    return IndexData.INDEX_SIZE;
-    //}
-
     /** Indicates if all indices are following the basic quad layout.
      *
      *  <p>This property is automatically updated if an index is set to a value that violates
@@ -516,12 +508,4 @@ export default class IndexData {
             else this.switchToGenericData();
         }
     }
-
-    /** The raw index data; not a copy! Beware: the referenced ByteArray may change any time.
-     *  Never store a reference to it, and never modify its contents manually. */
-//    get rawData():ByteArray
-//{
-//    if (_useQuadLayout) return sQuadData;
-//    else return _rawData;
-//}
 }

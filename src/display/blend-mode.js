@@ -106,8 +106,8 @@ export default class BlendMode {
     /** Sets the appropriate blend factors for source and destination on the current context. */
     activate()
     {
-        console.log('IMPLEMENT ME!!');
         //Starling.context.setBlendFactors(this._sourceFactor, this._destinationFactor);
+        console.log('todo: setBlendFactors');
     }
 
     /** Returns the name of the blend mode. */

@@ -530,7 +530,7 @@ export default class Texture {
      *  to the local coordinate system. */
     globalToLocal(u, v, out = null)
     {
-        if (out === null) out = new Point();
+        if (!out) out = new Point();
         if (this === this.root) out.setTo(u, v);
         else
         {
@@ -557,7 +557,7 @@ export default class Texture {
      *  will always contain the coordinates in the root texture's coordinate system!) */
     getTexCoords(vertexData, vertexID, attrName = 'texCoords', out = null)
     {
-        if (out == null) out = new Point();
+        if (!out) out = new Point();
         vertexData.getPoint(vertexID, attrName, out);
         return this.globalToLocal(out.x, out.y, out);
     }

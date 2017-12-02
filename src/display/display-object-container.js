@@ -269,7 +269,7 @@ export default class DisplayObjectContainer extends DisplayObject {
     /** @inheritDoc */
     getBounds(targetSpace, out = null)
     {
-        if (out === null) out = new Rectangle();
+        if (!out) out = new Rectangle();
 
         const numChildren = this._children.length;
 

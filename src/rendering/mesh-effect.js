@@ -1,4 +1,5 @@
 import FilterEffect from './filter-effect';
+import Program from './program';
 
 /** An effect drawing a mesh of textured, colored vertices.
  *  This is the standard effect that is the base for all mesh styles;
@@ -34,7 +35,7 @@ export default class MeshEffect extends FilterEffect {
 
         super();
         this._alpha = 1.0;
-        this._optimizeIfNotTinted = getQualifiedClassName(this) == 'starling.rendering::MeshEffect';
+        this._optimizeIfNotTinted = false; // todo: optimize or not?
     }
 
     /** @private */
@@ -47,31 +48,54 @@ export default class MeshEffect extends FilterEffect {
     /** @private */
     createProgram()
     {
-        let vertexShader, fragmentShader;
-
         if (this.texture)
         {
-            if (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0)
-                return super.createProgram();
-
-            vertexShader =
-                'm44 op, va0, vc0 \n' + // 4x4 matrix transform to output clip-space
-                'mov v0, va1      \n' + // pass texture coordinates to fragment program
-                'mul v1, va2, vc4 \n';  // multiply alpha (vc4) with color (va2), pass to fp
-
-            fragmentShader =
-                FilterEffect.tex('ft0', 'v0', 0, this.texture) +
-                'mul oc, ft0, v1  \n';  // multiply color with texel color
+            //if (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0)
+            //    return super.createProgram();
+            //
+            //vertexShader =
+            //    'm44 op, va0, vc0 \n' + // 4x4 matrix transform to output clip-space
+            //    'mov v0, va1      \n' + // pass texture coordinates to fragment program
+            //    'mul v1, va2, vc4 \n';  // multiply alpha (vc4) with color (va2), pass to fp
+            //
+            //fragmentShader =
+            //    FilterEffect.tex('ft0', 'v0', 0, this.texture) +
+            //    'mul oc, ft0, v1  \n';  // multiply color with texel color
         }
         else
         {
-            vertexShader =
-                'm44 op, va0, vc0 \n' + // 4x4 matrix transform to output clipspace
-                'mul v0, va2, vc4 \n';  // multiply alpha (vc4) with color (va2)
-
-            fragmentShader =
-                'mov oc, v0       \n';  // output color
+            //vertexShader =
+            //    'm44 op, va0, vc0 \n' + // 4x4 matrix transform to output clipspace
+            //    'mul v0, va2, vc4 \n';  // multiply alpha (vc4) with color (va2)
+            //
+            //fragmentShader =
+            //    'mov oc, v0       \n';  // output color
         }
+
+        const vertexShader = `#version 300 es
+            uniform mat4 u_viewProj;
+
+            in vec4 a_position;
+
+            out vec4 v_color;
+
+            void main() {
+                gl_Position = u_viewProj * a_position;
+                v_color = vec4(1, 1, 1, 1);
+            }
+        `;
+
+        const fragmentShader = `#version 300 es
+            precision highp float;
+
+            in vec4 v_color;
+
+            out vec4 color;
+
+            void main() {
+               color = vec4(1, 0, 0, 1);  // red
+            }
+        `;
 
         return Program.fromSource(vertexShader, fragmentShader);
     }
@@ -89,24 +113,23 @@ export default class MeshEffect extends FilterEffect {
      *    <li><code>fs0</code> — texture</li>
      *  </ul>
      */
-    beforeDraw(context)
+    beforeDraw(gl)
     {
-        super.beforeDraw(context);
+        super.beforeDraw(gl);
 
         MeshEffect.sRenderAlpha[0] = MeshEffect.sRenderAlpha[1] = MeshEffect.sRenderAlpha[2] = MeshEffect.sRenderAlpha[3] = this._alpha;
-        context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, MeshEffect.sRenderAlpha);
+        //context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, MeshEffect.sRenderAlpha);
+        console.log('implemented: MeshEffect: bind vertex array, set uniforms');
 
-        if (this._tinted || this._alpha !== 1.0 || !this._optimizeIfNotTinted || this.texture === null)
-            this.vertexFormat.setVertexBufferAt(2, this.vertexBuffer, 'color');
-    }
+        const nativeProgram = this.program.nativeProgram;
+        const alphaUniformLoc = gl.getUniformLocation(nativeProgram, 'u_renderAlpha');
+        gl.uniform4fv(alphaUniformLoc, new Float32Array(MeshEffect.sRenderAlpha)); // todo: reuse same array?
 
-    /** This method is called by <code>render</code>, directly after
-     *  <code>context.drawTriangles</code>. Resets texture and vertex buffer attributes. */
-    afterDraw(context)
-    {
-        context.setVertexBufferAt(2, null);
-
-        super.afterDraw(context);
+        if (this._tinted || this._alpha !== 1.0 || !this._optimizeIfNotTinted || !this.texture)
+        {
+            //this.vertexFormat.setVertexBufferAt(2, this.vertexBuffer, 'color');
+            gl.bindAttribLocation(nativeProgram, 2, 'a_color');
+        }
     }
 
     /** The data format that this effect requires from the VertexData that it renders:

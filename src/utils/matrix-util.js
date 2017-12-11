@@ -137,12 +137,14 @@ export default class MatrixUtil {
     /** Prepends a matrix to 'base' by multiplying it with another matrix. */
     static prependMatrix(base, prep)
     {
-        base.setTo(base.a * prep.a + base.c * prep.b,
+        base.setTo(
+            base.a * prep.a + base.c * prep.b,
             base.b * prep.a + base.d * prep.b,
             base.a * prep.c + base.c * prep.d,
             base.b * prep.c + base.d * prep.d,
             base.tx + base.a * prep.tx + base.c * prep.ty,
-            base.ty + base.b * prep.tx + base.d * prep.ty);
+            base.ty + base.b * prep.tx + base.d * prep.ty
+        );
     }
 
     /** Prepends an incremental translation to a Matrix object. */
@@ -306,14 +308,14 @@ export default class MatrixUtil {
      *  <p>If you pass only the first 4 parameters, the camera will be set up above the center
      *  of the stage, with a field of view of 1.0 rad.</p>
      */
-    static createPerspectiveProjectionMatrix(x, y, width, height,
-                                             stageWidth = 0, stageHeight = 0, cameraPos = null,
-                                             out = null)
+    static createPerspectiveProjectionMatrix(x, y, width, height, stageWidth = 0, stageHeight = 0, cameraPos = null, out = null)
     {
+        console.log(`x: ${x}, y: ${y}, viewportW: ${width}, viewportH: ${height}, stageW: ${stageWidth}, stageH: ${stageHeight}`, cameraPos)
         const { sPoint3D, sMatrixData } = MatrixUtil;
         if (!out) out = new Matrix3D();
         if (stageWidth <= 0) stageWidth = width;
         if (stageHeight <= 0) stageHeight = height;
+
         if (!cameraPos)
         {
             cameraPos = sPoint3D;
@@ -322,7 +324,7 @@ export default class MatrixUtil {
                 stageWidth / Math.tan(0.5) * 0.5); // -> fieldOfView = 1.0 rad
         }
 
-        const focalLength = Math.abs(cameraPos.z);
+        const focalLength = Math.abs(cameraPos.z); // camera distance from drawing plane
         const offsetX = cameraPos.x - stageWidth / 2;
         const offsetY = cameraPos.y - stageHeight / 2;
         const far = focalLength * 20;
@@ -330,24 +332,26 @@ export default class MatrixUtil {
         const scaleX = stageWidth / width;
         const scaleY = stageHeight / height;
 
-        // set up general perspective
-        sMatrixData[0] = 2 * focalLength / stageWidth;  // 0,0
-        sMatrixData[5] = -2 * focalLength / stageHeight; // 1,1  [negative to invert y-axis]
-        sMatrixData[10] = far / (far - near);            // 2,2
-        sMatrixData[14] = -far * near / (far - near);     // 2,3
-        sMatrixData[11] = 1;                             // 3,2
+        const f = 1 / Math.tan(0.5)
+        const aspect = width / height;
+
+        sMatrixData[0] = f / aspect;
+        sMatrixData[5] = -f;
+        sMatrixData[10] = (far + near) / (near - far);
+        sMatrixData[14] = 2 * far * near / (near - far);
+        sMatrixData[11] = -1;
 
         // now zoom in to visible area
-        sMatrixData[0] *= scaleX;
-        sMatrixData[5] *= scaleY;
-        sMatrixData[8] = scaleX - 1 - 2 * scaleX * (x - offsetX) / stageWidth;
-        sMatrixData[9] = -scaleY + 1 + 2 * scaleY * (y - offsetY) / stageHeight;
+        //sMatrixData[0] *= scaleX;
+        //sMatrixData[5] *= scaleY;
+        //sMatrixData[8] = scaleX - 1 - 2 * scaleX * (x - offsetX) / stageWidth;
+        //sMatrixData[9] = -scaleY + 1 + 2 * scaleY * (y - offsetY) / stageHeight;
 
         out.copyRawDataFrom(sMatrixData);
         out.prependTranslation(
             -stageWidth / 2.0 - offsetX,
             -stageHeight / 2.0 - offsetY,
-            focalLength);
+            -focalLength); // Stage3D z = [0, 1], WebGL z = [-1, 1]
 
         return out;
     }

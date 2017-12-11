@@ -1,5 +1,6 @@
-//import Starling from '../core/starling';
-import GLC from 'gl-constants';
+import Starling from '../core/starling';
+import { ONE, ZERO, ONE_MINUS_DST_ALPHA, ONE_MINUS_SRC_ALPHA, DST_COLOR, ONE_MINUS_DST_COLOR,
+ONE_MINUS_SRC_COLOR, DST_ALPHA, SRC_ALPHA } from 'gl-constants';
 
 /** A class that provides constant values for visual blend mode effects.
  *
@@ -91,14 +92,14 @@ export default class BlendMode {
 
         BlendMode.sBlendModes = {};
 
-        register('none', GLC.ONE, GLC.ZERO);
-        register('normal', GLC.ONE, GLC.ONE_MINUS_SRC_ALPHA);
-        register('add', GLC.ONE, GLC.ONE);
-        register('multiply', GLC.DST_COLOR, GLC.ONE_MINUS_SRC_ALPHA);
-        register('screen', GLC.ONE, GLC.ONE_MINUS_SRC_COLOR);
-        register('erase', GLC.ZERO, GLC.ONE_MINUS_SRC_ALPHA);
-        register('mask', GLC.ZERO, GLC.SRC_ALPHA);
-        register('below', GLC.ONE_MINUS_DST_ALPHA, GLC.DST_ALPHA);
+        register('none', ONE, ZERO);
+        register('normal', ONE, ONE_MINUS_SRC_ALPHA);
+        register('add', ONE, ONE);
+        register('multiply', DST_COLOR, ONE_MINUS_SRC_ALPHA);
+        register('screen', ONE, ONE_MINUS_SRC_COLOR);
+        register('erase', ZERO, ONE_MINUS_SRC_ALPHA);
+        register('mask', ZERO, SRC_ALPHA);
+        register('below', ONE_MINUS_DST_ALPHA, DST_ALPHA);
     }
 
     // instance methods / properties
@@ -106,8 +107,9 @@ export default class BlendMode {
     /** Sets the appropriate blend factors for source and destination on the current context. */
     activate()
     {
-        //Starling.context.setBlendFactors(this._sourceFactor, this._destinationFactor);
-        console.log('todo: setBlendFactors');
+        const gl = Starling.context;
+        Starling.context.blendFunc(gl.ONE, gl.ZERO);
+        console.log('set blend mode');
     }
 
     /** Returns the name of the blend mode. */

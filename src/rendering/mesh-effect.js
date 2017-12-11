@@ -73,27 +73,29 @@ export default class MeshEffect extends FilterEffect {
         }
 
         const vertexShader = `#version 300 es
-            uniform mat4 u_viewProj;
+            layout(location = 0) in vec2 aPosition;
+            layout(location = 2) in vec4 aColor;
 
-            in vec4 a_position;
+            uniform mat4 uMVPMatrix;
+            uniform float uAlpha;
 
-            out vec4 v_color;
+            out vec4 vColor;
 
             void main() {
-                gl_Position = u_viewProj * a_position;
-                v_color = vec4(1, 1, 1, 1);
+                gl_Position = uMVPMatrix * vec4(aPosition, 0.0, 1.0);
+                vColor = aColor * uAlpha;
             }
         `;
 
         const fragmentShader = `#version 300 es
             precision highp float;
 
-            in vec4 v_color;
+            in vec4 vColor;
 
             out vec4 color;
 
             void main() {
-               color = vec4(1, 0, 0, 1);  // red
+               color = vColor;
             }
         `;
 
@@ -117,19 +119,19 @@ export default class MeshEffect extends FilterEffect {
     {
         super.beforeDraw(gl);
 
-        MeshEffect.sRenderAlpha[0] = MeshEffect.sRenderAlpha[1] = MeshEffect.sRenderAlpha[2] = MeshEffect.sRenderAlpha[3] = this._alpha;
-        //context.setProgramConstantsFromVector(Context3DProgramType.VERTEX, 4, MeshEffect.sRenderAlpha);
-        console.log('implemented: MeshEffect: bind vertex array, set uniforms');
-
         const nativeProgram = this.program.nativeProgram;
-        const alphaUniformLoc = gl.getUniformLocation(nativeProgram, 'u_renderAlpha');
-        gl.uniform4fv(alphaUniformLoc, new Float32Array(MeshEffect.sRenderAlpha)); // todo: reuse same array?
+        const alphaUniformLoc = gl.getUniformLocation(nativeProgram, 'uAlpha');
+        gl.uniform1f(alphaUniformLoc, this._alpha);
 
         if (this._tinted || this._alpha !== 1.0 || !this._optimizeIfNotTinted || !this.texture)
         {
-            //this.vertexFormat.setVertexBufferAt(2, this.vertexBuffer, 'color');
-            gl.bindAttribLocation(nativeProgram, 2, 'a_color');
+            gl.bindAttribLocation(nativeProgram, 2, 'aColor');
         }
+    }
+
+    afterDraw(gl)
+    {
+        super.afterDraw(gl);
     }
 
     /** The data format that this effect requires from the VertexData that it renders:

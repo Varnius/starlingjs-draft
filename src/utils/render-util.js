@@ -7,12 +7,16 @@ export default class RenderUtil {
     /** Clears the render context with a certain color and alpha value. */
     static clear(rgb = 0, alpha = 0.0)
     {
-        //Starling.context.clear(
-        //    Color.getRed(rgb) / 255.0,
-        //    Color.getGreen(rgb) / 255.0,
-        //    Color.getBlue(rgb) / 255.0,
-        //    alpha);
-        console.log('todo: clear')
+        console.log('clear', Color.getRed(rgb), Color.getGreen(rgb), Color.getBlue(rgb), alpha);
+        const gl = Starling.context;
+
+        gl.clearColor(
+            Color.getRed(rgb) / 255.0,
+            Color.getGreen(rgb) / 255.0,
+            Color.getBlue(rgb) / 255.0,
+            alpha
+        );
+        gl.clear(gl.COLOR_BUFFER_BIT);
     }
 
     /** Returns the flags that are required for AGAL texture lookup,

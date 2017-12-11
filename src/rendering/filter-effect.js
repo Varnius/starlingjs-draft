@@ -76,26 +76,26 @@ export default class FilterEffect extends Effect {
     beforeDraw(context)
     {
         super.beforeDraw(context);
-        const { _texture, _textureSmoothing, _textureRepeat } = this;
-
-        if (_texture)
-        {
-            const repeat = _textureRepeat && _texture.root.isPotTexture;
-            RenderUtil.setSamplerStateAt(0, _texture.mipMapping, _textureSmoothing, repeat);
-            context.setTextureAt(0, _texture.base);
-            this.vertexFormat.setVertexBufferAt(1, this.vertexBuffer, 'texCoords');
-        }
+        //const { _texture, _textureSmoothing, _textureRepeat } = this;
+        //
+        //if (_texture)
+        //{
+        //    const repeat = _textureRepeat && _texture.root.isPotTexture;
+        //    RenderUtil.setSamplerStateAt(0, _texture.mipMapping, _textureSmoothing, repeat);
+        //    context.setTextureAt(0, _texture.base);
+        //    this.vertexFormat.setVertexBufferAt(1, this.vertexBuffer, 'texCoords');
+        //}
     }
 
     /** This method is called by <code>render</code>, directly after
      *  <code>context.drawTriangles</code>. Resets texture and vertex buffer attributes. */
     afterDraw(context)
     {
-        if (this._texture)
-        {
-            context.setTextureAt(0, null);
-            context.setVertexBufferAt(1, null);
-        }
+        //if (this._texture)
+        //{
+        //    context.setTextureAt(0, null);
+        //    context.setVertexBufferAt(1, null);
+        //}
 
         super.afterDraw(context);
     }

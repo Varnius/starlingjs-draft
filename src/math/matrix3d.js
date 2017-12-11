@@ -1,5 +1,6 @@
 import Point from './point';
 import Rectangle from './rectangle';
+import Vector3D from './vector3d';
 
 export default class Matrix3D {
 
@@ -23,7 +24,24 @@ export default class Matrix3D {
 
     get rawData()
     {
-        return this._data;
+        const d = this._data;
+        return new Float32Array([
+            d[0], d[4], d[8], d[12],
+            d[1], d[5], d[9], d[13],
+            d[2], d[6], d[10], d[14],
+            d[3], d[7], d[11], d[15],
+        ]); // todo: optimize
+    }
+
+    toString()
+    {
+        const d = this._data;
+        return `
+        ${d[0].toFixed(2)} ${d[1].toFixed(2)} ${d[2].toFixed(2)} ${d[3].toFixed(2)}
+        ${d[4].toFixed(2)} ${d[5].toFixed(2)} ${d[6].toFixed(2)} ${d[7].toFixed(2)}
+        ${d[8].toFixed(2)} ${d[9].toFixed(2)} ${d[10].toFixed(2)} ${d[11].toFixed(2)}
+        ${d[12].toFixed(2)} ${d[13].toFixed(2)} ${d[14].toFixed(2)} ${d[15].toFixed(2)}
+        `;
     }
 
     identity()
@@ -151,6 +169,30 @@ export default class Matrix3D {
         }
 
         return new Point(tx / td, ty / td);
+    }
+
+    transformVector3D(point, result = null)
+    {
+        if (!result)
+        {
+            result = new Vector3D();
+        }
+
+        const { m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33 } = this;
+        const px = point.x;
+        const py = point.y;
+        const pz = point.z;
+        const pw = point.w;
+
+        const tx = m00 * px + m10 * py + m20 * pz + m30 * pw;
+        const ty = m01 * px + m11 * py + m21 * pz + m31 * pw;
+        const tz = m02 * px + m12 * py + m22 * pz + m32 * pw;
+        const tw = m03 * px + m13 * py + m23 * pz + m33 * pw;
+
+        result.setTo(tx, ty, tz);
+        result.w = tw;
+
+        return result;
     }
 
     transformPointInverse(point, returnPoint = null)
@@ -788,7 +830,6 @@ export default class Matrix3D {
         target[5] = this.m11;
         target[6] = this.m12;
         target[7] = this.m13;
-
         target[8] = this.m20;
         target[9] = this.m21;
         target[10] = this.m22;
@@ -802,23 +843,22 @@ export default class Matrix3D {
     copyRawDataFrom(target)
     {
         const { _data } = this;
-        
-        _data[0] = target[0];
-        _data[1] = target[1];
-        _data[2] = target[2];
-        _data[3] = target[3];
-        _data[4] = target[4];
-        _data[5] = target[5];
-        _data[6] = target[6];
-        _data[7] = target[7];
 
-        _data[8] = target[8];
-        _data[9] = target[9];
+        _data[0] = target[0];
+        _data[4] = target[1];
+        _data[8] = target[2];
+        _data[12] = target[3];
+        _data[1] = target[4];
+        _data[5] = target[5];
+        _data[9] = target[6];
+        _data[13] = target[7];
+        _data[2] = target[8];
+        _data[6] = target[9];
         _data[10] = target[10];
-        _data[11] = target[11];
-        _data[12] = target[12];
-        _data[13] = target[13];
-        _data[14] = target[14];
+        _data[14] = target[11];
+        _data[3] = target[12];
+        _data[7] = target[13];
+        _data[11] = target[14];
         _data[15] = target[15];
     }
 }

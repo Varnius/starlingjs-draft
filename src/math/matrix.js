@@ -19,7 +19,11 @@ export default class Matrix {
     toString()
     {
         const { a, b, c, d, tx, ty } = this;
-        return `Matrix(a=${a}, b=${b}, c=${c}, d=${d}, tx=${tx}, ty=${ty})`;
+        return `
+        ${a.toFixed(2)} ${c.toFixed(2)} ${tx.toFixed(2)}
+        ${b.toFixed(2)} ${d.toFixed(2)} ${ty.toFixed(2)}
+        ${(0).toFixed(2)} ${(0).toFixed(2)} ${(1).toFixed(2)}
+        `;
     }
 
     clone()
@@ -251,23 +255,12 @@ export default class Matrix {
         const cosR = Math.cos(rotation);
         const sinR = Math.sin(rotation);
 
-        console.log(_data);
-
         _data[0] = a * cosR - b * sinR;
         _data[1] = a * sinR + b * cosR;
         _data[2] = c * cosR - d * sinR;
         _data[3] = c * sinR + d * cosR;
         _data[4] = tx * cosR - ty * sinR;
         _data[5] = tx * sinR + ty * cosR;
-
-        console.log(_data);
-
-        //_data[0] = cosR;
-        //_data[1] = sinR;
-        //_data[2] = -sinR;
-        //_data[3] = cosR;
-
-        console.log(_data);
     }
 
     skew(skewX, skewY)

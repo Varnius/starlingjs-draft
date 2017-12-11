@@ -2,7 +2,8 @@ import Starling from '../core/starling';
 import { STATIC_DRAW } from 'gl-constants';
 import VertexDataFormat from './vertex-data-format';
 import Matrix3D from '../math/matrix3d';
-import Program from './program';
+import Point from '../math/point';
+import Vector3D from '../math/vector3d';
 
 /** An effect encapsulates all steps of a Stage3D draw operation. It configures the
  *  render context and sets up shader programs as well as index- and vertex-buffers, thus
@@ -81,11 +82,7 @@ export default class Effect {
      *  <code>'position:float2'</code> */
     static VERTEX_FORMAT = VertexDataFormat.fromString('position:float2');
 
-    _vertexBuffer;
-    _indexBuffer;
-    _indexBufferSize;  // in number of indices
-    _indexBufferUsesQuadLayout;
-
+    _vertexArray;
     _mvpMatrix3D;
     _onRestore;
     _programBaseName;
@@ -118,36 +115,9 @@ export default class Effect {
     }
 
     /** Purges one or both of the vertex- and index-buffers. */
-    purgeBuffers(vertexBuffer = true, indexBuffer = true)
+    purgeBuffers()
     {
-        // We wrap the dispose calls in a try/catch block to work around a stage3D problem.
-        // Since they are not re-used later, that shouldn't have any evil side effects.
-
-        if (this._vertexBuffer && vertexBuffer)
-        {
-            try
-            {
-                this._vertexBuffer.dispose();
-            }
-            catch (e)
-            {
-                //
-            }
-            this._vertexBuffer = null;
-        }
-
-        if (this._indexBuffer && indexBuffer)
-        {
-            try
-            {
-                this._indexBuffer.dispose();
-            }
-            catch (e)
-            {
-                //
-            }
-            this._indexBuffer = null;
-        }
+        console.log('purge buffers?');
     }
 
     /** Uploads the given index data to the internal index buffer. If the buffer is too
@@ -160,7 +130,16 @@ export default class Effect {
      */
     uploadIndexData(indexData, bufferUsage = STATIC_DRAW)
     {
-        this._indexBuffer = indexData.uploadToIndexBuffer(bufferUsage);
+        const gl = Starling.context;
+
+        if (!this._vertexArray)
+        {
+            this._vertexArray = gl.createVertexArray();
+        }
+
+        gl.bindVertexArray(this._vertexArray);
+        indexData.uploadToIndexBuffer(bufferUsage);
+        gl.bindVertexArray(null);
     }
 
     /** Uploads the given vertex data to the internal vertex buffer. If the buffer is too
@@ -173,7 +152,16 @@ export default class Effect {
      */
     uploadVertexData(vertexData, bufferUsage = STATIC_DRAW)
     {
-        this._vertexBuffer = vertexData.uploadToVertexBuffer(bufferUsage);
+        const gl = Starling.context;
+
+        if (!this._vertexArray)
+        {
+            this._vertexArray = gl.createVertexArray();
+        }
+
+        gl.bindVertexArray(this._vertexArray);
+        vertexData.uploadToVertexBuffer(bufferUsage);
+        gl.bindVertexArray(null);
     }
 
     // rendering
@@ -183,16 +171,21 @@ export default class Effect {
      *  <code>afterDraw</code>, in this order. */
     render(firstIndex = 0, numTriangles = -1)
     {
-        if (numTriangles < 0) numTriangles = this._indexBufferSize / 3;
+        if (numTriangles < 0) {
+            console.log('is this possible?')
+            numTriangles = this._indexBufferSize / 3;
+        }
         if (numTriangles === 0) return;
 
-        const context = Starling.context;
-        if (!context) throw new Error('[MissingContextError]');
+        const gl = Starling.context;
+        if (!gl) throw new Error('[MissingContextError]');
 
-        this.beforeDraw(context);
-        //context.drawTriangles(this.indexBuffer, firstIndex, numTriangles);
-        console.log('todo: implement drawTriangles')
-        this.afterDraw(context);
+        this.beforeDraw(gl);
+
+        console.log(`Effect: drawElements, ${numTriangles} triangles`);
+        gl.drawElements(gl.TRIANGLES, numTriangles * 3, gl.UNSIGNED_SHORT, firstIndex);
+
+        this.afterDraw(gl);
     }
 
     /** This method is called by <code>render</code>, directly before
@@ -206,16 +199,21 @@ export default class Effect {
      */
     beforeDraw(gl)
     {
-        this.program.activate(gl);
+        gl.bindVertexArray(this._vertexArray);
 
+        this.program.activate(gl);
         const nativeProgram = this.program.nativeProgram;
 
-        console.log('implemented: Effect: bind vertex array, set uniforms');
+        console.log('Effect: bind VAO, set uniforms');
 
-        gl.bindVertexArray(this._vertexBuffer); // todo: rename to vertexArray
-        gl.bindAttribLocation(nativeProgram, 0, 'a_position');
+        //const aPosition = gl.getAttribLocation(nativeProgram, 'aPosition');
+        //console.log(`aPosition index=${aPosition}`)
+        //gl.bindAttribLocation(nativeProgram, aPosition, 'aPosition');
+        //gl.linkProgram(nativeProgram);
 
-        const mvpMatrixLoc = gl.getUniformLocation(nativeProgram, 'u_mvpMatrix');
+        console.log('mvp', this.mvpMatrix3D.toString())
+
+        const mvpMatrixLoc = gl.getUniformLocation(nativeProgram, 'uMVPMatrix');
         gl.uniformMatrix4fv(mvpMatrixLoc, false, this.mvpMatrix3D.rawData);
     }
 
@@ -224,8 +222,7 @@ export default class Effect {
      */
     afterDraw(gl)
     {
-        //context.setVertexBufferAt(0, null);
-        console.log('implemented: unbind vertex array');
+        console.log('Effect: unbind VAO');
         gl.bindVertexArray(null);
     }
 
@@ -240,32 +237,32 @@ export default class Effect {
      */
     createProgram()
     {
-        const vertexShader = `#version 300 es
-            uniform mat4 u_viewProj;
-
-            in vec4 a_position;
-
-            out vec4 v_color;
-
-            void main() {
-                gl_Position = u_viewProj * a_position;
-                v_color = vec4(1, 1, 1, 1);
-            }
-        `;
-
-        const fragmentShader = `#version 300 es
-            precision highp float;
-
-            in vec4 v_color;
-
-            out vec4 color;
-
-            void main() {
-               color = vec4(1, 0, 0, 1);  // red
-            }
-        `;
-
-        return Program.fromSource(vertexShader, fragmentShader);
+        //const vertexShader = `#version 300 es
+        //    uniform mat4 u_viewProj;
+        //
+        //    in vec4 a_position;
+        //
+        //    out vec4 v_color;
+        //
+        //    void main() {
+        //        gl_Position = u_viewProj * a_position;
+        //        v_color = vec4(1, 1, 1, 1);
+        //    }
+        //`;
+        //
+        //const fragmentShader = `#version 300 es
+        //    precision highp float;
+        //
+        //    in vec4 v_color;
+        //
+        //    out vec4 color;
+        //
+        //    void main() {
+        //       color = vec4(1, 0, 0, 1);  // red
+        //    }
+        //`;
+        //
+        //return Program.fromSource(vertexShader, fragmentShader);
     }
 
     /** Override this method if the effect requires a different program depending on the
@@ -373,23 +370,5 @@ export default class Effect {
     set mvpMatrix3D(value)
     {
         this._mvpMatrix3D.copyFrom(value);
-    }
-
-    /** The internally used index buffer used on rendering. */
-    get indexBuffer()
-    {
-        return this._indexBuffer;
-    }
-
-    /** The current size of the index buffer (in number of indices). */
-    get indexBufferSize()
-    {
-        return this._indexBufferSize;
-    }
-
-    /** The internally used vertex buffer used on rendering. */
-    get vertexBuffer()
-    {
-        return this._vertexBuffer;
     }
 }

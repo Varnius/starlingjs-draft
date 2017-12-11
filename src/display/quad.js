@@ -1,14 +1,11 @@
 import Mesh from './mesh';
-
 import Vector3D from '../math/vector3d';
 import Matrix from '../math/matrix';
 import Matrix3D from '../math/matrix3d';
 import Rectangle from '../math/rectangle';
-
 import MeshStyle from '../styles/mesh-style';
 import VertexData from '../rendering/vertex-data';
 import IndexData from '../rendering/index-data';
-
 import RectangleUtil from '../utils/rectangle-util';
 
 /** A Quad represents a colored and/or textured rectangle.
@@ -103,7 +100,7 @@ export default class Quad extends Mesh {
     }
 
     /** @inheritDoc */
-    getBounds(targetSpace, out = null)
+    getBounds = (targetSpace, out = null) =>
     {
         const { _bounds, isRotated, x, y, pivotY, pivotX } = this;
         const { sMatrix3D, sPoint3D, sMatrix } = Quad;
@@ -145,7 +142,7 @@ export default class Quad extends Mesh {
         }
 
         return out;
-    }
+    };
 
     /** @inheritDoc */
     hitTest(localPoint)

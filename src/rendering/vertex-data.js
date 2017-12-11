@@ -213,15 +213,15 @@ export default class VertexData {
 
             if (!_attributes.find(a => a.name === attribute.name)) continue;
 
-            for (let j = targetVertexID; j < (targetVertexID + numVertices) * attribute.size; ++j)
+            for (let j = targetVertexID * attribute.size; j < (targetVertexID + numVertices) * attribute.size; ++j)
             {
-                let value = _rawData[attribute.name][j - targetVertexID];
+                let value = _rawData[attribute.name][j - (targetVertexID * attribute.size)];
 
                 if (matrix && (attribute.name === 'position' || attribute.format === 'float2')) // todo: check if first
                 {
                     const isX = j % 2 === 0;
-                    const x = isX ? value : _rawData[attribute.name][j - 1];
-                    const y = isX ? _rawData[attribute.name][j + 1] : value;
+                    const x = isX ? value : _rawData[attribute.name][j - (targetVertexID * attribute.size) - 1];
+                    const y = isX ? _rawData[attribute.name][j - (targetVertexID * attribute.size) + 1] : value;
 
                     value = isX ? matrix.a * x + matrix.c * y + matrix.tx : matrix.d * y + matrix.b * x + matrix.ty;
                 }
@@ -229,28 +229,6 @@ export default class VertexData {
                 targetRawData[attribute.name][j] = value;
             }
         }
-        //}
-        //else
-        //{
-        //    if (target._numVertices < targetVertexID + numVertices)
-        //        target.numVertices = targetVertexID + numVertices;
-        //
-        //    for (let i = 0; i < _numAttributes; ++i)
-        //    {
-        //        const srcAttr = _attributes[i];
-        //        const tgtAttr = target.getAttribute(srcAttr.name);
-        //
-        //        if (tgtAttr) // only copy attributes that exist in the target, as well
-        //        {
-        //            if (srcAttr.offset === _posOffset)
-        //                this.copyAttributeTo_internal(target, targetVertexID, matrix,
-        //                    srcAttr, tgtAttr, vertexID, numVertices);
-        //            else
-        //                this.copyAttributeTo_internal(target, targetVertexID, null,
-        //                    srcAttr, tgtAttr, vertexID, numVertices);
-        //        }
-        //    }
-        //}
     }
 
     /** Copies a specific attribute of all contained vertices (or a range of them, defined by
@@ -460,7 +438,7 @@ export default class VertexData {
     {
         if (this._numVertices < vertexID + 1)
             this.numVertices = vertexID + 1;
-
+console.log(vertexID, attrName, color.toString(16))
         const alpha = this.getAlpha(vertexID, attrName);
         this.colorize(attrName, color, alpha, vertexID, 1);
     }
@@ -831,24 +809,24 @@ export default class VertexData {
         if (!gl) throw new Error('[MissingContextError]');
         const { _numAttributes, _rawData, _attributes } = this;
 
-        console.log('implemented: create&upload to vertex buffer')
-
-        const vertexArray = gl.createVertexArray();
-        gl.bindVertexArray(vertexArray);
-
         for (let attributeIndex = 0; attributeIndex < _numAttributes; ++attributeIndex)
         {
             const attribute = _attributes[attributeIndex];
             const buffer = gl.createBuffer();
 
+            console.log(`SET attrib ${attribute.name} at index=${attributeIndex}, size ${attribute.size}`, _rawData[attribute.name])
+
             gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
             gl.bufferData(gl.ARRAY_BUFFER, _rawData[attribute.name], bufferUsage);
             gl.enableVertexAttribArray(attributeIndex);
-            gl.vertexAttribPointer(attributeIndex, 3, gl.FLOAT, false, 0, 0);
+
+            if (attribute.isColor)
+                gl.vertexAttribPointer(attributeIndex, 4, gl.UNSIGNED_BYTE, true, 0, 0);
+            else
+                gl.vertexAttribPointer(attributeIndex, attribute.size, gl.FLOAT, false, 0, 0);
+
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
         }
-
-        return vertexArray;
     }
 
     getAttribute(attrName)

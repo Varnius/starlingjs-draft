@@ -102,7 +102,7 @@ export default class Painter {
      *  painters; instead, use the global painter found on the Starling instance. */
     constructor(canvas)
     {
-        this._context = canvas.getContext('webgl2', { antialias: false, depth: true, stencil: true });
+        this._context = canvas.getContext('webgl2');
 
         if (!this._context)
         {
@@ -110,8 +110,13 @@ export default class Painter {
             return;
         }
 
-        this._context.depthFunc(this._context.ALWAYS);
-        this._context.depthMask(false);
+        //this._context.depthFunc(this._context.ALWAYS);
+        //this._context.depthMask(false);
+        this._context.frontFace(this._context.CW);
+        this._context.viewport(0, 0, canvas.width, canvas.height);
+        this._context.enable(this._context.DEPTH_TEST);
+
+        console.log('depth test, viewport, frontFace', canvas.width, canvas.height)
 
         this._actualBlendMode = null;
         this._actualCulling = null;
@@ -220,6 +225,7 @@ export default class Painter {
     setStateTo(transformationMatrix, alphaFactor = 1.0, blendMode = 'auto')
     {
         if (transformationMatrix) MatrixUtil.prependMatrix(this._state._modelviewMatrix, transformationMatrix);
+
         if (alphaFactor !== 1.0) this._state._alpha *= alphaFactor;
         if (blendMode !== BlendMode.AUTO) this._state.blendMode = blendMode;
     }
@@ -627,8 +633,11 @@ export default class Painter {
 
         if (culling !== this._actualCulling)
         {
-            //this._context.setCulling(culling);
-            console.log('todo: setCulling')
+            console.log('culling disabled');
+            const gl = this._context;
+            //gl.enable(gl.CULL_FACE);
+            //gl.cullFace(culling);
+
             this._actualCulling = culling;
         }
     }

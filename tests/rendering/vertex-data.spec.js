@@ -270,7 +270,8 @@ describe('VertexData', () =>
         vd1.format.attributes.forEach(
             attribute =>
                 vd1.rawData[attribute.name]
-                    .forEach((element, index) => expect(element).to.equal(vd2.rawData[attribute.name][index + 2]))
+                    .forEach((element, index) =>
+                        expect(element).to.equal(vd2.rawData[attribute.name][index + (attribute.isColor ? 2 : 4)]))
         );
     });
 

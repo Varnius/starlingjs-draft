@@ -3,7 +3,7 @@
  *  for performance reasons. */
 export default class VertexDataAttribute {
     static FORMAT_SIZES = {
-        bytes4: 1, // unsigned 32 bit int - used for colors and such
+        bytes4: 1, // unsigned 32 bit int - used for colors, converted to vec4 of floats on upload
         float1: 1,
         float2: 2,
         float3: 3,

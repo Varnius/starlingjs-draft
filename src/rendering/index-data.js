@@ -301,6 +301,7 @@ export default class IndexData {
         _rawData[position + 3] = b;
         _rawData[position + 4] = d;
         _rawData[position + 5] = c;
+
         this._numIndices += 6;
     }
 
@@ -406,14 +407,12 @@ export default class IndexData {
         if (this._numIndices === 0) return null;
         const gl = Starling.context;
 
-        console.log('implemented: create&upload to index buffer')
+        console.log('create&upload to index buffer', this.rawData)
 
         const indexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._rawData, bufferUsage);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-        return indexBuffer;
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.rawData, bufferUsage);
     }
 
     // properties
@@ -507,5 +506,11 @@ export default class IndexData {
             }
             else this.switchToGenericData();
         }
+    }
+
+    get rawData()
+    {
+        if (this._useQuadLayout) return IndexData.sQuadData;
+        else return this._rawData;
     }
 }

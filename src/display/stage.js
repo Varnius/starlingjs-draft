@@ -154,9 +154,12 @@ export default class Stage extends DisplayObjectContainer {
     getCameraPosition(space = null, out = null)
     {
         this.getTransformationMatrix3D(space, Stage.sMatrix3D);
-        return MatrixUtil.transformCoords3D(Stage.sMatrix3D,
-            this._width / 2 + this._projectionOffset.x, this._height / 2 + this._projectionOffset.y,
-            -this.focalLength, out);
+        return MatrixUtil.transformCoords3D(
+            Stage.sMatrix3D,
+            this._width / 2 + this._projectionOffset.x,
+            this._height / 2 + this._projectionOffset.y,
+            -this.focalLength,
+            out);
     }
 
     // enter frame event optimization

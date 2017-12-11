@@ -1,8 +1,8 @@
+import { FRONT, BACK, FRONT_AND_BACK } from 'gl-constants';
+
 import Matrix3D from '../math/matrix3d';
 import Matrix from '../math/matrix';
-
 import BlendMode from '../display/blend-mode';
-
 import RectangleUtil from '../utils/rectangle-util';
 import MatrixUtil from '../utils/matrix-util';
 import MathUtil from '../utils/math-util';
@@ -53,13 +53,7 @@ export default class RenderState {
     /** @private */ _blendMode;
     /** @private */ _modelviewMatrix;
 
-    static CULLING_VALUES = [
-        //Context3DTriangleFace.NONE,
-        //Context3DTriangleFace.FRONT,
-        //Context3DTriangleFace.BACK,
-        //Context3DTriangleFace.FRONT_AND_BACK,
-    ];
-
+    _culling = BACK;
     _miscOptions;
     _clipRect;
     _renderTarget;
@@ -103,6 +97,7 @@ export default class RenderState {
         this._blendMode = renderState._blendMode;
         this._renderTarget = renderState._renderTarget;
         this._miscOptions = renderState._miscOptions;
+
         this._modelviewMatrix.copyFrom(renderState._modelviewMatrix);
 
         if (this._projectionMatrix3DRev !== renderState._projectionMatrix3DRev)
@@ -143,7 +138,7 @@ export default class RenderState {
 
     /** Prepends the given matrix to the 2D modelview matrix. */
     transformModelviewMatrix(matrix)
-    {
+    {console.log('derp')
         MatrixUtil.prependMatrix(this._modelviewMatrix, matrix);
     }
 
@@ -153,6 +148,7 @@ export default class RenderState {
      */
     transformModelviewMatrix3D(matrix)
     {
+        console.log('derp')
         if (!this._modelviewMatrix3D)
             this._modelviewMatrix3D = Pool.getMatrix3D();
 
@@ -177,8 +173,8 @@ export default class RenderState {
     setProjectionMatrix(x, y, width, height, stageWidth = 0, stageHeight = 0, cameraPos = null)
     {
         this._projectionMatrix3DRev = ++RenderState.sProjectionMatrix3DRev;
-        MatrixUtil.createPerspectiveProjectionMatrix(
-            x, y, width, height, stageWidth, stageHeight, cameraPos, this._projectionMatrix3D);
+
+        MatrixUtil.createPerspectiveProjectionMatrix(x, y, width, height, stageWidth, stageHeight, cameraPos, this._projectionMatrix3D);
     }
 
     /** This method needs to be called whenever <code>projectionMatrix3D</code> was changed
@@ -354,8 +350,7 @@ export default class RenderState {
      */
     get culling()
     {
-        const index = (this._miscOptions & 0xf00) >> 8;
-        return RenderState.CULLING_VALUES[index];
+        return this._culling;
     }
 
     set culling(value)
@@ -363,11 +358,7 @@ export default class RenderState {
         if (this.culling !== value)
         {
             if (!!this._onDrawRequired) this._onDrawRequired();
-
-            const index = RenderState.CULLING_VALUES.indexOf(value);
-            if (index === -1) throw new Error('[ArgumentError] Invalid culling mode');
-
-            this._miscOptions = (this._miscOptions & 0xfffff0ff) | (index << 8);
+            this._culling = value;
         }
     }
 

@@ -7,4 +7,14 @@ export class FakeContext {
     depthMask()
     {
     }
+
+    enable()
+    {
+    }
+
+    frontFace()
+    {
+    }
+
+    viewport() {}
 }

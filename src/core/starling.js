@@ -40,7 +40,7 @@ export default class Starling extends EventDispatcher {
 
         if (!canvas) throw new Error('[ArgumentError] Canvas must not be null');
         if (!viewPort) viewPort = new Rectangle(0, 0, canvas.width, canvas.height); // ???
-
+console.log(viewPort)
         //SystemUtil.initialize();
         Starling.sAll.push(this);
         this.makeCurrent();
@@ -48,7 +48,7 @@ export default class Starling extends EventDispatcher {
         this._rootClass = rootClass;
         this._viewPort = viewPort;
         this._previousViewPort = new Rectangle();
-        this._stage = new Stage(viewPort.width, viewPort.height, 0xFFFFFF);
+        this._stage = new Stage(viewPort.width, viewPort.height);
         //this._touchProcessor = new TouchProcessor(this._stage);
         //this._juggler = new Juggler();
         this._antiAliasing = 0;
@@ -116,7 +116,7 @@ export default class Starling extends EventDispatcher {
             this.render();
         }
 
-        //window.requestAnimationFrame(this.nextFrame); todo: NOTICE ME SENPAI!!!
+        //window.requestAnimationFrame(this.nextFrame);  // todo: NOTICE ME SENPAI!!!
     };
 
     /** Dispatches ENTER_FRAME events on the display list, advances the Juggler
@@ -168,7 +168,7 @@ export default class Starling extends EventDispatcher {
                 this._stage.stageWidth, this._stage.stageHeight, this._stage.cameraPosition);
 
             if (!this.shareContext)
-                this._painter.clear(stageColor, Color.getAlpha(stageColor));
+                this._painter.clear(stageColor, 1.0);
 
             this._stage.render(this._painter);
             this._painter.finishFrame();
@@ -177,6 +177,8 @@ export default class Starling extends EventDispatcher {
             if (!this.shareContext)
                 this._painter.present();
         }
+
+        console.log('Draw count:', this._painter.drawCount)
 
         //if (_statsDisplay)
         //{

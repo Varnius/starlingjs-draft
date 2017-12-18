@@ -115,9 +115,6 @@ export default class Painter {
         this._context.frontFace(this._context.CW);
         this._context.viewport(0, 0, canvas.width, canvas.height);
         this._context.enable(this._context.DEPTH_TEST);
-
-        console.log('depth test, viewport, frontFace', canvas.width, canvas.height)
-
         this._actualBlendMode = null;
         this._actualCulling = null;
         this._backBufferWidth = canvas.width;
@@ -528,6 +525,7 @@ export default class Painter {
         {
             this.pushState();
 
+
             for (let i = startToken.batchID; i <= endToken.batchID; ++i)
             {
                 meshBatch = this._batchProcessorPrev.getBatchAt(i);
@@ -633,10 +631,9 @@ export default class Painter {
 
         if (culling !== this._actualCulling)
         {
-            console.log('culling disabled');
             const gl = this._context;
-            //gl.enable(gl.CULL_FACE);
-            //gl.cullFace(culling);
+            gl.enable(gl.CULL_FACE);
+            gl.cullFace(culling);
 
             this._actualCulling = culling;
         }
@@ -644,7 +641,8 @@ export default class Painter {
 
     applyRenderTarget()
     {
-        const { _state, _context } = this;
+        const gl = this._context;
+        const { _state } = this;
         const target = _state.renderTargetBase;
         const options = _state.renderTargetOptions;
 
@@ -652,15 +650,19 @@ export default class Painter {
         {
             if (target)
             {
-                const antiAlias = _state.renderTargetAntiAlias;
-                const depthAndStencil = _state.renderTargetSupportsDepthAndStencil;
+                //const antiAlias = _state.renderTargetAntiAlias;
+                //const depthAndStencil = _state.renderTargetSupportsDepthAndStencil;
                 //_context.setRenderToTexture(target, depthAndStencil, antiAlias);
-                console.log('todo: setRenderToTexture')
+                // todo: implement depth, stencil
+
+                const fb = gl.createFramebuffer();
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target, 0);
             }
             else
             {
-                //_context.setRenderToBackBuffer();
-                console.log('todo: setRenderToBackBuffer')
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                console.log('implemented: setRenderToBackBuffer');
             }
 
             //_context.setStencilReferenceValue(this.stencilReferenceValue);

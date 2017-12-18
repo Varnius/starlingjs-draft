@@ -487,7 +487,7 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** @private */
-    getChildEventListeners(object, eventType, listeners)
+    getChildEventListeners = (object, eventType, listeners) =>
     {
         const isContainer = object instanceof DisplayObjectContainer;
 

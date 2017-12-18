@@ -128,8 +128,7 @@ export default class MeshBatch extends Mesh {
             this.setupFor(mesh);
 
         meshStyle.batchVertexData(this._style, targetVertexID, matrix, subset.vertexID, subset.numVertices);
-        meshStyle.batchIndexData(this._style, targetIndexID, targetVertexID - subset.vertexID,
-            subset.indexID, subset.numIndices);
+        meshStyle.batchIndexData(this._style, targetIndexID, targetVertexID - subset.vertexID, subset.indexID, subset.numIndices);
 
         if (alpha !== 1.0) this._vertexData.scaleAlphas('color', alpha, targetVertexID, subset.numVertices);
         if (this._parent) this.setRequiresRedraw();
@@ -243,6 +242,11 @@ export default class MeshBatch extends Mesh {
         this.setVertexAndIndexDataChanged(); // we've got a new set of buffers!
     }
 
+    get numVertices()
+    {
+        return super.numVertices;
+    }
+
     /** The total number of vertices in the mesh. If you change this to a smaller value,
      *  the surplus will be deleted. Make sure that no indices reference those deleted
      *  vertices! */
@@ -254,6 +258,11 @@ export default class MeshBatch extends Mesh {
             this._vertexSyncRequired = true;
             this.setRequiresRedraw();
         }
+    }
+
+    get numIndices()
+    {
+        return super.numIndices;
     }
 
     /** The total number of indices in the mesh. If you change this to a smaller value,

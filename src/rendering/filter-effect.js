@@ -1,6 +1,7 @@
 import Effect from './effect';
 import TextureSmoothing from '../textures/texture-smoothing';
 import RenderUtil from '../utils/render-util';
+import Program from './program';
 
 /** An effect drawing a mesh of textured vertices.
  *  This is the standard effect that is the base for all fragment filters;
@@ -17,13 +18,6 @@ export default class FilterEffect extends Effect {
     /** The vertex format expected by <code>uploadVertexData</code>:
      *  <code>'position:float2, texCoords:float2'</code> */
     static VERTEX_FORMAT = Effect.VERTEX_FORMAT.extend('texCoords:float2');
-
-    /** The AGAL code for the standard vertex shader that most filters will use.
-     *  It simply transforms the vertex coordinates to clip-space and passes the texture
-     *  coordinates to the fragment program (as 'v0'). */
-    static STD_VERTEX_SHADER =
-        'm44 op, va0, vc0 \n' +  // 4x4 matrix transform to output clip-space
-        'mov v0, va1';          // pass texture coordinates to fragment program
 
     _texture;
     _textureSmoothing;
@@ -52,8 +46,36 @@ export default class FilterEffect extends Effect {
     {
         if (this._texture)
         {
-            const vertexShader = FilterEffect.STD_VERTEX_SHADER;
-            const fragmentShader = FilterEffect.tex('oc', 'v0', 0, this._texture);
+            const vertexShader = `#version 300 es
+                layout(location = 0) in vec2 aPosition;
+                layout(location = 1) in vec2 aTexCoords;
+
+                uniform mat4 uMVPMatrix;
+
+                out vec2 vTexCoords;
+
+                void main() {
+                    // Transform to clipspace
+                    gl_Position = uMVPMatrix * vec4(aPosition, 0.0, 1.0);
+
+                    vTexCoords = aTexCoords;
+                }
+            `;
+
+            const fragmentShader = `#version 300 es
+                precision highp float;
+
+                uniform sampler2D sTexture;
+
+                in vec2 vTexCoords;
+
+                out vec4 color;
+
+                void main() {
+                    color = texture(sTexture, vTexCoords);
+                }
+            `;
+
             return Program.fromSource(vertexShader, fragmentShader);
         }
         else
@@ -73,42 +95,26 @@ export default class FilterEffect extends Effect {
      *    <li><code>fs0</code> — texture</li>
      *  </ul>
      */
-    beforeDraw(context)
+    beforeDraw(gl)
     {
-        super.beforeDraw(context);
-        //const { _texture, _textureSmoothing, _textureRepeat } = this;
-        //
-        //if (_texture)
-        //{
-        //    const repeat = _textureRepeat && _texture.root.isPotTexture;
-        //    RenderUtil.setSamplerStateAt(0, _texture.mipMapping, _textureSmoothing, repeat);
-        //    context.setTextureAt(0, _texture.base);
-        //    this.vertexFormat.setVertexBufferAt(1, this.vertexBuffer, 'texCoords');
-        //}
+        super.beforeDraw(gl);
+        const { _texture, _textureSmoothing, _textureRepeat } = this;
+
+        if (_texture)
+        {
+            gl.bindTexture(gl.TEXTURE_2D, _texture.base);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, _textureSmoothing);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, _textureRepeat ? gl.REPEAT : gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, _textureRepeat ? gl.REPEAT : gl.CLAMP_TO_EDGE);
+        }
     }
 
     /** This method is called by <code>render</code>, directly after
      *  <code>context.drawTriangles</code>. Resets texture and vertex buffer attributes. */
-    afterDraw(context)
+    afterDraw(gl)
     {
-        //if (this._texture)
-        //{
-        //    context.setTextureAt(0, null);
-        //    context.setVertexBufferAt(1, null);
-        //}
-
-        super.afterDraw(context);
-    }
-
-    /** Creates an AGAL source string with a <code>tex</code> operation, including an options
-     *  list with the appropriate format flag. This is just a convenience method forwarding
-     *  to the respective RenderUtil method.
-     *
-     *  @see starling.utils.RenderUtil#createAGALTexOperation()
-     */
-    static tex(resultReg, uvReg, sampler, texture, convertToPmaIfRequired = true)
-    {
-        return RenderUtil.createAGALTexOperation(resultReg, uvReg, sampler, texture, convertToPmaIfRequired);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        super.afterDraw(gl);
     }
 
     /** The data format that this effect requires from the VertexData that it renders:

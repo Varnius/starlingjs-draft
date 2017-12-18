@@ -108,8 +108,7 @@ export default class BlendMode {
     activate()
     {
         const gl = Starling.context;
-        Starling.context.blendFunc(gl.ONE, gl.ZERO);
-        console.log('set blend mode');
+        Starling.context.blendFunc(gl.ONE, gl.ZERO); // todo: use class fields here
     }
 
     /** Returns the name of the blend mode. */

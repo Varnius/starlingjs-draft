@@ -7,7 +7,7 @@ export default class RenderUtil {
     /** Clears the render context with a certain color and alpha value. */
     static clear(rgb = 0, alpha = 0.0)
     {
-        console.log('clear', Color.getRed(rgb), Color.getGreen(rgb), Color.getBlue(rgb), alpha);
+        //console.log('clear', Color.getRed(rgb), Color.getGreen(rgb), Color.getBlue(rgb), alpha);
         const gl = Starling.context;
 
         gl.clearColor(

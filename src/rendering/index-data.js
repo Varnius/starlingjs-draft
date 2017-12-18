@@ -407,8 +407,6 @@ export default class IndexData {
         if (this._numIndices === 0) return null;
         const gl = Starling.context;
 
-        console.log('create&upload to index buffer', this.rawData)
-
         const indexBuffer = gl.createBuffer();
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);

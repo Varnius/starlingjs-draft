@@ -2,8 +2,7 @@ import Starling from '../core/starling';
 import { STATIC_DRAW } from 'gl-constants';
 import VertexDataFormat from './vertex-data-format';
 import Matrix3D from '../math/matrix3d';
-import Point from '../math/point';
-import Vector3D from '../math/vector3d';
+import Program from '../rendering/program'
 
 /** An effect encapsulates all steps of a Stage3D draw operation. It configures the
  *  render context and sets up shader programs as well as index- and vertex-buffers, thus
@@ -204,14 +203,10 @@ export default class Effect {
         this.program.activate(gl);
         const nativeProgram = this.program.nativeProgram;
 
-        console.log('Effect: bind VAO, set uniforms');
-
         //const aPosition = gl.getAttribLocation(nativeProgram, 'aPosition');
         //console.log(`aPosition index=${aPosition}`)
         //gl.bindAttribLocation(nativeProgram, aPosition, 'aPosition');
         //gl.linkProgram(nativeProgram);
-
-        console.log('mvp', this.mvpMatrix3D.toString())
 
         const mvpMatrixLoc = gl.getUniformLocation(nativeProgram, 'uMVPMatrix');
         gl.uniformMatrix4fv(mvpMatrixLoc, false, this.mvpMatrix3D.rawData);
@@ -222,7 +217,6 @@ export default class Effect {
      */
     afterDraw(gl)
     {
-        console.log('Effect: unbind VAO');
         gl.bindVertexArray(null);
     }
 
@@ -237,32 +231,30 @@ export default class Effect {
      */
     createProgram()
     {
-        //const vertexShader = `#version 300 es
-        //    uniform mat4 u_viewProj;
-        //
-        //    in vec4 a_position;
-        //
-        //    out vec4 v_color;
-        //
-        //    void main() {
-        //        gl_Position = u_viewProj * a_position;
-        //        v_color = vec4(1, 1, 1, 1);
-        //    }
-        //`;
-        //
-        //const fragmentShader = `#version 300 es
-        //    precision highp float;
-        //
-        //    in vec4 v_color;
-        //
-        //    out vec4 color;
-        //
-        //    void main() {
-        //       color = vec4(1, 0, 0, 1);  // red
-        //    }
-        //`;
-        //
-        //return Program.fromSource(vertexShader, fragmentShader);
+        const vertexShader = `#version 300 es
+            layout(location = 0) in vec2 aPosition;
+
+            uniform mat4 uMVPMatrix;
+
+            void main() {
+                // Transform to clipspace
+                gl_Position = uMVPMatrix * vec4(aPosition, 0.0, 1.0);
+            }
+        `;
+
+        const fragmentShader = `#version 300 es
+            precision highp float;
+
+            in vec4 vColor;
+
+            out vec4 color;
+
+            void main() {
+               color = vec4(1.0, 0.0, 0.0, 1.0);
+            }
+        `;
+
+        return Program.fromSource(vertexShader, fragmentShader);
     }
 
     /** Override this method if the effect requires a different program depending on the

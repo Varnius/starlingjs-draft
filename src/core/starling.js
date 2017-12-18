@@ -40,7 +40,7 @@ export default class Starling extends EventDispatcher {
 
         if (!canvas) throw new Error('[ArgumentError] Canvas must not be null');
         if (!viewPort) viewPort = new Rectangle(0, 0, canvas.width, canvas.height); // ???
-console.log(viewPort)
+
         //SystemUtil.initialize();
         Starling.sAll.push(this);
         this.makeCurrent();
@@ -110,13 +110,13 @@ console.log(viewPort)
         // to avoid overloading time-based animations, the maximum delta is truncated.
         if (passedTime > 1.0) passedTime = 1.0;
 
-        if (this._rendering) {
-            //console.log('FRAME', highp, now)
+        if (this._rendering)
+        {
             this.advanceTime(passedTime);
             this.render();
         }
 
-        //window.requestAnimationFrame(this.nextFrame);  // todo: NOTICE ME SENPAI!!!
+        window.requestAnimationFrame(this.nextFrame);
     };
 
     /** Dispatches ENTER_FRAME events on the display list, advances the Juggler
@@ -178,7 +178,7 @@ console.log(viewPort)
                 this._painter.present();
         }
 
-        console.log('Draw count:', this._painter.drawCount)
+        console.log('[Starling] Draw count:', this._painter.drawCount)
 
         //if (_statsDisplay)
         //{
@@ -254,6 +254,11 @@ console.log(viewPort)
         return this._painter.context;
     }
 
+    get frameID()
+    {
+        return this._frameID;
+    }
+
     static get current()
     {
         return Starling.sCurrent;
@@ -267,5 +272,15 @@ console.log(viewPort)
     static get painter()
     {
         return Starling.sCurrent ? Starling.sCurrent._painter : null;
+    }
+
+    static get contentScaleFactor()
+    {
+        return Starling.sCurrent ? Starling.sCurrent.contentScaleFactor : 1.0;
+    }
+
+    static get frameID()
+    {
+        return Starling.sCurrent ? Starling.sCurrent._frameID : 0;
     }
 }

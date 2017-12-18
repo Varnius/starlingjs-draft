@@ -138,7 +138,7 @@ export default class RenderState {
 
     /** Prepends the given matrix to the 2D modelview matrix. */
     transformModelviewMatrix(matrix)
-    {console.log('derp')
+    {
         MatrixUtil.prependMatrix(this._modelviewMatrix, matrix);
     }
 
@@ -148,7 +148,6 @@ export default class RenderState {
      */
     transformModelviewMatrix3D(matrix)
     {
-        console.log('derp')
         if (!this._modelviewMatrix3D)
             this._modelviewMatrix3D = Pool.getMatrix3D();
 

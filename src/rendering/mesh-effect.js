@@ -48,11 +48,13 @@ export default class MeshEffect extends FilterEffect {
     /** @private */
     createProgram()
     {
+        let vertexShader, fragmentShader;
+
         if (this.texture)
         {
-            //if (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0)
-            //    return super.createProgram();
-            //
+            if (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0)
+                return super.createProgram();
+
             //vertexShader =
             //    'm44 op, va0, vc0 \n' + // 4x4 matrix transform to output clip-space
             //    'mov v0, va1      \n' + // pass texture coordinates to fragment program
@@ -61,43 +63,77 @@ export default class MeshEffect extends FilterEffect {
             //fragmentShader =
             //    FilterEffect.tex('ft0', 'v0', 0, this.texture) +
             //    'mul oc, ft0, v1  \n';  // multiply color with texel color
+
+            vertexShader = `#version 300 es
+                layout(location = 0) in vec2 aPosition;
+                layout(location = 1) in vec2 aTexCoords;
+                layout(location = 2) in vec4 aColor;
+
+                uniform mat4 uMVPMatrix;
+                uniform float uAlpha;
+
+                out vec4 vColor;
+                out vec2 vTexCoords;
+
+                void main() {
+                    // Transform to clipspace
+                    gl_Position = uMVPMatrix * vec4(aPosition, 0.0, 1.0);
+
+                    // Reverse components because WebGL expects data as little-endian
+                    vColor = aColor.wzyx * uAlpha;
+
+                    vTexCoords = aTexCoords;
+                }
+            `;
+
+            fragmentShader = `#version 300 es
+                precision highp float;
+
+                uniform sampler2D sTexture;
+
+                in vec4 vColor;
+                in vec2 vTexCoords;
+
+                out vec4 color;
+
+                void main() {
+                    vec4 textureColor = texture(sTexture, vTexCoords);
+                    color = vColor * textureColor;
+                }
+            `;
         }
         else
         {
-            //vertexShader =
-            //    'm44 op, va0, vc0 \n' + // 4x4 matrix transform to output clipspace
-            //    'mul v0, va2, vc4 \n';  // multiply alpha (vc4) with color (va2)
-            //
-            //fragmentShader =
-            //    'mov oc, v0       \n';  // output color
+            vertexShader = `#version 300 es
+                layout(location = 0) in vec2 aPosition;
+                layout(location = 2) in vec4 aColor;
+
+                uniform mat4 uMVPMatrix;
+                uniform float uAlpha;
+
+                out vec4 vColor;
+
+                void main() {
+                    // Transform to clipspace
+                    gl_Position = uMVPMatrix * vec4(aPosition, 0.0, 1.0);
+
+                    // Reverse components because WebGL expects data as little-endian
+                    vColor = aColor.wzyx * uAlpha;
+                }
+            `;
+
+            fragmentShader = `#version 300 es
+                precision highp float;
+
+                in vec4 vColor;
+
+                out vec4 color;
+
+                void main() {
+                   color = vColor;
+                }
+            `;
         }
-
-        const vertexShader = `#version 300 es
-            layout(location = 0) in vec2 aPosition;
-            layout(location = 2) in vec4 aColor;
-
-            uniform mat4 uMVPMatrix;
-            uniform float uAlpha;
-
-            out vec4 vColor;
-
-            void main() {
-                gl_Position = uMVPMatrix * vec4(aPosition, 0.0, 1.0);
-                vColor = aColor * uAlpha;
-            }
-        `;
-
-        const fragmentShader = `#version 300 es
-            precision highp float;
-
-            in vec4 vColor;
-
-            out vec4 color;
-
-            void main() {
-               color = vColor;
-            }
-        `;
 
         return Program.fromSource(vertexShader, fragmentShader);
     }

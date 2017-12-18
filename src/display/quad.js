@@ -156,9 +156,10 @@ export default class Quad extends Mesh {
      *  synchronize quad and texture size after assigning a texture with a different size.
      *  You can also force a certain width and height by passing positive, non-zero
      *  values for width and height. */
-    readjustSize(width = -1, height = -1)
+    readjustSize = (width = -1, height = -1) =>
     {
-        const { texture } = this;
+        const texture = this.texture;
+
         if (width <= 0) width = texture ? texture.frameWidth : this._bounds.width;
         if (height <= 0) height = texture ? texture.frameHeight : this._bounds.height;
 

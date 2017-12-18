@@ -310,7 +310,6 @@ export default class MatrixUtil {
      */
     static createPerspectiveProjectionMatrix(x, y, width, height, stageWidth = 0, stageHeight = 0, cameraPos = null, out = null)
     {
-        console.log(`x: ${x}, y: ${y}, viewportW: ${width}, viewportH: ${height}, stageW: ${stageWidth}, stageH: ${stageHeight}`, cameraPos)
         const { sPoint3D, sMatrixData } = MatrixUtil;
         if (!out) out = new Matrix3D();
         if (stageWidth <= 0) stageWidth = width;
@@ -332,7 +331,7 @@ export default class MatrixUtil {
         const scaleX = stageWidth / width;
         const scaleY = stageHeight / height;
 
-        const f = 1 / Math.tan(0.5)
+        const f = 1 / Math.tan(0.5);
         const aspect = width / height;
 
         sMatrixData[0] = f / aspect;
@@ -342,10 +341,10 @@ export default class MatrixUtil {
         sMatrixData[11] = -1;
 
         // now zoom in to visible area
-        //sMatrixData[0] *= scaleX;
-        //sMatrixData[5] *= scaleY;
-        //sMatrixData[8] = scaleX - 1 - 2 * scaleX * (x - offsetX) / stageWidth;
-        //sMatrixData[9] = -scaleY + 1 + 2 * scaleY * (y - offsetY) / stageHeight;
+        sMatrixData[0] *= scaleX;
+        sMatrixData[5] *= scaleY;
+        sMatrixData[8] = scaleX - 1 - 2 * scaleX * (x - offsetX) / stageWidth;
+        sMatrixData[9] = -scaleY + 1 + 2 * scaleY * (y - offsetY) / stageHeight;
 
         out.copyRawDataFrom(sMatrixData);
         out.prependTranslation(

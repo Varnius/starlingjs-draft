@@ -7,6 +7,11 @@ export { default as Mesh } from './display/mesh';
 export { default as Quad } from './display/quad';
 export { default as Sprite } from './display/sprite';
 export { default as Stage } from './display/stage';
+export { default as Image } from './display/image';
+
+export { default as Texture } from './textures/texture';
 
 export { default as Event } from './events/event';
 export { default as EventDispatcher } from './events/event-dispatcher';
+
+export * from './utils/texture-creators';

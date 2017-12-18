@@ -1,4 +1,4 @@
-import { STATIC_DRAW, ARRAY_BUFFER } from 'gl-constants';
+import { STATIC_DRAW } from 'gl-constants';
 
 import Point from '../math/point';
 import Rectangle from '../math/rectangle';
@@ -217,7 +217,7 @@ export default class VertexData {
             {
                 let value = _rawData[attribute.name][j - (targetVertexID * attribute.size)];
 
-                if (matrix && (attribute.name === 'position' || attribute.format === 'float2')) // todo: check if first
+                if (matrix && (attribute.name === 'position' || i === 0))
                 {
                     const isX = j % 2 === 0;
                     const x = isX ? value : _rawData[attribute.name][j - (targetVertexID * attribute.size) - 1];
@@ -231,105 +231,12 @@ export default class VertexData {
         }
     }
 
-    /** Copies a specific attribute of all contained vertices (or a range of them, defined by
-     *  'vertexID' and 'numVertices') to another VertexData instance. Beware that both name
-     *  and format of the attribute must be identical in source and target.
-     *  If the target is not big enough, it will be resized to fit all the new vertices.
-     *
-     *  <p>If you pass a non-null matrix, the specified attribute will be transformed by
-     *  that matrix before storing it in the target object. It must consist of two float
-     *  values.</p>
-     */
-    //copyAttributeTo(target, targetVertexID, attrName, matrix = null, vertexID = 0, numVertices = -1)
-    //{
-    //    const sourceAttribute = this.getAttribute(attrName);
-    //    const targetAttribute = target.getAttribute(attrName);
-    //
-    //    if (sourceAttribute === null)
-    //        throw new Error("[ArgumentError] Attribute '" + attrName + "' not found in source data");
-    //
-    //    if (targetAttribute === null)
-    //        throw new Error("[ArgumentError] Attribute '" + attrName + "' not found in target data");
-    //
-    //    if (sourceAttribute.isColor)
-    //        target._tinted = target._tinted || this._tinted;
-    //
-    //    this.copyAttributeTo_internal(target, targetVertexID, matrix, sourceAttribute, targetAttribute, vertexID, numVertices);
-    //}
-    //
-    //copyAttributeTo_internal(target, targetVertexID, matrix, sourceAttribute, targetAttribute, vertexID, numVertices) // eslint-disable-line
-    //{
-    //    if (sourceAttribute.format !== targetAttribute.format)
-    //        throw new Error('[IllegalOperationError] Attribute formats differ between source and target');
-    //
-    //    if (numVertices < 0 || vertexID + numVertices > this._numVertices)
-    //        numVertices = this._numVertices - vertexID;
-    //
-    //    if (target._numVertices < targetVertexID + numVertices)
-    //        target._numVertices = targetVertexID + numVertices;
-    //
-    //    let i, j, x, y;
-    //    const sourceData = this._rawData;
-    //    const targetData = target._rawData;
-    //    const sourceDelta = this._vertexSize - sourceAttribute.size;
-    //    const targetDelta = target._vertexSize - targetAttribute.size;
-    //    const attributeSizeIn32Bits = sourceAttribute.size / 4;
-    //
-    //    sourceData.position = vertexID * this._vertexSize + sourceAttribute.offset;
-    //    targetData.position = targetVertexID * target._vertexSize + targetAttribute.offset;
-    //
-    //    if (matrix)
-    //    {
-    //        for (i = 0; i < numVertices; ++i)
-    //        {
-    //            x = sourceData.readFloat();
-    //            y = sourceData.readFloat();
-    //
-    //            targetData.writeFloat(matrix.a * x + matrix.c * y + matrix.tx);
-    //            targetData.writeFloat(matrix.d * y + matrix.b * x + matrix.ty);
-    //
-    //            sourceData.position += sourceDelta;
-    //            targetData.position += targetDelta;
-    //        }
-    //    }
-    //    else
-    //    {
-    //        for (i = 0; i < numVertices; ++i)
-    //        {
-    //            for (j = 0; j < attributeSizeIn32Bits; ++j)
-    //                targetData.writeUnsignedInt(sourceData.readUnsignedInt());
-    //
-    //            sourceData.position += sourceDelta;
-    //            targetData.position += targetDelta;
-    //        }
-    //    }
-    //}
-
     /** Returns a string representation of the VertexData object,
      *  describing both its format and size. */
     toString()
     {
         return `[VertexData format="${this._format.formatString} numVertices=${this._numVertices}]`;
     }
-
-    // read / write attributes
-
-    /** Reads an unsigned integer value from the specified vertex and attribute. */
-    //getUnsignedInt(vertexID, attrName)
-    //{
-    //    this._rawData.position = vertexID * this._vertexSize + this.getAttribute(attrName).offset;
-    //    return this._rawData.readUnsignedInt();
-    //}
-
-    /** Writes an unsigned integer value to the specified vertex and attribute. */
-    //setUnsignedInt(vertexID, attrName, value)
-    //{
-    //    if (this._numVertices < vertexID + 1)
-    //        this.numVertices = vertexID + 1;
-    //
-    //    this._rawData.position = vertexID * this._vertexSize + this.getAttribute(attrName).offset;
-    //    this._rawData.writeUnsignedInt(value);
-    //}
 
     /** Reads a float value from the specified vertex and attribute. */
     getFloat(vertexID, attrName)
@@ -438,7 +345,7 @@ export default class VertexData {
     {
         if (this._numVertices < vertexID + 1)
             this.numVertices = vertexID + 1;
-console.log(vertexID, attrName, color.toString(16))
+
         const alpha = this.getAlpha(vertexID, attrName);
         this.colorize(attrName, color, alpha, vertexID, 1);
     }
@@ -756,8 +663,6 @@ console.log(vertexID, attrName, color.toString(16))
 
         if (_premultipliedAlpha && alpha !== 1.0) rgba = premultiplyAlpha(rgba);
 
-        _rawData[attrName][vertexID] = rgba;
-
         while (pos < endPos)
         {
             _rawData[attrName][pos] = rgba;
@@ -769,28 +674,10 @@ console.log(vertexID, attrName, color.toString(16))
 
     /** Returns the format of a certain vertex attribute, identified by its name.
      * Typical values: <code>float1, float2, float3, float4, bytes4</code>. */
-    //getFormat(attrName)
-    //{
-    //    return this.getAttribute(attrName).format;
-    //}
-
-    /** Returns the size of a certain vertex attribute in bytes. */
-    //getSize(attrName)
-    //{
-    //    return this.getAttribute(attrName).size;
-    //}
-
-    /** Returns the offset (in bytes) of an attribute within a vertex. */
-    getOffset(attrName)
+    getFormat(attrName)
     {
-        return this.getAttribute(attrName).offset;
+        return this.getAttribute(attrName).format;
     }
-
-    /** Returns the offset (in 32 bit units) of an attribute within a vertex. */
-    //getOffsetIn32Bits(attrName)
-    //{
-    //    return this.getAttribute(attrName).offset / 4;
-    //}
 
     /** Indicates if the VertexData instances contains an attribute with the specified name. */
     hasAttribute(attrName)
@@ -804,7 +691,7 @@ console.log(vertexID, attrName, color.toString(16))
      *  Optionally, the current data is uploaded right away. */
     uploadToVertexBuffer(bufferUsage = STATIC_DRAW)
     {
-        if (this._numVertices === 0) return null;
+        if (this._numVertices === 0) return;
         const gl = Starling.context;
         if (!gl) throw new Error('[MissingContextError]');
         const { _numAttributes, _rawData, _attributes } = this;
@@ -814,14 +701,14 @@ console.log(vertexID, attrName, color.toString(16))
             const attribute = _attributes[attributeIndex];
             const buffer = gl.createBuffer();
 
-            console.log(`SET attrib ${attribute.name} at index=${attributeIndex}, size ${attribute.size}`, _rawData[attribute.name])
+            console.log(`SET attrib ${attribute.name} at index=${attributeIndex}, size ${attribute.size}`, _rawData[attribute.name]);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
             gl.bufferData(gl.ARRAY_BUFFER, _rawData[attribute.name], bufferUsage);
             gl.enableVertexAttribArray(attributeIndex);
 
             if (attribute.isColor)
-                gl.vertexAttribPointer(attributeIndex, 4, gl.UNSIGNED_BYTE, true, 0, 0);
+                gl.vertexAttribPointer(attributeIndex, 4, gl.UNSIGNED_BYTE, true, 4, 0);
             else
                 gl.vertexAttribPointer(attributeIndex, attribute.size, gl.FLOAT, false, 0, 0);
 

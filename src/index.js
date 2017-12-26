@@ -14,4 +14,8 @@ export { default as Texture } from './textures/texture';
 export { default as Event } from './events/event';
 export { default as EventDispatcher } from './events/event-dispatcher';
 
+export { default as Rectangle } from './math/rectangle';
+
+export { default as AssetManager } from './utils/asset-manager';
+
 export * from './utils/texture-creators';

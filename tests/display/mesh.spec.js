@@ -7,7 +7,7 @@ import Point from '../../src/math/point';
 import MeshStyle from '../../src/styles/mesh-style';
 import { fromTexture } from '../../src/textures/texture-factories';
 
-import MockTexture from '../utils/mock-texture';
+import MockTexture from '../test-utils/mock-texture';
 import Helpers from '../helpers';
 
 describe('Mesh', () =>

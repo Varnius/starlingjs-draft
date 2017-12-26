@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import Starling from '../src/core/starling';
 import Sprite from '../src/display/sprite';
-import { FakeContext } from './utils/fake-context';
+import { FakeContext } from './test-utils/fake-context';
+import fetch from 'node-fetch';
 
 new Starling(
     Sprite,
@@ -17,3 +18,7 @@ new Starling(
 );
 
 global.expect = expect;
+global.window = {
+    fetch,
+    createImageBitmap: input => input,
+};

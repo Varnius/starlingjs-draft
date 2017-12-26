@@ -1,6 +1,6 @@
 import Rectangle from '../../src/math/rectangle';
 import Image from '../../src/display/image';
-import MockTexture from '../utils/mock-texture';
+import MockTexture from '../test-utils/mock-texture';
 import Helpers from '../helpers';
 
 describe('Mesh', () =>

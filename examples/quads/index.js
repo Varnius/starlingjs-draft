@@ -1,6 +1,6 @@
 import 'regenerator-runtime/runtime';
-import { Starling } from '../src/index';
-import App from './draft/draft';
+import { Starling } from '../../src/index';
+import App from './app';
 
 const canvas = document.getElementById('starling-canvas');
 const starling = new Starling(App, canvas, null, window);

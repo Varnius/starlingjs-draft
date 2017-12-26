@@ -5,7 +5,7 @@ import Point from '../../src/math/point';
 import Color from '../../src/utils/color';
 import Helpers from '../helpers';
 
-import MockTexture from '../utils/mock-texture';
+import MockTexture from '../test-utils/mock-texture';
 
 describe('Quad', () =>
 {

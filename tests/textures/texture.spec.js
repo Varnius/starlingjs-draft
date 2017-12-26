@@ -2,7 +2,7 @@ import SubTexture from '../../src/textures/subtexture';
 import VertexData from '../../src/rendering/vertex-data';
 import Point from '../../src/math/point';
 import Rectangle from '../../src/math/rectangle';
-import MockTexture from '../utils/mock-texture';
+import MockTexture from '../test-utils/mock-texture';
 import Helpers from '../helpers';
 
 describe('Texture', () =>

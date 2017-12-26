@@ -14,9 +14,14 @@ app.use(require('webpack-dev-middleware')(compiler, {
 app.use(express.static(path.join(__dirname, 'examples')));
 app.use(express.static(path.join(__dirname, 'static')));
 
-app.get('*', (req, res) =>
+app.get('/demo.html', (req, res) =>
 {
-    res.sendFile(path.join(__dirname, 'examples/index.html'));
+    res.sendFile(path.join(__dirname, 'examples/demo/src/index.html'));
+});
+
+app.get('/quads.html', (req, res) =>
+{
+    res.sendFile(path.join(__dirname, 'examples/quads/index.html'));
 });
 
 app.listen(3333, 'localhost', (err) =>

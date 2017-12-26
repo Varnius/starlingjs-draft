@@ -1,7 +1,7 @@
 import Stage from '../display/stage';
 import EventDispatcher from '../events/event-dispatcher';
 import Event from '../events/event';
-import Color from '../utils/color';
+import TouchProcessor from '../events/touch-processor';
 import Painter from '../rendering/painter';
 import Rectangle from '../math/rectangle';
 import RectangleUtil from '../utils/rectangle-util';
@@ -49,7 +49,7 @@ export default class Starling extends EventDispatcher {
         this._viewPort = viewPort;
         this._previousViewPort = new Rectangle();
         this._stage = new Stage(viewPort.width, viewPort.height);
-        //this._touchProcessor = new TouchProcessor(this._stage);
+        this._touchProcessor = new TouchProcessor(this._stage);
         //this._juggler = new Juggler();
         this._antiAliasing = 0;
         this._supportHighResolutions = false;
@@ -257,6 +257,13 @@ export default class Starling extends EventDispatcher {
     get frameID()
     {
         return this._frameID;
+    }
+
+    /** The instance of the root class provided in the constructor. Available as soon as
+     *  the event 'ROOT_CREATED' has been dispatched. */
+    get root()
+    {
+        return this._root;
     }
 
     static get current()

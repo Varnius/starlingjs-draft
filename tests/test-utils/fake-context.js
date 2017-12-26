@@ -16,5 +16,23 @@ export class FakeContext {
     {
     }
 
-    viewport() {}
+    viewport()
+    {
+    }
+
+    createTexture()
+    {
+    }
+
+    bindTexture()
+    {
+    }
+
+    texImage2D()
+    {
+    }
+
+    texParameteri()
+    {
+    }
 }

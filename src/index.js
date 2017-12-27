@@ -8,11 +8,13 @@ export { default as Quad } from './display/quad';
 export { default as Sprite } from './display/sprite';
 export { default as Stage } from './display/stage';
 export { default as Image } from './display/image';
+export { default as Button } from './display/button';
 
 export { default as Texture } from './textures/texture';
 
 export { default as Event } from './events/event';
 export { default as EventDispatcher } from './events/event-dispatcher';
+export { default as TouchPhase } from './events/touch-phase';
 
 export { default as Rectangle } from './math/rectangle';
 

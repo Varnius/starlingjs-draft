@@ -1,5 +1,72 @@
-import { Sprite } from '../../../src/index';
+import { Sprite, Image } from '../../../src/index';
+
+import MenuButton from './utils/menu-button';
+import Game from './game';
 
 export default class MainMenu extends Sprite {
+    constructor()
+    {
+        super();
+        this.init();
+    }
 
+    init()
+    {
+        const logo = new Image(Game.assets.getTexture('logo'));
+        this.addChild(logo);
+
+        const scenesToCreate = [
+            //['Textures', TextureScene],
+            //['Multitouch', TouchScene],
+            //['TextFields', TextScene],
+            //['Animations', AnimationScene],
+            //['Custom hit-test', CustomHitTestScene],
+            //['Movie Clip', MovieScene],
+            //['Filters', FilterScene],
+            //['Blend Modes', BlendModeScene],
+            //['Render Texture', RenderTextureScene],
+            //['Benchmark', BenchmarkScene],
+            //['Masks', MaskScene],
+            //['Sprite 3D', Sprite3DScene]
+        ];
+
+        let count = 0;
+
+        for (const sceneToCreate of scenesToCreate)
+        {
+            const sceneTitle = sceneToCreate[0];
+            const sceneClass = sceneToCreate[1];
+
+            const button = new MenuButton(sceneTitle);
+            button.height = 42;
+            button.readjustSize();
+            button.x = count % 2 === 0 ? 28 : 167;
+            button.y = 155 + Math.floor(count / 2) * 46;
+            button.name = sceneClass.name; // todo: ???
+            this.addChild(button);
+
+            if (scenesToCreate.length % 2 !== 0 && count % 2 === 1) {
+                button.y += 24;
+            }
+
+            ++count;
+        }
+
+        // show information about rendering method (hardware/software)
+
+        //var driverInfo = Starling.context.driverInfo;
+        //var infoText:TextField = new TextField(310, 64, driverInfo);
+        //infoText.format.size = 10;
+        //infoText.format.verticalAlign = Align.BOTTOM;
+        //infoText.x = 5;
+        //infoText.y = 475 - infoText.height;
+        //infoText.addEventListener(TouchEvent.TOUCH, onInfoTextTouched);
+        //addChildAt(infoText, 0);
+    }
+
+    //onInfoTextTouched(event)
+    //{
+    //    if (event.getTouch(this, TouchPhase.ENDED))
+    //        Starling.current.showStats = !Starling.current.showStats;
+    //}
 }

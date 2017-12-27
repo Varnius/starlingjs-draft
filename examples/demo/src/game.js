@@ -14,11 +14,8 @@ export default class Game extends Sprite {
     start(assets)
     {
         Game.sAssets = assets;
-        //this.addChild(new Image(assets.getTexture('background')));
+        this.addChild(new Image(assets.getTexture('background')));
         this.showMainMenu();
-        const s = new Quad(50, 50, 0xFF0000);
-        s.x = 60;s.y = 55;
-        this.addChild(s)
         this.addEventListener(Event.TRIGGERED, this.onButtonTriggered);
         this.stage.addEventListener(KeyboardEvent.KEY_DOWN, this.onKey);
     }

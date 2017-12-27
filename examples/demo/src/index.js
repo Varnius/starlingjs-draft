@@ -12,7 +12,12 @@ import Constants from './constants';
     {
         const assetManager = new AssetManager();
 
-        assetManager.enqueueWithName({ path: `/demo/assets/textures/${scaleFactor}x/background.jpg`, name: 'background' });
+        assetManager.enqueue([
+            { path: `/demo/assets/textures/${scaleFactor}x/background.jpg` },
+            { path: `/demo/assets/textures/${scaleFactor}x/atlas.png` },
+            { path: `/demo/assets/textures/${scaleFactor}x/atlas.xml` },
+
+        ]);
         await assetManager.loadQueue();
 
         return assetManager;

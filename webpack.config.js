@@ -3,7 +3,8 @@ const path = require('path');
 module.exports = {
     devtool: '#eval-cheap-module-source-map',
     entry: {
-        examples: './examples/demo/src/index.js',
+        demo: './examples/demo/src/index.js',
+        quads: './examples/quads/index.js',
     },
     output: {
         path: '/dist',

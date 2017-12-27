@@ -39,7 +39,7 @@ export default class Starling extends EventDispatcher {
         super();
 
         if (!canvas) throw new Error('[ArgumentError] Canvas must not be null');
-        if (!viewPort) viewPort = new Rectangle(0, 0, canvas.width, canvas.height); // ???
+        if (!viewPort) viewPort = new Rectangle(0, 0, canvas.width, canvas.height);
 
         //SystemUtil.initialize();
         Starling.sAll.push(this);
@@ -79,10 +79,6 @@ export default class Starling extends EventDispatcher {
     {
         this.makeCurrent();
         this.updateViewPort(true);
-
-        // ideal time: after viewPort setup, before root creation
-        //this.dispatchEventWith(Event.CONTEXT3D_CREATE, false, context);
-
         this.initializeRoot();
         this._frameTimestamp = new Date().getTime() / 1000.0;
     }
@@ -123,9 +119,6 @@ export default class Starling extends EventDispatcher {
      *  and processes touches. */
     advanceTime(passedTime)
     {
-        //if (!contextValid)
-        //    return;
-
         this.makeCurrent();
 
         //this._touchProcessor.advanceTime(passedTime);
@@ -141,9 +134,6 @@ export default class Starling extends EventDispatcher {
      *  rendered.</p> */
     render()
     {
-        //if (!contextValid)
-        //    return;
-
         this.makeCurrent();
         this.updateViewPort();
 

@@ -29,7 +29,7 @@ export default class App extends Sprite
         quad.color = 0x00ff00;
         this.addChild(quad);
 
-        const dogeImg = await fetch('draft/doge.png');
+        const dogeImg = await fetch('quads/doge.png');
         const dogeBlob = await dogeImg.blob();
         const doge = await window.createImageBitmap(dogeBlob);
         const image = new Image(createTextureFromData({

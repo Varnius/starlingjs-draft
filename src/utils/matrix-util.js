@@ -323,7 +323,7 @@ export default class MatrixUtil {
                 stageWidth / Math.tan(0.5) * 0.5); // -> fieldOfView = 1.0 rad
         }
 
-        const focalLength = Math.abs(cameraPos.z); // camera distance from drawing plane
+        const focalLength = Math.abs(cameraPos.z / (width / height)); // camera distance from drawing plane with correction for aspect ratio
         const offsetX = cameraPos.x - stageWidth / 2;
         const offsetY = cameraPos.y - stageHeight / 2;
         const far = focalLength * 20;

@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "gl-constants": "^1.0.0",
-    "ramda": "^0.25.0"
+    "ramda": "^0.25.0",
+    "xml-js": "^1.6.1"
   }
 }

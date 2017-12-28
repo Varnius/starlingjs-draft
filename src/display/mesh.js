@@ -37,8 +37,7 @@ export default class Mesh extends DisplayObject {
      *  If you don't pass a style, an instance of <code>MeshStyle</code> will be created
      *  for you. Note that the format of the vertex data will be matched to the
      *  given style right away. */
-    constructor(vertexData, indexData, style = null)
-    {
+    constructor(vertexData, indexData, style = null) {
         super();
 
         if (!vertexData) throw new Error('[ArgumentError] VertexData must not be null');
@@ -51,8 +50,7 @@ export default class Mesh extends DisplayObject {
     }
 
     /** @inheritDoc */
-    dispose()
-    {
+    dispose() {
         this._vertexData.clear();
         this._indexData.clear();
 
@@ -60,21 +58,18 @@ export default class Mesh extends DisplayObject {
     }
 
     /** @inheritDoc */
-    hitTest(localPoint)
-    {
+    hitTest(localPoint) {
         if (!this.visible || !this.touchable || !this.hitTestMask(localPoint)) return null;
         else return MeshUtil.containsPoint(this._vertexData, this._indexData, localPoint) ? this : null;
     }
 
     /** @inheritDoc */
-    getBounds(targetSpace, out = null)
-    {
+    getBounds(targetSpace, out = null) {
         return MeshUtil.calculateBounds(this._vertexData, this, targetSpace, out);
     }
 
     /** @inheritDoc */
-    render(painter)
-    {
+    render(painter) {
         if (this._pixelSnapping) MatrixUtil.snapToPixels(painter.state.modelviewMatrix, painter.pixelSize);
 
         painter.batchMesh(this);
@@ -95,16 +90,14 @@ export default class Mesh extends DisplayObject {
      *  @see #defaultStyle
      *  @see #defaultStyleFactory
      */
-    setStyle(meshStyle = null, mergeWithPredecessor = true)
-    {
+    setStyle(meshStyle = null, mergeWithPredecessor = true) {
         const { _vertexData, _indexData } = this;
 
         if (!meshStyle) meshStyle = this.createDefaultMeshStyle();
         else if (meshStyle === this._style) return;
         else if (meshStyle.target) meshStyle.target.setStyle();
 
-        if (this._style)
-        {
+        if (this._style) {
             if (mergeWithPredecessor) meshStyle.copyFrom(this._style);
             this._style.setTarget();
         }
@@ -115,12 +108,10 @@ export default class Mesh extends DisplayObject {
         this.setRequiresRedraw();
     }
 
-    createDefaultMeshStyle()
-    {
+    createDefaultMeshStyle() {
         let meshStyle;
 
-        if (!!Mesh.sDefaultStyleFactory)
-        {
+        if (Mesh.sDefaultStyleFactory) {
             if (Mesh.sDefaultStyleFactory.length === 0) meshStyle = Mesh.sDefaultStyleFactory();
             else meshStyle = Mesh.sDefaultStyleFactory(this);
         }
@@ -133,15 +124,13 @@ export default class Mesh extends DisplayObject {
 
     /** This method is called whenever the mesh's vertex data was changed.
      *  The base implementation simply forwards to <code>setRequiresRedraw</code>. */
-    setVertexDataChanged()
-    {
+    setVertexDataChanged() {
         this.setRequiresRedraw();
     }
 
     /** This method is called whenever the mesh's index data was changed.
      *  The base implementation simply forwards to <code>setRequiresRedraw</code>. */
-    setIndexDataChanged()
-    {
+    setIndexDataChanged() {
         this.setRequiresRedraw();
     }
 
@@ -156,49 +145,41 @@ export default class Mesh extends DisplayObject {
      *  area; some of its optimized methods won't work correctly if that premise is no longer
      *  fulfilled or the original bounds change.</p>
      */
-    getVertexPosition(vertexID, out = null)
-    {
+    getVertexPosition(vertexID, out = null) {
         return this._style.getVertexPosition(vertexID, out);
     }
 
-    setVertexPosition(vertexID, x, y)
-    {
+    setVertexPosition(vertexID, x, y) {
         this._style.setVertexPosition(vertexID, x, y);
     }
 
     /** Returns the alpha value of the vertex at the specified index. */
-    getVertexAlpha(vertexID)
-    {
+    getVertexAlpha(vertexID) {
         return this._style.getVertexAlpha(vertexID);
     }
 
     /** Sets the alpha value of the vertex at the specified index to a certain value. */
-    setVertexAlpha(vertexID, alpha)
-    {
+    setVertexAlpha(vertexID, alpha) {
         this._style.setVertexAlpha(vertexID, alpha);
     }
 
     /** Returns the RGB color of the vertex at the specified index. */
-    getVertexColor(vertexID)
-    {
+    getVertexColor(vertexID) {
         return this._style.getVertexColor(vertexID);
     }
 
     /** Sets the RGB color of the vertex at the specified index to a certain value. */
-    setVertexColor(vertexID, color)
-    {
+    setVertexColor(vertexID, color) {
         this._style.setVertexColor(vertexID, color);
     }
 
     /** Returns the texture coordinates of the vertex at the specified index. */
-    getTexCoords(vertexID, out = null)
-    {
+    getTexCoords(vertexID, out = null) {
         return this._style.getTexCoords(vertexID, out);
     }
 
     /** Sets the texture coordinates of the vertex at the specified index to the given values. */
-    setTexCoords(vertexID, u, v)
-    {
+    setTexCoords(vertexID, u, v) {
         this._style.setTexCoords(vertexID, u, v);
     }
 
@@ -206,15 +187,13 @@ export default class Mesh extends DisplayObject {
 
     /** The vertex data describing all vertices of the mesh.
      *  Any change requires a call to <code>setRequiresRedraw</code>. */
-    get vertexData()
-    {
+    get vertexData() {
         return this._vertexData;
     }
 
     /** The index data describing how the vertices are interconnected.
      *  Any change requires a call to <code>setRequiresRedraw</code>. */
-    get indexData()
-    {
+    get indexData() {
         return this._indexData;
     }
 
@@ -226,99 +205,83 @@ export default class Mesh extends DisplayObject {
      *  @default MeshStyle
      *  @see #setStyle()
      */
-    get style()
-    {
+    get style() {
         return this._style;
     }
 
-    set style(value)
-    {
+    set style(value) {
         this.setStyle(value);
     }
 
     /** The texture that is mapped to the mesh (or <code>null</code>, if there is none). */
-    get texture()
-    {
+    get texture() {
         return this._style.texture;
     }
 
-    set texture(value)
-    {
+    set texture(value) {
         this._style.texture = value;
     }
 
     /** Changes the color of all vertices to the same value.
      *  The getter simply returns the color of the first vertex. */
-    get color()
-    {
+    get color() {
         return this._style.color;
     }
 
-    set color(value)
-    {
+    set color(value) {
         this._style.color = value;
     }
 
     /** The smoothing filter that is used for the texture.
      *  @default bilinear */
-    get textureSmoothing()
-    {
+    get textureSmoothing() {
         return this._style.textureSmoothing;
     }
 
-    set textureSmoothing(value)
-    {
+    set textureSmoothing(value) {
         this._style.textureSmoothing = value;
     }
 
     /** Indicates if pixels at the edges will be repeated or clamped. Only works for
      *  power-of-two textures; for a solution that works with all kinds of textures,
      *  see <code>Image.tileGrid</code>. @default false */
-    get textureRepeat()
-    {
+    get textureRepeat() {
         return this._style.textureRepeat;
     }
 
-    set textureRepeat(value)
-    {
+    set textureRepeat(value) {
         this._style.textureRepeat = value;
     }
 
     /** Controls whether or not the instance snaps to the nearest pixel. This can prevent the
      *  object from looking blurry when it's not exactly aligned with the pixels of the screen.
      *  @default false */
-    get pixelSnapping()
-    {
+    get pixelSnapping() {
         return this._pixelSnapping;
     }
 
-    set pixelSnapping(value)
-    {
+    set pixelSnapping(value) {
         this._pixelSnapping = value;
     }
 
     /** The total number of vertices in the mesh. */
-    get numVertices()
-    {
+    get numVertices() {
         return this._vertexData.numVertices;
     }
 
     /** The total number of indices referencing vertices. */
-    get numIndices()
-    {
+    get numIndices() {
         return this._indexData.numIndices;
     }
 
     /** The total number of triangles in this mesh.
      *  (In other words: the number of indices divided by three.) */
-    get numTriangles()
-    {
+    get numTriangles() {
         return this._indexData.numTriangles;
     }
 
     /** The format used to store the vertices. */
-    get vertexFormat()
-    {
+    get vertexFormat() {
         return this._style.vertexFormat;
     }
 
@@ -327,13 +290,11 @@ export default class Mesh extends DisplayObject {
     /** The default style used for meshes if no specific style is provided. The default is
      *  <code>starling.rendering.MeshStyle</code>, and any assigned class must be a subclass
      *  of the same. */
-    static get defaultStyle()
-    {
+    static get defaultStyle() {
         return Mesh.sDefaultStyle;
     }
 
-    static set defaultStyle(value)
-    {
+    static set defaultStyle(value) {
         Mesh.sDefaultStyle = value;
     }
 
@@ -351,13 +312,11 @@ export default class Mesh extends DisplayObject {
          *      return new ColorizeMeshStyle(Math.random() * 0xffffff);
          *  }</listing>
      */
-    static get defaultStyleFactory()
-    {
+    static get defaultStyleFactory() {
         return Mesh.sDefaultStyleFactory;
     }
 
-    static set defaultStyleFactory(value)
-    {
+    static set defaultStyleFactory(value) {
         Mesh.sDefaultStyleFactory = value;
     }
 
@@ -367,8 +326,7 @@ export default class Mesh extends DisplayObject {
      *  Vertex positions and indices will be set up according to the polygon;
      *  any other vertex attributes (e.g. texture coordinates) need to be set up manually.
      */
-    static fromPolygon(polygon, style = null)
-    {
+    static fromPolygon(polygon, style = null) {
         const vertexData = new VertexData(null, polygon.numVertices);
         const indexData = new IndexData(polygon.numTriangles);
 

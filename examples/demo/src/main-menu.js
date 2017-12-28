@@ -2,22 +2,22 @@ import { Sprite, Image } from '../../../src/index';
 
 import MenuButton from './utils/menu-button';
 import Game from './game';
+import TextureScene from './scenes/texture-scene';
+import TouchScene from './scenes/touch-scene';
 
 export default class MainMenu extends Sprite {
-    constructor()
-    {
+    constructor() {
         super();
         this.init();
     }
 
-    init()
-    {
+    init() {
         const logo = new Image(Game.assets.getTexture('logo'));
         this.addChild(logo);
 
         const scenesToCreate = [
-            //['Textures', TextureScene],
-            //['Multitouch', TouchScene],
+            ['Textures', TextureScene],
+            ['Multitouch', TouchScene],
             //['TextFields', TextScene],
             //['Animations', AnimationScene],
             //['Custom hit-test', CustomHitTestScene],
@@ -32,17 +32,16 @@ export default class MainMenu extends Sprite {
 
         let count = 0;
 
-        for (const sceneToCreate of scenesToCreate)
-        {
+        for (const sceneToCreate of scenesToCreate) {
             const sceneTitle = sceneToCreate[0];
             const sceneClass = sceneToCreate[1];
-
             const button = new MenuButton(sceneTitle);
+            button.sceneClass = sceneClass;
             button.height = 42;
             button.readjustSize();
             button.x = count % 2 === 0 ? 28 : 167;
             button.y = 155 + Math.floor(count / 2) * 46;
-            button.name = sceneClass.name; // todo: ???
+
             this.addChild(button);
 
             if (scenesToCreate.length % 2 !== 0 && count % 2 === 1) {

@@ -12,13 +12,13 @@ import Event from './event';
  */
 export default class KeyboardEvent extends Event {
     /** Event type for a key that was released. */
-    static KEY_UP = 'keyUp';
+    static KEY_UP = 'keyup';
 
     /** Event type for a key that was pressed. */
-    static KEY_DOWN = 'keyDown';
+    static KEY_DOWN = 'keydown';
 
     _charCode;
-    _keyCode;
+    _key;
     _keyLocation;
     _altKey;
     _ctrlKey;
@@ -26,13 +26,12 @@ export default class KeyboardEvent extends Event {
     _isDefaultPrevented;
 
     /** Creates a new KeyboardEvent. */
-    constructor(type, charCode = 0, keyCode = 0,
+    constructor(type, charCode = 0, key = '',
                 keyLocation = 0, ctrlKey = false,
-                altKey = false, shiftKey = false)
-    {
-        super(type, false, keyCode);
+                altKey = false, shiftKey = false) {
+        super(type, false, key);
         this._charCode = charCode;
-        this._keyCode = keyCode;
+        this._key = key;
         this._keyLocation = keyLocation;
         this._ctrlKey = ctrlKey;
         this._altKey = altKey;
@@ -43,55 +42,47 @@ export default class KeyboardEvent extends Event {
 
     /** Cancels the keyboard event's default behavior. This will be forwarded to the native
      *  flash KeyboardEvent. */
-    preventDefault()
-    {
+    preventDefault() {
         this._isDefaultPrevented = true;
     }
 
     /** Checks whether the preventDefault() method has been called on the event. */
-    isDefaultPrevented()
-    {
+    isDefaultPrevented() {
         return this._isDefaultPrevented;
     }
 
     // properties
 
     /** Contains the character code of the key. */
-    get charCode()
-    {
+    get charCode() {
         return this._charCode;
     }
 
     /** The key code of the key. */
-    get keyCode()
-    {
-        return this._keyCode;
+    get key() {
+        return this._key;
     }
 
     /** Indicates the location of the key on the keyboard. This is useful for differentiating
      *  keys that appear more than once on a keyboard. @see Keylocation */
-    get keyLocation()
-    {
+    get keyLocation() {
         return this._keyLocation;
     }
 
     /** Indicates whether the Alt key is active on Windows or Linux;
      *  indicates whether the Option key is active on Mac OS. */
-    get altKey()
-    {
+    get altKey() {
         return this._altKey;
     }
 
     /** Indicates whether the Ctrl key is active on Windows or Linux;
      *  indicates whether either the Ctrl or the Command key is active on Mac OS. */
-    get ctrlKey()
-    {
+    get ctrlKey() {
         return this._ctrlKey;
     }
 
     /** Indicates whether the Shift key modifier is active (true) or inactive (false). */
-    get shiftKey()
-    {
+    get shiftKey() {
         return this._shiftKey;
     }
 }

@@ -45,8 +45,7 @@ export default class Image extends Quad {
     static sTexRows = new Float32Array(3);
 
     /** Creates an image with a texture mapped onto it. */
-    constructor(texture)
-    {
+    constructor(texture) {
         super(100, 100);
         this.texture = texture;
         this.readjustSize();
@@ -76,22 +75,18 @@ export default class Image extends Quad {
      *
      *  @default null
      */
-    get scale9Grid()
-    {
+    get scale9Grid() {
         return this._scale9Grid;
     }
 
-    set scale9Grid(value)
-    {
-        if (value)
-        {
+    set scale9Grid(value) {
+        if (value) {
             if (!this._scale9Grid) this._scale9Grid = value.clone();
             else this._scale9Grid.copyFrom(value);
 
             this.readjustSize();
             this._tileGrid = null;
-        }
-        else this._scale9Grid = null;
+        } else this._scale9Grid = null;
 
         this.setupVertices();
     }
@@ -122,42 +117,35 @@ export default class Image extends Quad {
      *
      *  @default null
      */
-    get tileGrid()
-    {
+    get tileGrid() {
         return this._tileGrid;
     }
 
-    set tileGrid(value)
-    {
-        if (value)
-        {
+    set tileGrid(value) {
+        if (value) {
             if (!this._tileGrid) this._tileGrid = value.clone();
             else this._tileGrid.copyFrom(value);
 
             this._scale9Grid = null;
-        }
-        else this._tileGrid = null;
+        } else this._tileGrid = null;
 
         this.setupVertices();
     }
 
     /** @private */
-    setupVertices()
-    {
+    setupVertices() {
         const texture = this.texture;
         if (texture && this._scale9Grid) this.setupScale9Grid();
         else if (texture && this._tileGrid) this.setupTileGrid();
         else super.setupVertices();
     }
 
-    get scaleX()
-    {
+    get scaleX() {
         return super.scaleX;
     }
 
     /** @private */
-    set scaleX(value)
-    {
+    set scaleX(value) {
         super.scaleX = value;
         if (this.texture && (this._scale9Grid || this._tileGrid)) this.setupVertices();
     }
@@ -167,37 +155,29 @@ export default class Image extends Quad {
     }
 
     /** @private */
-    set scaleY(value)
-    {
+    set scaleY(value) {
         super.scaleY = value;
         if (this.texture && (this._scale9Grid || this._tileGrid)) this.setupVertices();
     }
 
-    get texture()
-    {
+    get texture() {
         return super.texture;
     }
 
     /** @private */
-    set texture(value)
-    {
+    set texture(value) {
         const texture = this.texture;
 
-        if (value !== texture)
-        {
-            if (texture && Image.sSetupFunctions.get(texture))
-            {
+        if (value !== texture) {
+            if (texture && Image.sSetupFunctions.get(texture)) {
                 Image.sSetupFunctions.get(texture)[1](this);
             }
 
             super.texture = value;
 
-            if (value && Image.sSetupFunctions.get(value))
-            {
+            if (value && Image.sSetupFunctions.get(value)) {
                 Image.sSetupFunctions.get(value)[0](this);
-            }
-            else if (this._scale9Grid && value)
-            {
+            } else if (this._scale9Grid && value) {
                 this.readjustSize();
             }
         }
@@ -205,8 +185,7 @@ export default class Image extends Quad {
 
     // vertex setup
 
-    setupScale9Grid()
-    {
+    setupScale9Grid() {
         const { sBasCols, sBasRows, sPadding, sPosCols, sPosRows, sTexCols, sTexRows } = Image;
         const { scaleX, scaleY, texture } = this;
 
@@ -302,8 +281,7 @@ export default class Image extends Quad {
         // if the total width / height becomes smaller than the outer columns / rows,
         // we hide the center column / row and scale the rest normally.
 
-        if (sPosCols[1] <= 0)
-        {
+        if (sPosCols[1] <= 0) {
             correction = textureBounds.width / (textureBounds.width - gridCenter.width) * absScaleX;
             sPadding.left *= correction;
             sPosCols[0] *= correction;
@@ -311,8 +289,7 @@ export default class Image extends Quad {
             sPosCols[2] *= correction;
         }
 
-        if (sPosRows[1] <= 0)
-        {
+        if (sPosRows[1] <= 0) {
             correction = textureBounds.height / (textureBounds.height - gridCenter.height) * absScaleY;
             sPadding.top *= correction;
             sPosRows[0] *= correction;
@@ -344,8 +321,7 @@ export default class Image extends Quad {
         // if we just switched from a normal to a scale9 image,
         // we need to colorize all vertices just like the first one.
 
-        if (numVertices !== prevNumVertices)
-        {
+        if (numVertices !== prevNumVertices) {
             const color = prevNumVertices ? vertexData.getColor(0) : 0xffffff;
             const alpha = prevNumVertices ? vertexData.getAlpha(0) : 1.0;
             vertexData.colorize('color', color, alpha);
@@ -359,8 +335,7 @@ export default class Image extends Quad {
         this.setRequiresRedraw();
     }
 
-    setupScale9GridAttributes(startX, startY, posCols, posRows, texCols, texRows)
-    {
+    setupScale9GridAttributes(startX, startY, posCols, posRows, texCols, texRows) {
         const posAttr = 'position';
         const texAttr = 'texCoords';
 
@@ -375,20 +350,16 @@ export default class Image extends Quad {
         let currentV = 0.0;
         let vertexID = 0;
 
-        for (row = 0; row < 3; ++row)
-        {
+        for (row = 0; row < 3; ++row) {
             rowHeightPos = posRows[row];
             rowHeightTex = texRows[row];
 
-            if (rowHeightPos > 0)
-            {
-                for (col = 0; col < 3; ++col)
-                {
+            if (rowHeightPos > 0) {
+                for (col = 0; col < 3; ++col) {
                     colWidthPos = posCols[col];
                     colWidthTex = texCols[col];
 
-                    if (colWidthPos > 0)
-                    {
+                    if (colWidthPos > 0) {
                         vertexData.setPoint(vertexID, posAttr, currentX, currentY);
                         texture.setTexCoords(vertexData, vertexID, texAttr, currentU, currentV);
                         vertexID++;
@@ -422,8 +393,7 @@ export default class Image extends Quad {
         return vertexID;
     }
 
-    setupTileGrid()
-    {
+    setupTileGrid() {
         const { scaleX, scaleY } = this;
         // calculate the grid of vertices simulating a repeating / tiled texture.
         // again, texture frames make this somewhat more complicated than one would think.
@@ -470,12 +440,10 @@ export default class Image extends Quad {
 
         indexData.numIndices = 0;
 
-        while (currentY < bounds.height)
-        {
+        while (currentY < bounds.height) {
             currentX = startX;
 
-            while (currentX < bounds.width)
-            {
+            while (currentX < bounds.width) {
                 indexData.addQuad(vertexID, vertexID + 1, vertexID + 2, vertexID + 3);
 
                 posLeft = currentX < 0 ? 0 : currentX;
@@ -508,8 +476,7 @@ export default class Image extends Quad {
         // trim to actual size
         vertexData.numVertices = vertexID;
 
-        for (let i = prevNumVertices; i < vertexID; ++i)
-        {
+        for (let i = prevNumVertices; i < vertexID; ++i) {
             vertexData.setColor(i, 'color', color);
             vertexData.setAlpha(i, 'color', alpha);
         }
@@ -525,35 +492,29 @@ export default class Image extends Quad {
      *  @param onAssign   Called when the texture is assigned. Receives one parameter of type 'Image'.
      *  @param onRelease  Called when the texture is replaced. Receives one parameter of type 'Image'. (Optional.)
      */
-    static automateSetupForTexture(texture, onAssign, onRelease = null)
-    {
+    static automateSetupForTexture(texture, onAssign, onRelease = null) {
         if (!texture)
             return;
         else if (!onAssign && !onRelease)
             Image.sSetupFunctions.delete(texture);
-        else
-        {
+        else {
             Image.sSetupFunctions.set(texture, [onAssign, onRelease]);
         }
     }
 
     /** Removes any custom setup functions for the given texture. */
-    static resetSetupForTexture(texture)
-    {
+    static resetSetupForTexture(texture) {
         Image.automateSetupForTexture(texture, null, null);
     }
 
     /** Binds the given scaling grid to the given texture so that any image which displays the texture will
      *  automatically use the grid. */
-    static bindScale9GridToTexture(texture, scale9Grid)
-    {
+    static bindScale9GridToTexture(texture, scale9Grid) {
         Image.automateSetupForTexture(texture,
-            image =>
-            {
+            image => {
                 image.scale9Grid = scale9Grid;
             },
-            image =>
-            {
+            image => {
                 image.scale9Grid = null;
             }
         );
@@ -561,16 +522,13 @@ export default class Image extends Quad {
 
     /** Binds the given pivot point to the given texture so that any image which displays the texture will
      *  automatically use the pivot point. */
-    static bindPivotPointToTexture(texture, pivotX, pivotY)
-    {
+    static bindPivotPointToTexture(texture, pivotX, pivotY) {
         Image.automateSetupForTexture(texture,
-            image =>
-            {
+            image => {
                 image.pivotX = pivotX;
                 image.pivotY = pivotY;
             },
-            image =>
-            {
+            image => {
                 image.pivotX = image.pivotY = 0;
             }
         );

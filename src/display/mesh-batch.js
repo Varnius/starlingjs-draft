@@ -42,8 +42,7 @@ export default class MeshBatch extends Mesh {
     static sFullMeshSubset = new MeshSubset();
 
     /** Creates a new, empty MeshBatch instance. */
-    constructor()
-    {
+    constructor() {
         const vertexData = new VertexData();
         const indexData = new IndexData();
 
@@ -51,48 +50,41 @@ export default class MeshBatch extends Mesh {
     }
 
     /** @inheritDoc */
-    dispose()
-    {
+    dispose() {
         if (this._effect) this._effect.dispose();
         super.dispose();
     }
 
     /** This method must be called whenever the mesh's vertex data was changed. Makes
      *  sure that the vertex buffer is synchronized before rendering, and forces a redraw. */
-    setVertexDataChanged()
-    {
+    setVertexDataChanged() {
         this._vertexSyncRequired = true;
         super.setVertexDataChanged();
     }
 
     /** This method must be called whenever the mesh's index data was changed. Makes
      *  sure that the index buffer is synchronized before rendering, and forces a redraw. */
-    setIndexDataChanged()
-    {
+    setIndexDataChanged() {
         this._indexSyncRequired = true;
         super.setIndexDataChanged();
     }
 
-    setVertexAndIndexDataChanged()
-    {
+    setVertexAndIndexDataChanged() {
         this._vertexSyncRequired = this._indexSyncRequired = true;
     }
 
-    syncVertexBuffer()
-    {
+    syncVertexBuffer() {
         this._effect.uploadVertexData(this._vertexData);
         this._vertexSyncRequired = false;
     }
 
-    syncIndexBuffer()
-    {
+    syncIndexBuffer() {
         this._effect.uploadIndexData(this._indexData);
         this._indexSyncRequired = false;
     }
 
     /** Removes all geometry. */
-    clear()
-    {
+    clear() {
         if (this._parent) this.setRequiresRedraw();
 
         this._vertexData.numVertices = 0;
@@ -114,8 +106,7 @@ export default class MeshBatch extends Mesh {
      *                   without transforming them in any way (no matter the value of the
      *                   <code>matrix</code> parameter).
      */
-    addMesh(mesh, matrix = null, alpha = 1.0, subset = null, ignoreTransformations = false)
-    {
+    addMesh(mesh, matrix = null, alpha = 1.0, subset = null, ignoreTransformations = false) {
         if (ignoreTransformations) matrix = null;
         else if (!matrix) matrix = mesh.transformationMatrix;
         if (!subset) subset = MeshBatch.sFullMeshSubset;
@@ -145,8 +136,7 @@ export default class MeshBatch extends Mesh {
      *  For the latter, indices are aligned in groups of 6 (one quad requires six indices),
      *  and the vertices in groups of 4 (one vertex for every corner).</p>
      */
-    addMeshAt(mesh, indexID, vertexID)
-    {
+    addMeshAt(mesh, indexID, vertexID) {
         const numIndices = mesh.numIndices;
         const numVertices = mesh.numVertices;
         const matrix = mesh.transformationMatrix;
@@ -164,19 +154,15 @@ export default class MeshBatch extends Mesh {
         this._indexSyncRequired = this._vertexSyncRequired = true;
     }
 
-    setupFor(mesh)
-    {
+    setupFor(mesh) {
         const meshStyle = mesh._style;
         const meshStyleType = meshStyle.type;
 
-        if (this._style.type !== meshStyleType)
-        {
+        if (this._style.type !== meshStyleType) {
             const newStyle = new meshStyleType();
             newStyle.copyFrom(meshStyle);
             this.setStyle(newStyle, false);
-        }
-        else
-        {
+        } else {
             this._style.copyFrom(meshStyle);
         }
     }
@@ -189,8 +175,7 @@ export default class MeshBatch extends Mesh {
      *  @param mesh         the mesh to add to the batch.
      *  @param numVertices  if <code>-1</code>, <code>mesh.numVertices</code> will be used
      */
-    canAddMesh(mesh, numVertices = -1)
-    {
+    canAddMesh(mesh, numVertices = -1) {
         const currentNumVertices = this._vertexData.numVertices;
 
         if (currentNumVertices === 0) return true;
@@ -203,18 +188,14 @@ export default class MeshBatch extends Mesh {
 
     /** If the <code>batchable</code> property is enabled, this method will add the batch
      *  to the painter's current batch. Otherwise, this will actually do the drawing. */
-    render(painter)
-    {
+    render(painter) {
         if (this._vertexData.numVertices === 0) return;
         if (this._pixelSnapping) MatrixUtil.snapToPixels(
             painter.state.modelviewMatrix, painter.pixelSize);
 
-        if (this._batchable)
-        {
+        if (this._batchable) {
             painter.batchMesh(this);
-        }
-        else
-        {
+        } else {
             painter.finishMeshBatch();
             painter.drawCount += 1;
             painter.prepareToDraw();
@@ -229,8 +210,7 @@ export default class MeshBatch extends Mesh {
     }
 
     /** @inheritDoc */
-    setStyle(meshStyle = null, mergeWithPredecessor = true)
-    {
+    setStyle(meshStyle = null, mergeWithPredecessor = true) {
         super.setStyle(meshStyle, mergeWithPredecessor);
 
         if (this._effect)
@@ -242,36 +222,30 @@ export default class MeshBatch extends Mesh {
         this.setVertexAndIndexDataChanged(); // we've got a new set of buffers!
     }
 
-    get numVertices()
-    {
+    get numVertices() {
         return super.numVertices;
     }
 
     /** The total number of vertices in the mesh. If you change this to a smaller value,
      *  the surplus will be deleted. Make sure that no indices reference those deleted
      *  vertices! */
-    set numVertices(value)
-    {
-        if (this._vertexData.numVertices !== value)
-        {
+    set numVertices(value) {
+        if (this._vertexData.numVertices !== value) {
             this._vertexData.numVertices = value;
             this._vertexSyncRequired = true;
             this.setRequiresRedraw();
         }
     }
 
-    get numIndices()
-    {
+    get numIndices() {
         return super.numIndices;
     }
 
     /** The total number of indices in the mesh. If you change this to a smaller value,
      *  the surplus will be deleted. Always make sure that the number of indices
      *  is a multiple of three! */
-    set numIndices(value)
-    {
-        if (this._indexData.numIndices !== value)
-        {
+    set numIndices(value) {
+        if (this._indexData.numIndices !== value) {
             this._indexData.numIndices = value;
             this._indexSyncRequired = true;
             this.setRequiresRedraw();
@@ -287,15 +261,12 @@ export default class MeshBatch extends Mesh {
      *
      *  @default false
      */
-    get batchable()
-    {
+    get batchable() {
         return this._batchable;
     }
 
-    set batchable(value)
-    {
-        if (this._batchable !== value)
-        {
+    set batchable(value) {
+        if (this._batchable !== value) {
             this._batchable = value;
             this.setRequiresRedraw();
         }

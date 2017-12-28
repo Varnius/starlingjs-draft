@@ -63,8 +63,7 @@ export default class DisplayObjectContainer extends DisplayObject {
     // construction
 
     /** @private */
-    constructor()
-    {
+    constructor() {
         super();
         // todo: handle
         //if (Capabilities.isDebugger &&
@@ -77,8 +76,7 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** Disposes the resources of all children. */
-    dispose()
-    {
+    dispose() {
         for (let i = this._children.length - 1; i >= 0; --i)
             this._children[i].dispose();
 
@@ -88,34 +86,27 @@ export default class DisplayObjectContainer extends DisplayObject {
     // child management
 
     /** Adds a child to the container. It will be at the frontmost position. */
-    addChild(child)
-    {
+    addChild(child) {
         return this.addChildAt(child, this._children.length);
     }
 
     /** Adds a child to the container at a certain index. */
-    addChildAt(child, index)
-    {
+    addChildAt(child, index) {
         const numChildren = this._children.length;
 
-        if (index >= 0 && index <= numChildren)
-        {
+        if (index >= 0 && index <= numChildren) {
             this.setRequiresRedraw();
 
-            if (child.parent === this)
-            {
+            if (child.parent === this) {
                 this.setChildIndex(child, index); // avoids dispatching events
-            }
-            else
-            {
+            } else {
                 this._children.splice(index, 0, child);
 
                 child.removeFromParent();
                 child.setParent(this);
                 child.dispatchEventWith(Event.ADDED, true);
 
-                if (this.stage)
-                {
+                if (this.stage) {
                     const isContainer = child instanceof DisplayObjectContainer;
                     if (isContainer) child.broadcastEventWith(Event.ADDED_TO_STAGE);
                     else child.dispatchEventWith(Event.ADDED_TO_STAGE);
@@ -123,17 +114,14 @@ export default class DisplayObjectContainer extends DisplayObject {
             }
 
             return child;
-        }
-        else
-        {
+        } else {
             throw new RangeError('Invalid child index');
         }
     }
 
     /** Removes a child from the container. If the object is not a child, the method returns
      *  <code>null</code>. If requested, the child will be disposed right away. */
-    removeChild(child, dispose = false)
-    {
+    removeChild(child, dispose = false) {
         const childIndex = this.getChildIndex(child);
         if (childIndex !== -1) return this.removeChildAt(childIndex, dispose);
         else return null;
@@ -141,17 +129,14 @@ export default class DisplayObjectContainer extends DisplayObject {
 
     /** Removes a child at a certain index. The index positions of any display objects above
      *  the child are decreased by 1. If requested, the child will be disposed right away. */
-    removeChildAt(index, dispose = false)
-    {
-        if (index >= 0 && index < this._children.length)
-        {
+    removeChildAt(index, dispose = false) {
+        if (index >= 0 && index < this._children.length) {
             this.setRequiresRedraw();
 
             const child = this._children[index];
             child.dispatchEventWith(Event.REMOVED, true);
 
-            if (this.stage)
-            {
+            if (this.stage) {
                 const container = child instanceof DisplayObjectContainer;
                 if (container) child.broadcastEventWith(Event.REMOVED_FROM_STAGE);
                 else child.dispatchEventWith(Event.REMOVED_FROM_STAGE);
@@ -163,17 +148,14 @@ export default class DisplayObjectContainer extends DisplayObject {
             if (dispose) child.dispose();
 
             return child;
-        }
-        else
-        {
+        } else {
             throw new RangeError('Invalid child index');
         }
     }
 
     /** Removes a range of children from the container (endIndex included).
      *  If no arguments are given, all children will be removed. */
-    removeChildren(beginIndex = 0, endIndex = -1, dispose = false)
-    {
+    removeChildren(beginIndex = 0, endIndex = -1, dispose = false) {
         if (endIndex < 0 || endIndex >= this.numChildren)
             endIndex = this.numChildren - 1;
 
@@ -183,8 +165,7 @@ export default class DisplayObjectContainer extends DisplayObject {
 
     /** Returns a child object at a certain index. If you pass a negative index,
      *  '-1' will return the last child, '-2' the second to last child, etc. */
-    getChildAt(index)
-    {
+    getChildAt(index) {
         const numChildren = this._children.length;
 
         if (index < 0)
@@ -197,8 +178,7 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** Returns a child object with a certain name (non-recursively). */
-    getChildByName(name)
-    {
+    getChildByName(name) {
         const numChildren = this._children.length;
         for (let i = 0; i < numChildren; ++i)
             if (this._children[i].name === name) return this._children[i];
@@ -207,14 +187,12 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** Returns the index of a child within the container, or "-1" if it is not found. */
-    getChildIndex(child)
-    {
+    getChildIndex(child) {
         return this._children.indexOf(child);
     }
 
     /** Moves a child to a certain index. Children at and after the replaced position move up.*/
-    setChildIndex(child, index)
-    {
+    setChildIndex(child, index) {
         const oldIndex = this.getChildIndex(child);
         if (oldIndex === index) return;
         if (oldIndex === -1) throw new Error('[ArgumentError] Not a child of this container');
@@ -225,8 +203,7 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** Swaps the indexes of two children. */
-    swapChildren(child1, child2)
-    {
+    swapChildren(child1, child2) {
         const index1 = this.getChildIndex(child1);
         const index2 = this.getChildIndex(child2);
         if (index1 === -1 || index2 === -1) throw new Error('[ArgumentError] Not a child of this container');
@@ -234,8 +211,7 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** Swaps the indexes of two children. */
-    swapChildrenAt(index1, index2)
-    {
+    swapChildrenAt(index1, index2) {
         const child1 = this.getChildAt(index1);
         const child2 = this.getChildAt(index2);
         this._children[index1] = child2;
@@ -245,8 +221,7 @@ export default class DisplayObjectContainer extends DisplayObject {
 
     /** Sorts the children according to a given function (that works just like the sort function
      *  of the Vector class). */
-    sortChildren(compareFunction)
-    {
+    sortChildren(compareFunction) {
         DisplayObjectContainer.sSortBuffer.length = this._children.length;
         DisplayObjectContainer.mergeSort(this._children, compareFunction, 0, this._children.length, DisplayObjectContainer.sSortBuffer);
         DisplayObjectContainer.sSortBuffer.length = 0;
@@ -254,10 +229,8 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** Determines if a certain object is a child of the container (recursively). */
-    contains(child)
-    {
-        while (child)
-        {
+    contains(child) {
+        while (child) {
             if (child === this) return true;
             else child = child.parent;
         }
@@ -267,29 +240,22 @@ export default class DisplayObjectContainer extends DisplayObject {
     // other methods
 
     /** @inheritDoc */
-    getBounds(targetSpace, out = null)
-    {
+    getBounds(targetSpace, out = null) {
         if (!out) out = new Rectangle();
 
         const numChildren = this._children.length;
 
-        if (numChildren === 0)
-        {
+        if (numChildren === 0) {
             this.getTransformationMatrix(targetSpace, DisplayObjectContainer.sHelperMatrix);
             MatrixUtil.transformCoords(DisplayObjectContainer.sHelperMatrix, 0.0, 0.0, DisplayObjectContainer.sHelperPoint);
             out.setTo(DisplayObjectContainer.sHelperPoint.x, DisplayObjectContainer.sHelperPoint.y, 0, 0);
-        }
-        else if (numChildren === 1)
-        {
+        } else if (numChildren === 1) {
             this._children[0].getBounds(targetSpace, out);
-        }
-        else
-        {
+        } else {
             let minX = Number.MAX_VALUE, maxX = -Number.MAX_VALUE;
             let minY = Number.MAX_VALUE, maxY = -Number.MAX_VALUE;
 
-            for (let i = 0; i < numChildren; ++i)
-            {
+            for (let i = 0; i < numChildren; ++i) {
                 this._children[i].getBounds(targetSpace, out);
 
                 if (minX > out.x) minX = out.x;
@@ -305,8 +271,7 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** @inheritDoc */
-    hitTest(localPoint)
-    {
+    hitTest(localPoint) {
         if (!this.visible || !this.touchable || !this.hitTestMask(localPoint)) return null;
 
         let target = null;
@@ -314,8 +279,7 @@ export default class DisplayObjectContainer extends DisplayObject {
         const localY = localPoint.y;
         const numChildren = this._children.length;
 
-        for (let i = numChildren - 1; i >= 0; --i) // front to back!
-        {
+        for (let i = numChildren - 1; i >= 0; --i) { // front to back!
             const child = this._children[i];
             if (child.isMask) continue;
 
@@ -332,8 +296,7 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** @inheritDoc */
-    render(painter)
-    {
+    render(painter) {
         const numChildren = this._children.length;
         const frameID = painter.frameID;
         const cacheEnabled = frameID !== 0;
@@ -341,12 +304,10 @@ export default class DisplayObjectContainer extends DisplayObject {
 
         painter.pushState();
 
-        for (let i = 0; i < numChildren; ++i)
-        {
+        for (let i = 0; i < numChildren; ++i) {
             const child = this._children[i];
 
-            if (child._hasVisibleArea)
-            {
+            if (child._hasVisibleArea) {
                 if (i !== 0)
                     painter.restoreState();
 
@@ -355,16 +316,13 @@ export default class DisplayObjectContainer extends DisplayObject {
 
                 if (child._lastParentOrSelfChangeFrameID !== frameID &&
                     child._lastChildChangeFrameID !== frameID &&
-                    child._tokenFrameID === frameID - 1 && cacheEnabled)
-                {
+                    child._tokenFrameID === frameID - 1 && cacheEnabled) {
                     painter.fillToken(DisplayObjectContainer.sCacheToken);
                     painter.drawFromCache(child._pushToken, child._popToken);
                     painter.fillToken(child._popToken);
 
                     child._pushToken.copyFrom(DisplayObjectContainer.sCacheToken);
-                }
-                else
-                {
+                } else {
                     const pushToken = cacheEnabled ? child._pushToken : null;
                     const popToken = cacheEnabled ? child._popToken : null;
                     const filter = child._filter;
@@ -392,8 +350,7 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** Dispatches an event on all children (recursively). The event must not bubble. */
-    broadcastEvent(event)
-    {
+    broadcastEvent(event) {
         if (event.bubbles)
             throw new Error('[ArgumentError] Broadcast of bubbling events is prohibited');
 
@@ -414,16 +371,14 @@ export default class DisplayObjectContainer extends DisplayObject {
 
     /** Dispatches an event with the given parameters on all children (recursively).
      *  The method uses an internal pool of event objects to avoid allocations. */
-    broadcastEventWith(eventType, data = null)
-    {
+    broadcastEventWith(eventType, data = null) {
         const event = Event.fromPool(eventType, false, data);
         this.broadcastEvent(event);
         Event.toPool(event);
     }
 
     /** The number of children of this container. */
-    get numChildren()
-    {
+    get numChildren() {
         return this._children.length;
     }
 
@@ -431,25 +386,21 @@ export default class DisplayObjectContainer extends DisplayObject {
      *  Touch events will have the container as target, not the touched child.
      *  (Similar to 'mouseChildren' in the classic display list, but with inverted logic.)
      *  @default false */
-    get touchGroup()
-    {
+    get touchGroup() {
         return this._touchGroup;
     }
 
-    set touchGroup(value)
-    {
+    set touchGroup(value) {
         this._touchGroup = value;
     }
 
     // helpers
 
-    static mergeSort(input, compareFunc, startIndex, length, buffer)
-    {
+    static mergeSort(input, compareFunc, startIndex, length, buffer) {
         // This is a port of the C++ merge sort algorithm shown here:
         // http://www.cprogramming.com/tutorial/computersciencetheory/mergesort.html
 
-        if (length > 1)
-        {
+        if (length > 1) {
             let i;
             const endIndex = startIndex + length;
             const halfLength = length / 2;
@@ -461,20 +412,16 @@ export default class DisplayObjectContainer extends DisplayObject {
             DisplayObjectContainer.mergeSort(input, compareFunc, startIndex + halfLength, length - halfLength, buffer);
 
             // merge the vectors, using the buffer vector for temporary storage
-            for (i = 0; i < length; i++)
-            {
+            for (i = 0; i < length; i++) {
                 // Check to see if any elements remain in the left vector;
                 // if so, we check if there are any elements left in the right vector;
                 // if so, we compare them. Otherwise, we know that the merge must
                 // take the element from the left vector. */
                 if (l < startIndex + halfLength &&
-                    (r === endIndex || compareFunc(input[l], input[r]) <= 0))
-                {
+                    (r === endIndex || compareFunc(input[l], input[r]) <= 0)) {
                     buffer[i] = input[l];
                     l++;
-                }
-                else
-                {
+                } else {
                     buffer[i] = input[r];
                     r++;
                 }
@@ -487,15 +434,13 @@ export default class DisplayObjectContainer extends DisplayObject {
     }
 
     /** @private */
-    getChildEventListeners = (object, eventType, listeners) =>
-    {
+    getChildEventListeners = (object, eventType, listeners) => {
         const isContainer = object instanceof DisplayObjectContainer;
 
         if (object.hasEventListener(eventType))
             listeners[listeners.length] = object; // avoiding 'push'
 
-        if (isContainer)
-        {
+        if (isContainer) {
             const children = object._children;
             const numChildren = children.length;
 

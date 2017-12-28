@@ -100,12 +100,10 @@ export default class Painter {
 
     /** Creates a new Painter object. Normally, it's not necessary to create any custom
      *  painters; instead, use the global painter found on the Starling instance. */
-    constructor(canvas)
-    {
+    constructor(canvas) {
         this._context = canvas.getContext('webgl2');
 
-        if (!this._context)
-        {
+        if (!this._context) {
             console.log('Dafuq, WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>');
             return;
         }
@@ -147,14 +145,12 @@ export default class Painter {
 
     /** Disposes all mesh batches, programs, and - if it is not being shared -
      *  the render context. */
-    dispose()
-    {
+    dispose() {
         this._batchProcessorCurr.dispose();
         this._batchProcessorPrev.dispose();
         this._batchProcessorSpec.dispose();
 
-        if (!this._shareContext)
-        {
+        if (!this._shareContext) {
             this._context.dispose(false);
             Painter.sSharedData = new Map();
         }
@@ -164,18 +160,15 @@ export default class Painter {
 
     /** Registers a program under a certain name.
      *  If the name was already used, the previous program is overwritten. */
-    registerProgram(name, program)
-    {
+    registerProgram(name, program) {
         this.deleteProgram(name);
         this.programs[name] = program;
     }
 
     /** Deletes the program of a certain name. */
-    deleteProgram(name)
-    {
+    deleteProgram(name) {
         const program = this.getProgram(name);
-        if (program)
-        {
+        if (program) {
             program.dispose();
             delete this.programs[name];
         }
@@ -183,14 +176,12 @@ export default class Painter {
 
     /** Returns the program registered under a certain name, or null if no program with
      *  this name has been registered. */
-    getProgram(name)
-    {
+    getProgram(name) {
         return this.programs[name];
     }
 
     /** Indicates if a program is registered under a certain name. */
-    hasProgram(name)
-    {
+    hasProgram(name) {
         return name in this.programs;
     }
 
@@ -202,8 +193,7 @@ export default class Painter {
      *  the render cache. That way, you can later reference this location to render a subset of
      *  the cache.</p>
      */
-    pushState(token = null)
-    {
+    pushState(token = null) {
         this._stateStackPos++;
 
         if (this._stateStackLength < this._stateStackPos + 1) this._stateStack[this._stateStackLength++] = new RenderState();
@@ -219,8 +209,7 @@ export default class Painter {
      *  @param blendMode            Replaces the current blend mode; except for 'auto', which
      *                              means the current value remains unchanged.
      */
-    setStateTo(transformationMatrix, alphaFactor = 1.0, blendMode = 'auto')
-    {
+    setStateTo(transformationMatrix, alphaFactor = 1.0, blendMode = 'auto') {
         if (transformationMatrix) MatrixUtil.prependMatrix(this._state._modelviewMatrix, transformationMatrix);
 
         if (alphaFactor !== 1.0) this._state._alpha *= alphaFactor;
@@ -235,8 +224,7 @@ export default class Painter {
      *  the render cache. That way, you can later reference this location to render a subset of
      *  the cache.</p>
      */
-    popState(token = null)
-    {
+    popState(token = null) {
         if (this._stateStackPos < 0)
             throw new Error('[IllegalOperation] Cannot pop empty state stack');
 
@@ -248,8 +236,7 @@ export default class Painter {
 
     /** Restores the render state that was last pushed to the stack, but does NOT remove
      *  it from the stack. */
-    restoreState()
-    {
+    restoreState() {
         if (this._stateStackPos < 0)
             throw new Error('[IllegalOperationError] Cannot restore from empty state stack');
 
@@ -258,8 +245,7 @@ export default class Painter {
 
     /** Updates all properties of the given token so that it describes the current position
      *  within the render cache. */
-    fillToken(token)
-    {
+    fillToken(token) {
         if (token) this._batchProcessor.fillToken(token);
     }
 
@@ -450,31 +436,27 @@ export default class Painter {
      *  @param subset  The range of vertices to be batched. If <code>null</code>, the complete
      *                 mesh will be used.
      */
-    batchMesh(mesh, subset = null)
-    {
+    batchMesh(mesh, subset = null) {
         this._batchProcessor.addMesh(mesh, this._state, subset);
     }
 
     /** Finishes the current mesh batch and prepares the next one. */
-    finishMeshBatch = () =>
-    {
+    finishMeshBatch = () => {
         this._batchProcessor.finishBatch();
     };
 
     /** Completes all unfinished batches, cleanup procedures. */
-    finishFrame()
-    {
-        const { _frameID, _batchProcessor, _batchProcessorCurr, _batchProcessorSpec } = this;
+    finishFrame() {
+        const { _frameID, _batchProcessorCurr, _batchProcessorSpec } = this;
         if (_frameID % 99 === 0) _batchProcessorCurr.trim(); // odd number -> alternating processors
         if (_frameID % 150 === 0) _batchProcessorSpec.trim();
 
-        _batchProcessor.finishBatch();
+        this._batchProcessor.finishBatch();
         this._batchProcessor = _batchProcessorSpec; // no cache between frames
         this.processCacheExclusions();
     }
 
-    processCacheExclusions()
-    {
+    processCacheExclusions() {
         let i;
         const length = this._batchCacheExclusions.length;
         for (i = 0; i < length; ++i) this._batchCacheExclusions[i].excludeFromCache();
@@ -483,8 +465,7 @@ export default class Painter {
 
     /** Resets the current state, state stack, batch processor, stencil reference value,
      *  clipping rectangle, and draw count. Furthermore, depth testing is disabled. */
-    nextFrame()
-    {
+    nextFrame() {
         // update batch processors
         this._batchProcessor = this.swapBatchProcessors();
 
@@ -504,8 +485,7 @@ export default class Painter {
         this._state.reset();
     }
 
-    swapBatchProcessors()
-    {
+    swapBatchProcessors() {
         const tmp = this._batchProcessorPrev;
         this._batchProcessorPrev = this._batchProcessorCurr;
         this._batchProcessorCurr = tmp;
@@ -515,41 +495,33 @@ export default class Painter {
     /** Draws all meshes from the render cache between <code>startToken</code> and
      *  (but not including) <code>endToken</code>. The render cache contains all meshes
      *  rendered in the previous frame. */
-    drawFromCache(startToken, endToken)
-    {
+    drawFromCache(startToken, endToken) {
         let meshBatch;
         const subset = Painter.sMeshSubset;
-        const { _state, _batchProcessor } = this;
 
-        if (!startToken.equals(endToken))
-        {
+        if (!startToken.equals(endToken)) {
             this.pushState();
 
-
-            for (let i = startToken.batchID; i <= endToken.batchID; ++i)
-            {
+            for (let i = startToken.batchID; i <= endToken.batchID; ++i) {
                 meshBatch = this._batchProcessorPrev.getBatchAt(i);
                 subset.setTo(); // resets subset
 
-                if (i === startToken.batchID)
-                {
+                if (i === startToken.batchID) {
                     subset.vertexID = startToken.vertexID;
                     subset.indexID = startToken.indexID;
                     subset.numVertices = meshBatch.numVertices - subset.vertexID;
                     subset.numIndices = meshBatch.numIndices - subset.indexID;
                 }
 
-                if (i === endToken.batchID)
-                {
+                if (i === endToken.batchID) {
                     subset.numVertices = endToken.vertexID - subset.vertexID;
                     subset.numIndices = endToken.indexID - subset.indexID;
                 }
 
-                if (subset.numVertices)
-                {
-                    _state.alpha = 1.0;
-                    _state.blendMode = meshBatch.blendMode;
-                    _batchProcessor.addMesh(meshBatch, _state, subset, true);
+                if (subset.numVertices) {
+                    this._state.alpha = 1.0;
+                    this._state.blendMode = meshBatch.blendMode;
+                    this._batchProcessor.addMesh(meshBatch, this._state, subset, true);
                 }
             }
 
@@ -565,13 +537,11 @@ export default class Painter {
      *  still be cached! This just means that batching is interrupted at this object when
      *  the display tree is traversed.</p>
      */
-    excludeFromCache(object)
-    {
+    excludeFromCache(object) {
         if (object) this._batchCacheExclusions[this._batchCacheExclusions.length] = object;
     }
 
-    drawBatch = meshBatch =>
-    {
+    drawBatch = meshBatch => {
         this.pushState();
 
         this.state.blendMode = meshBatch.blendMode;
@@ -589,8 +559,7 @@ export default class Painter {
      *  blend mode, render target and clipping rectangle. Always call this method before
      *  <code>context.drawTriangles()</code>.
      */
-    prepareToDraw()
-    {
+    prepareToDraw() {
         this.applyBlendMode();
         this.applyRenderTarget();
         //this.applyClipRect(); // todo: implement
@@ -599,38 +568,32 @@ export default class Painter {
 
     /** Clears the render context with a certain color and alpha value. Since this also
      *  clears the stencil buffer, the stencil reference value is also reset to '0'. */
-    clear(rgb = 0, alpha = 0.0)
-    {
+    clear(rgb = 0, alpha = 0.0) {
         this.applyRenderTarget();
         this.stencilReferenceValue = 0;
         RenderUtil.clear(rgb, alpha);
     }
 
     /** Resets the render target to the back buffer and displays its contents. */
-    present()
-    {
+    present() {
         this._state.renderTarget = null;
         this._actualRenderTarget = null;
-        //this._context.present(); todo: no need for this with gl?
+        //this._context.present(); todo: no need for this with gl...
     }
 
-    applyBlendMode()
-    {
+    applyBlendMode() {
         const blendMode = this._state.blendMode;
 
-        if (blendMode !== this._actualBlendMode)
-        {
+        if (blendMode !== this._actualBlendMode) {
             BlendMode.get(this._state.blendMode).activate();
             this._actualBlendMode = blendMode;
         }
     }
 
-    applyCulling()
-    {
+    applyCulling() {
         const culling = this._state.culling;
 
-        if (culling !== this._actualCulling)
-        {
+        if (culling !== this._actualCulling) {
             const gl = this._context;
             gl.enable(gl.CULL_FACE);
             gl.cullFace(culling);
@@ -639,17 +602,14 @@ export default class Painter {
         }
     }
 
-    applyRenderTarget()
-    {
+    applyRenderTarget() {
         const gl = this._context;
         const { _state } = this;
         const target = _state.renderTargetBase;
         const options = _state.renderTargetOptions;
 
-        if (target !== this._actualRenderTarget || options !== this._actualRenderTargetOptions)
-        {
-            if (target)
-            {
+        if (target !== this._actualRenderTarget || options !== this._actualRenderTargetOptions) {
+            if (target) {
                 //const antiAlias = _state.renderTargetAntiAlias;
                 //const depthAndStencil = _state.renderTargetSupportsDepthAndStencil;
                 //_context.setRenderToTexture(target, depthAndStencil, antiAlias);
@@ -659,14 +619,13 @@ export default class Painter {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target, 0);
             }
-            else
-            {
+            else {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 console.log('implemented: setRenderToBackBuffer');
             }
 
             //_context.setStencilReferenceValue(this.stencilReferenceValue);
-            console.log('todo: setStencilReferenceValue')
+            console.log('todo: setStencilReferenceValue');
             this._actualRenderTargetOptions = options;
             this._actualRenderTarget = target;
         }
@@ -724,13 +683,11 @@ export default class Painter {
     // properties
 
     /** Indicates the number of stage3D draw calls. */
-    get drawCount()
-    {
+    get drawCount() {
         return this._drawCount;
     }
 
-    set drawCount(value)
-    {
+    set drawCount(value) {
         this._drawCount = value;
     }
 
@@ -762,15 +719,12 @@ export default class Painter {
      *
      *  @default true
      */
-    get cacheEnabled()
-    {
+    get cacheEnabled() {
         return this._batchProcessor === this._batchProcessorCurr;
     }
 
-    set cacheEnabled(value)
-    {
-        if (value !== this.cacheEnabled)
-        {
+    set cacheEnabled(value) {
+        if (value !== this.cacheEnabled) {
             this.finishMeshBatch();
 
             if (value) this._batchProcessor = this._batchProcessorCurr;
@@ -786,50 +740,42 @@ export default class Painter {
      *  the current render batch, the batch will be concluded right away. Thus, watch out
      *  for changes of blend mode, clipping rectangle, render target or culling.</p>
      */
-    get state()
-    {
+    get state() {
         return this._state;
     }
 
     /** The Context3D instance this painter renders into. */
-    get context()
-    {
+    get context() {
         return this._context;
     }
 
     /** Returns the index of the current frame <strong>if</strong> the render cache is enabled;
      *  otherwise, returns zero. To get the frameID regardless of the render cache, call
      *  <code>Starling.frameID</code> instead. */
-    set frameID(value)
-    {
+    set frameID(value) {
         this._frameID = value;
     }
 
-    get frameID()
-    {
+    get frameID() {
         return this._batchProcessor === this._batchProcessorCurr ? this._frameID : 0;
     }
 
     /** The size (in points) that represents one pixel in the back buffer. */
-    get pixelSize()
-    {
+    get pixelSize() {
         return this._pixelSize;
     }
 
-    set pixelSize(value)
-    {
+    set pixelSize(value) {
         this._pixelSize = value;
     }
 
     /** Indicates if another Starling instance (or another Stage3D framework altogether)
      *  uses the same render context. @default false */
-    get shareContext()
-    {
+    get shareContext() {
         return this._shareContext;
     }
 
-    set shareContext(value)
-    {
+    set shareContext(value) {
         this._shareContext = value;
     }
 
@@ -838,8 +784,7 @@ export default class Painter {
      *  'supportHighResolutions' setting, you have to multiply with 'backBufferPixelsPerPoint'
      *  for the actual pixel count. Alternatively, use the Context3D-property with the
      *  same name: it will return the exact pixel values. */
-    get backBufferWidth()
-    {
+    get backBufferWidth() {
         return this._backBufferWidth;
     }
 
@@ -848,23 +793,20 @@ export default class Painter {
      *  'supportHighResolutions' setting, you have to multiply with 'backBufferPixelsPerPoint'
      *  for the actual pixel count. Alternatively, use the Context3D-property with the
      *  same name: it will return the exact pixel values. */
-    get backBufferHeight()
-    {
+    get backBufferHeight() {
         return this._backBufferHeight;
     }
 
     /** The number of pixels per point returned by the 'backBufferWidth/Height' properties.
      *  Except for desktop HiDPI displays with an activated 'supportHighResolutions' setting,
      *  this will always return '1'. */
-    get backBufferScaleFactor()
-    {
+    get backBufferScaleFactor() {
         return this._backBufferScaleFactor;
     }
 
     /** Indicates if the Context3D object is currently valid (i.e. it hasn't been lost or
      *  disposed). */
-    get contextValid()
-    {
+    get contextValid() {
         return true;
         //if (this._context)
         //{
@@ -878,22 +820,18 @@ export default class Painter {
      *  If you need to share data that is bound to the render context (e.g. textures), use
      *  this dictionary instead of creating a static class variable. That way, the data will
      *  be available for all Starling instances that use this stage3D / context. */
-    get sharedData()
-    {
+    get sharedData() {
         let data = Painter.sSharedData[this._context];
-        if (!data)
-        {
+        if (!data) {
             data = new Map();
             Painter.sSharedData[this._context] = data;
         }
         return data;
     }
 
-    get programs() // eslint-disable-line
-    {
+    get programs() {
         let programs = this.sharedData[Painter.PROGRAM_DATA_NAME];
-        if (!programs)
-        {
+        if (!programs) {
             programs = new Map();
             this.sharedData[Painter.PROGRAM_DATA_NAME] = programs;
         }

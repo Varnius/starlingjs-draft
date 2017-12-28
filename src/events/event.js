@@ -83,28 +83,24 @@ export default class Event {
     _data;
 
     /** Creates an event object that can be passed to listeners. */
-    constructor(type, bubbles = false, data = null)
-    {
+    constructor(type, bubbles = false, data = null) {
         this._type = type;
         this._bubbles = bubbles;
         this._data = data;
     }
 
     /** Prevents listeners at the next bubble stage from receiving the event. */
-    stopPropagation()
-    {
+    stopPropagation() {
         this._stopsPropagation = true;
     }
 
     /** Prevents any other listeners from receiving the event. */
-    stopImmediatePropagation()
-    {
+    stopImmediatePropagation() {
         this._stopsPropagation = this._stopsImmediatePropagation = true;
     }
 
     /** Returns a description of the event, containing type and bubble information. */
-    toString()
-    {
+    toString() {
         return `${this} ${this._type} ${this._bubbles}`;
         // todo: make it prettier
         //return StringUtil.format('[{0} type="{1}" bubbles={2}]',
@@ -112,86 +108,73 @@ export default class Event {
     }
 
     /** Indicates if event will bubble. */
-    get bubbles()
-    {
+    get bubbles() {
         return this._bubbles;
     }
 
     /** The object that dispatched the event. */
-    get target()
-    {
+    get target() {
         return this._target;
     }
 
     /** The object the event is currently bubbling at. */
-    get currentTarget()
-    {
+    get currentTarget() {
         return this._currentTarget;
     }
 
     /** A string that identifies the event. */
-    get type()
-    {
+    get type() {
         return this._type;
     }
 
     /** Arbitrary data that is attached to the event. */
-    get data()
-    {
+    get data() {
         return this._data;
     }
 
     // properties for internal use
 
     /** @private */
-    setTarget(value)
-    {
+    setTarget(value) {
         this._target = value;
     }
 
     /** @private */
-    setCurrentTarget(value)
-    {
+    setCurrentTarget(value) {
         this._currentTarget = value;
     }
 
     /** @private */
-    setData(value)
-    {
+    setData(value) {
         this._data = value;
     }
 
     /** @private */
-    get stopsPropagation()
-    {
+    get stopsPropagation() {
         return this._stopsPropagation;
     }
 
     /** @private */
-    get stopsImmediatePropagation()
-    {
+    get stopsImmediatePropagation() {
         return this._stopsImmediatePropagation;
     }
 
     // event pooling
 
     /** @private */
-    static fromPool(type, bubbles = false, data = null)
-    {
+    static fromPool(type, bubbles = false, data = null) {
         if (Event.sEventPool.length) return Event.sEventPool.pop().reset(type, bubbles, data);
         return new Event(type, bubbles, data);
     }
 
     /** @private */
-    static toPool(event)
-    {
+    static toPool(event) {
         event._data = event._target = event._currentTarget = null;
         Event.sEventPool[Event.sEventPool.length] = event; // avoiding 'push'
     }
 
     /** @private */
-    reset(type, bubbles = false, data = null)
-    {
+    reset(type, bubbles = false, data = null) {
         this._type = type;
         this._bubbles = bubbles;
         this._data = data;

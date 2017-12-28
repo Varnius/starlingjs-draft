@@ -25,8 +25,7 @@ export default class MeshEffect extends FilterEffect {
     static sRenderAlpha = [];
 
     /** Creates a new MeshEffect instance. */
-    constructor()
-    {
+    constructor() {
         // Non-tinted meshes may be rendered with a simpler fragment shader, which brings
         // a huge performance benefit on some low-end hardware. However, I don't want
         // subclasses to become any more complicated because of this optimization (they
@@ -39,19 +38,16 @@ export default class MeshEffect extends FilterEffect {
     }
 
     /** @private */
-    get programVariantName()
-    {
+    get programVariantName() {
         const noTinting = (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0) >>> 0; // todo: uint()
         return super.programVariantName | (noTinting << 3);
     }
 
     /** @private */
-    createProgram()
-    {
+    createProgram() {
         let vertexShader, fragmentShader;
 
-        if (this.texture)
-        {
+        if (this.texture) {
             if (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0)
                 return super.createProgram();
 
@@ -101,9 +97,7 @@ export default class MeshEffect extends FilterEffect {
                     color = vColor * textureColor;
                 }
             `;
-        }
-        else
-        {
+        } else {
             vertexShader = `#version 300 es
                 layout(location = 0) in vec2 aPosition;
                 layout(location = 2) in vec4 aColor;
@@ -151,41 +145,35 @@ export default class MeshEffect extends FilterEffect {
      *    <li><code>fs0</code> — texture</li>
      *  </ul>
      */
-    beforeDraw(gl)
-    {
+    beforeDraw(gl) {
         super.beforeDraw(gl);
 
         const nativeProgram = this.program.nativeProgram;
         const alphaUniformLoc = gl.getUniformLocation(nativeProgram, 'uAlpha');
         gl.uniform1f(alphaUniformLoc, this._alpha);
 
-        if (this._tinted || this._alpha !== 1.0 || !this._optimizeIfNotTinted || !this.texture)
-        {
+        if (this._tinted || this._alpha !== 1.0 || !this._optimizeIfNotTinted || !this.texture) {
             gl.bindAttribLocation(nativeProgram, 2, 'aColor');
         }
     }
 
-    afterDraw(gl)
-    {
+    afterDraw(gl) {
         super.afterDraw(gl);
     }
 
     /** The data format that this effect requires from the VertexData that it renders:
      *  <code>'position:float2, texCoords:float2, color:bytes4'</code> */
-    get vertexFormat() // eslint-disable-line
-    {
+    get vertexFormat() {
         return MeshEffect.VERTEX_FORMAT;
     }
 
     /** The alpha value of the object rendered by the effect. Must be taken into account
      *  by all subclasses. */
-    get alpha()
-    {
+    get alpha() {
         return this._alpha;
     }
 
-    set alpha(value)
-    {
+    set alpha(value) {
         this._alpha = value;
     }
 
@@ -193,13 +181,11 @@ export default class MeshEffect extends FilterEffect {
      *  that have a different color than fully opaque white. The base <code>MeshEffect</code>
      *  class uses this information to simplify the fragment shader if possible. May be
      *  ignored by subclasses. */
-    get tinted()
-    {
+    get tinted() {
         return this._tinted;
     }
 
-    set tinted(value)
-    {
+    set tinted(value) {
         this._tinted = value;
     }
 }

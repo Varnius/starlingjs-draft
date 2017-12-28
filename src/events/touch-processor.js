@@ -1,5 +1,6 @@
 import Starling from '../core/starling';
 import Point from '../math/point';
+import Touch from './touch';
 import TouchPhase from './touch-phase';
 import TouchMarker from './touch-marker';
 import TouchEvent from './touch-event';
@@ -37,8 +38,7 @@ import KeyboardEvent from './keyboard-event';
  *  Always use the base implementation of "processTouches" to let them be dispatched. That
  *  said: you can always dispatch your own custom events, of course.</p>
  */
-export default class TouchProcessor
-{
+export default class TouchProcessor {
     _stage;
     _root;
     _elapsedTime;
@@ -65,8 +65,7 @@ export default class TouchProcessor
     static sHelperPoint = new Point();
 
     /** Creates a new TouchProcessor that will dispatch events to the given stage. */
-    constructor(stage)
-    {
+    constructor(stage) {
         this._root = this._stage = stage;
         this._elapsedTime = 0.0;
         this._currentTouches = [];
@@ -80,8 +79,7 @@ export default class TouchProcessor
     }
 
     /** Removes all event handlers on the stage and releases any acquired resources. */
-    dispose()
-    {
+    dispose() {
         //this.monitorInterruptions(false);
         this._stage.removeEventListener(KeyboardEvent.KEY_DOWN, this.onKey);
         this._stage.removeEventListener(KeyboardEvent.KEY_UP, this.onKey);
@@ -90,8 +88,7 @@ export default class TouchProcessor
 
     /** Analyzes the current touch queue and processes the list of current touches, emptying
      *  the queue while doing so. This method is called by Starling once per frame. */
-    advanceTime(passedTime)
-    {
+    advanceTime(passedTime) {
         const { _lastTaps, _multitapTime, _currentTouches, _queue, _shiftDown, _ctrlDown, _root } = this;
         const { sUpdatedTouches, sHelperPoint } = TouchProcessor;
         let i;
@@ -102,15 +99,13 @@ export default class TouchProcessor
         TouchProcessor.sUpdatedTouches.length = 0;
 
         // remove old taps
-        if (_lastTaps.length > 0)
-        {
+        if (_lastTaps.length > 0) {
             for (i = _lastTaps.length - 1; i >= 0; --i)
                 if (this._elapsedTime - _lastTaps[i].timestamp > _multitapTime)
-                    _lastTaps.removeAt(i);
+                    _lastTaps.splice(i, 1);
         }
 
-        while (_queue.length > 0 || numIterations === 0)
-        {
+        while (_queue.length > 0 || numIterations === 0) {
             ++numIterations; // we need to enter this loop at least once (for HOVER updates)
 
             // Set touches that were new or moving to phase 'stationary'.
@@ -119,8 +114,7 @@ export default class TouchProcessor
                     touch.phase = TouchPhase.STATIONARY;
 
             // analyze new touches, but each ID only once
-            while (_queue.length > 0 && !this.containsTouchWithID(sUpdatedTouches, _queue[_queue.length - 1][0]))
-            {
+            while (_queue.length > 0 && !this.containsTouchWithID(sUpdatedTouches, _queue[_queue.length - 1][0])) {
                 const touchArgs = _queue.pop();
                 touch = this.createOrUpdateTouch(
                     touchArgs[0], touchArgs[1], touchArgs[2], touchArgs[3],
@@ -131,11 +125,9 @@ export default class TouchProcessor
 
             // Find any hovering touches that did not move.
             // If the target of such a touch changed, add it to the list of updated touches.
-            for (i = _currentTouches.length - 1; i >= 0; --i)
-            {
+            for (i = _currentTouches.length - 1; i >= 0; --i) {
                 touch = _currentTouches[i];
-                if (touch.phase === TouchPhase.HOVER && !this.containsTouchWithID(sUpdatedTouches, touch.id))
-                {
+                if (touch.phase === TouchPhase.HOVER && !this.containsTouchWithID(sUpdatedTouches, touch.id)) {
                     sHelperPoint.setTo(touch.globalX, touch.globalY);
                     if (touch.target !== _root.hitTest(sHelperPoint))
                         sUpdatedTouches[sUpdatedTouches.length] = touch;
@@ -149,7 +141,7 @@ export default class TouchProcessor
             // remove ended touches
             for (i = _currentTouches.length - 1; i >= 0; --i)
                 if (_currentTouches[i].phase === TouchPhase.ENDED)
-                    _currentTouches.removeAt(i);
+                    _currentTouches.splice(i, 1);
 
             sUpdatedTouches.length = 0;
         }
@@ -163,8 +155,7 @@ export default class TouchProcessor
      *  @param shiftDown  indicates if the shift key was down when the touches occurred.
      *  @param ctrlDown   indicates if the ctrl or cmd key was down when the touches occurred.
      */
-    processTouches(touches, shiftDown, ctrlDown)
-    {
+    processTouches(touches, shiftDown, ctrlDown) {
         const { _currentTouches, _touchEvent, _root } = this;
         const { sHoveringTouchData, sHelperPoint } = TouchProcessor;
 
@@ -175,8 +166,7 @@ export default class TouchProcessor
         _touchEvent.resetTo(TouchEvent.TOUCH, _currentTouches, shiftDown, ctrlDown);
 
         // hit test our updated touches
-        for (const touch of touches)
-        {
+        for (const touch of touches) {
             // hovering touches need special handling (see below)
             if (touch.phase === TouchPhase.HOVER && touch.target)
                 sHoveringTouchData[sHoveringTouchData.length] = {
@@ -185,8 +175,7 @@ export default class TouchProcessor
                     bubbleChain: touch.bubbleChain,
                 }; // avoiding 'push'
 
-            if (touch.phase === TouchPhase.HOVER || touch.phase === TouchPhase.BEGAN)
-            {
+            if (touch.phase === TouchPhase.HOVER || touch.phase === TouchPhase.BEGAN) {
                 sHelperPoint.setTo(touch.globalX, touch.globalY);
                 touch.target = _root.hitTest(sHelperPoint);
             }
@@ -194,15 +183,13 @@ export default class TouchProcessor
 
         // if the target of a hovering touch changed, we dispatch the event to the previous
         // target to notify it that it's no longer being hovered over.
-        for (const touchData of sHoveringTouchData)
-        {
+        for (const touchData of sHoveringTouchData) {
             if (touchData.touch.target !== touchData.target)
                 _touchEvent.dispatch(touchData.bubbleChain);
         }
 
         // dispatch events for the rest of our updated touches
-        for (const touch of touches)
-        {
+        for (const touch of touches) {
             touch.dispatchEvent(_touchEvent);
         }
 
@@ -211,14 +198,12 @@ export default class TouchProcessor
     }
 
     /** Enqueues a new touch our mouse event with the given properties. */
-    enqueue(...args)
-    {
+    enqueue(...args) {
         const [touchID, phase, globalX, globalY] = args;
         this._queue.unshift(args);
 
         // multitouch simulation (only with mouse)
-        if (this._ctrlDown && this._touchMarker && touchID === 0)
-        {
+        if (this._ctrlDown && this._touchMarker && touchID === 0) {
             this._touchMarker.moveMarker(globalX, globalY, this._shiftDown);
             this._queue.unshift([1, phase, this._touchMarker.mockX, this._touchMarker.mockY]);
         }
@@ -230,8 +215,7 @@ export default class TouchProcessor
      *  This method enqueues an artificial hover point that is just outside the stage.
      *  That way, objects listening for HOVERs over them will get notified everywhere.</p>
      */
-    enqueueMouseLeftStage()
-    {
+    enqueueMouseLeftStage() {
         const { _stage } = this;
         const mouse = this.getCurrentTouch(0);
         if (!mouse || mouse.phase !== TouchPhase.HOVER) return;
@@ -263,18 +247,14 @@ export default class TouchProcessor
     /** Force-end all current touches. Changes the phase of all touches to 'ENDED' and
      *  immediately dispatches a new TouchEvent (if touches are present). Called automatically
      *  when the app receives a 'DEACTIVATE' event. */
-    cancelTouches()
-    {
+    cancelTouches() {
         const { _currentTouches, _queue, _shiftDown, _ctrlDown } = this;
 
-        if (this._currentTouches.length > 0)
-        {
+        if (this._currentTouches.length > 0) {
             // abort touches
-            for (const touch of _currentTouches)
-            {
+            for (const touch of _currentTouches) {
                 if (touch.phase === TouchPhase.BEGAN || touch.phase === TouchPhase.MOVED ||
-                    touch.phase === TouchPhase.STATIONARY)
-                {
+                    touch.phase === TouchPhase.STATIONARY) {
                     touch.phase = TouchPhase.ENDED;
                     touch.cancelled = true;
                 }
@@ -289,12 +269,10 @@ export default class TouchProcessor
         _queue.length = 0;
     }
 
-    createOrUpdateTouch(touchID, phase, globalX, globalY, pressure = 1.0, width = 1.0, height = 1.0)
-    {
+    createOrUpdateTouch(touchID, phase, globalX, globalY, pressure = 1.0, width = 1.0, height = 1.0) {
         let touch = this.getCurrentTouch(touchID);
 
-        if (!touch)
-        {
+        if (!touch) {
             touch = new Touch(touchID);
             this.addCurrentTouch(touch);
         }
@@ -313,59 +291,49 @@ export default class TouchProcessor
         return touch;
     }
 
-    updateTapCount(touch)
-    {
+    updateTapCount(touch) {
         const { _lastTaps, _multitapDistance } = this;
 
         let nearbyTap = null;
         const minSqDist = _multitapDistance * _multitapDistance;
 
-        for (const tap of _lastTaps)
-        {
+        for (const tap of _lastTaps) {
             const sqDist = Math.pow(tap.globalX - touch.globalX, 2) + Math.pow(tap.globalY - touch.globalY, 2);
-            if (sqDist <= minSqDist)
-            {
+            if (sqDist <= minSqDist) {
                 nearbyTap = tap;
                 break;
             }
         }
 
-        if (nearbyTap)
-        {
+        if (nearbyTap) {
             touch.tapCount = nearbyTap.tapCount + 1;
-            _lastTaps.removeAt(_lastTaps.indexOf(nearbyTap));
-        }
-        else
-        {
+            _lastTaps.splice(_lastTaps.indexOf(nearbyTap), 1);
+        } else {
             touch.tapCount = 1;
         }
 
         _lastTaps[_lastTaps.length] = touch.clone(); // avoiding 'push'
     }
 
-    addCurrentTouch(touch)
-    {
+    addCurrentTouch(touch) {
         const { _currentTouches } = this;
 
         for (let i = _currentTouches.length - 1; i >= 0; --i)
             if (_currentTouches[i].id === touch.id)
-                _currentTouches.removeAt(i);
+                _currentTouches.splice(i, 1);
 
         _currentTouches[_currentTouches.length] = touch; // avoiding 'push'
     }
 
-    getCurrentTouch(touchID)
-    {
-        for (const touch of this._currentTouches)
-        {
+    getCurrentTouch(touchID) {
+        for (const touch of this._currentTouches) {
             if (touch.id === touchID) return touch;
         }
 
         return null;
     }
 
-    containsTouchWithID(touches, touchID)
-    {
+    containsTouchWithID(touches, touchID) {
         for (const touch of touches)
             if (touch.id === touchID) return true;
 
@@ -376,106 +344,87 @@ export default class TouchProcessor
      *  ctrl/cmd (and optionally shift), he'll see a second touch cursor that mimics the first.
      *  That's an easy way to develop and test multitouch when there's only a mouse available.
      */
-    get simulateMultitouch()
-    {
+    get simulateMultitouch() {
         return this._simulateMultitouch;
     }
 
-    set simulateMultitouch(value)
-    {
+    set simulateMultitouch(value) {
         if (this.simulateMultitouch === value) return; // no change
 
         this._simulateMultitouch = value;
         const target = Starling.current;
 
-        if (value && !this._touchMarker)
-        {
-            if (Starling.current.contextValid)
-                createTouchMarker();
-            else
-                target.addEventListener(Event.CONTEXT3D_CREATE, createTouchMarker);
-        }
-        else if (!value && this._touchMarker)
-        {
-            this._touchMarker.removeFromParent(true);
-            this._touchMarker = null;
-        }
-
-        const createTouchMarker = () =>
-        {
-            target.removeEventListener(Event.CONTEXT3D_CREATE, createTouchMarker);
-
-            if (!this._touchMarker)
-            {
+        const createTouchMarker = () => {
+            target.removeEventListener(Event.CONTEXT3D_CREATE, createTouchMarker); // todo: probably should be removed
+            if (!this._touchMarker) {
                 this._touchMarker = new TouchMarker();
                 this._touchMarker.visible = false;
                 this._stage.addChild(this._touchMarker);
             }
         };
+
+        if (value && !this._touchMarker) {
+            if (Starling.current.contextValid)
+                createTouchMarker();
+            else
+                target.addEventListener(Event.CONTEXT3D_CREATE, createTouchMarker);
+        } else if (!value && this._touchMarker) {
+            this._touchMarker.removeFromParent(true);
+            this._touchMarker = null;
+        }
     }
 
     /** The time period (in seconds) in which two touches must occur to be recognized as
      *  a multitap gesture. */
-    get multitapTime()
-    {
+    get multitapTime() {
         return this._multitapTime;
     }
 
-    set multitapTime(value)
-    {
+    set multitapTime(value) {
         this._multitapTime = value;
     }
 
     /** The distance (in points) describing how close two touches must be to each other to
      *  be recognized as a multitap gesture. */
-    get multitapDistance()
-    {
+    get multitapDistance() {
         return this._multitapDistance;
     }
 
-    set multitapDistance(value)
-    {
+    set multitapDistance(value) {
         this._multitapDistance = value;
     }
 
     /** The base object that will be used for hit testing. Per default, this reference points
      *  to the stage; however, you can limit touch processing to certain parts of your game
      *  by assigning a different object. */
-    get root()
-    {
+    get root() {
         return this._root;
     }
 
-    set root(value)
-    {
+    set root(value) {
         this._root = value;
     }
 
     /** The stage object to which the touch events are (per default) dispatched. */
-    get stage()
-    {
+    get stage() {
         return this._stage;
     }
 
     /** Returns the number of fingers / touch points that are currently on the stage. */
-    get numCurrentTouches()
-    {
+    get numCurrentTouches() {
         return this._currentTouches.length;
     }
 
     // keyboard handling
 
-    onKey = event =>
-    {
+    onKey = event => {
         const { _touchMarker, _queue, _stage } = this;
 
-        if (event.keyCode === 17 || event.keyCode === 15) // ctrl or cmd key
-        {
+        if (event.key === 'z') {
             const wasCtrlDown = this._ctrlDown;
             this._ctrlDown = event.type === KeyboardEvent.KEY_DOWN;
 
-            if (_touchMarker && wasCtrlDown !== this._ctrlDown)
-            {
+            if (_touchMarker && wasCtrlDown !== this._ctrlDown) {
                 _touchMarker.visible = this._ctrlDown;
                 _touchMarker.moveCenter(_stage.stageWidth / 2, _stage.stageHeight / 2);
 
@@ -485,13 +434,10 @@ export default class TouchProcessor
                 if (mouseTouch)
                     _touchMarker.moveMarker(mouseTouch.globalX, mouseTouch.globalY);
 
-                if (wasCtrlDown && mockedTouch && mockedTouch.phase !== TouchPhase.ENDED)
-                {
+                if (wasCtrlDown && mockedTouch && mockedTouch.phase !== TouchPhase.ENDED) {
                     // end active touch ...
                     _queue.unshift([1, TouchPhase.ENDED, mockedTouch.globalX, mockedTouch.globalY]);
-                }
-                else if (this._ctrlDown && mouseTouch)
-                {
+                } else if (this._ctrlDown && mouseTouch) {
                     // ... or start new one
                     if (mouseTouch.phase === TouchPhase.HOVER || mouseTouch.phase === TouchPhase.ENDED)
                         _queue.unshift([1, TouchPhase.HOVER, _touchMarker.mockX, _touchMarker.mockY]);
@@ -499,9 +445,7 @@ export default class TouchProcessor
                         _queue.unshift([1, TouchPhase.BEGAN, _touchMarker.mockX, _touchMarker.mockY]);
                 }
             }
-        }
-        else if (event.keyCode === 16) // shift key
-        {
+        } else if (event.key === 'Shift') {
             this._shiftDown = event.type === KeyboardEvent.KEY_DOWN;
         }
     }
@@ -528,8 +472,7 @@ export default class TouchProcessor
     //    } // we're not running in AIR
     //}
 
-    onInterruption = () =>
-    {
+    onInterruption = () => {
         this.cancelTouches();
     }
 }

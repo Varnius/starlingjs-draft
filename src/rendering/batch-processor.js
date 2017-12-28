@@ -19,16 +19,14 @@ export default class BatchProcessor {
     static sMeshSubset = new MeshSubset();
 
     /** Creates a new batch processor. */
-    constructor()
-    {
+    constructor() {
         this._batches = [];
         this._batchPool = new BatchPool();
         this._cacheToken = new BatchToken();
     }
 
     /** Disposes all batches (including those in the reusable pool). */
-    dispose()
-    {
+    dispose() {
         for (const batch of this._batches)
             batch.dispose();
 
@@ -51,27 +49,21 @@ export default class BatchProcessor {
      *                    without transforming them in any way (no matter the value of the
      *                    state's <code>modelviewMatrix</code>).
      */
-    addMesh(mesh, state, subset = null, ignoreTransformations = false)
-    {
+    addMesh(mesh, state, subset = null, ignoreTransformations = false) {
         const { _cacheToken } = this;
 
-        if (!subset)
-        {
+        if (!subset) {
             subset = BatchProcessor.sMeshSubset;
             subset.vertexID = subset.indexID = 0;
             subset.numVertices = mesh.numVertices;
             subset.numIndices = mesh.numIndices;
-        }
-        else
-        {
+        } else {
             if (subset.numVertices < 0) subset.numVertices = mesh.numVertices - subset.vertexID;
             if (subset.numIndices < 0) subset.numIndices = mesh.numIndices - subset.indexID;
         }
 
-        if (subset.numVertices > 0)
-        {
-            if (!this._currentBatch || !this._currentBatch.canAddMesh(mesh, subset.numVertices))
-            {
+        if (subset.numVertices > 0) {
+            if (!this._currentBatch || !this._currentBatch.canAddMesh(mesh, subset.numVertices)) {
                 this.finishBatch();
 
                 this._currentStyleType = mesh.style.type;
@@ -92,12 +84,10 @@ export default class BatchProcessor {
 
     /** Finishes the current batch, i.e. call the 'onComplete' callback on the batch and
      *  prepares initialization of a new one. */
-    finishBatch()
-    {
+    finishBatch() {
         const meshBatch = this._currentBatch;
 
-        if (meshBatch)
-        {
+        if (meshBatch) {
             this._currentBatch = null;
             this._currentStyleType = null;
 
@@ -107,8 +97,7 @@ export default class BatchProcessor {
     }
 
     /** Clears all batches and adds them to a pool so they can be reused later. */
-    clear()
-    {
+    clear() {
         const numBatches = this._batches.length;
 
         for (let i = 0; i < numBatches; ++i)
@@ -121,21 +110,18 @@ export default class BatchProcessor {
     }
 
     /** Returns the batch at a certain index. */
-    getBatchAt(batchID)
-    {
+    getBatchAt(batchID) {
         return this._batches[batchID];
     }
 
     /** Disposes all batches that are currently unused. */
-    trim()
-    {
+    trim() {
         this._batchPool.purge();
     }
 
     /** Sets all properties of the given token so that it describes the current position
      *  within this instance. */
-    fillToken(token)
-    {
+    fillToken(token) {
         token.batchID = this._cacheToken.batchID;
         token.vertexID = this._cacheToken.vertexID;
         token.indexID = this._cacheToken.indexID;
@@ -143,21 +129,18 @@ export default class BatchProcessor {
     }
 
     /** The number of batches currently stored in the BatchProcessor. */
-    get numBatches()
-    {
+    get numBatches() {
         return this._batches.length;
     }
 
     /** This callback is executed whenever a batch is finished and replaced by a new one.
      *  The finished MeshBatch is passed to the callback. Typically, this callback is used
      *  to actually render it. */
-    get onBatchComplete()
-    {
+    get onBatchComplete() {
         return this._onBatchComplete;
     }
 
-    set onBatchComplete(value)
-    {
+    set onBatchComplete(value) {
         this._onBatchComplete = value;
     }
 }
@@ -165,15 +148,12 @@ export default class BatchProcessor {
 class BatchPool {
     _batchLists;
 
-    constructor()
-    {
+    constructor() {
         this._batchLists = new Map();
     }
 
-    purge()
-    {
-        for (const batchList of this._batchLists)
-        {
+    purge() {
+        for (const batchList of this._batchLists) {
             for (let i = 0; i < batchList.length; ++i)
                 batchList[i].dispose();
 
@@ -181,11 +161,9 @@ class BatchPool {
         }
     }
 
-    get(styleType)
-    {
+    get(styleType) {
         let batchList = this._batchLists[styleType];
-        if (!batchList)
-        {
+        if (!batchList) {
             batchList = [];
             this._batchLists[styleType] = batchList;
         }
@@ -194,12 +172,10 @@ class BatchPool {
         else return new MeshBatch();
     }
 
-    put(meshBatch)
-    {
+    put(meshBatch) {
         const styleType = meshBatch.style.type;
         let batchList = this._batchLists[styleType];
-        if (!batchList)
-        {
+        if (!batchList) {
             batchList = [];
             this._batchLists[styleType] = batchList;
         }

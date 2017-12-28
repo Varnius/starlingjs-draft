@@ -11,8 +11,7 @@ export default class Game extends Sprite {
 
     static sAssets;
 
-    start(assets)
-    {
+    start(assets) {
         Game.sAssets = assets;
         this.addChild(new Image(assets.getTexture('background')));
         this.showMainMenu();
@@ -20,49 +19,43 @@ export default class Game extends Sprite {
         this.stage.addEventListener(KeyboardEvent.KEY_DOWN, this.onKey);
     }
 
-    showMainMenu()
-    {
+    showMainMenu() {
         if (!this._mainMenu)
             this._mainMenu = new MainMenu();
 
         this.addChild(this._mainMenu);
     }
 
-    onKey = event =>
-    {
+    onKey = event => {
         if (event.key === 'Space')
             Starling.current.showStats = !Starling.current.showStats;
     };
 
-    onButtonTriggered = event =>
-    {
+    onButtonTriggered = event => {
         const button = event.target;
 
-        if (button.name === 'backButton')
+        if (button.name === 'backButton') {
             this.closeScene();
-        else
-            this.showScene(button.name);
+        } else {
+            this.showScene(button.sceneClass);
+        }
     };
 
-    closeScene()
-    {
+    closeScene() {
         this._currentScene.removeFromParent(true);
         this._currentScene = null;
         this.showMainMenu();
     }
 
-    showScene(name)
-    {
-        //if (_currentScene) return;
-        //
-        //const sceneClass = getDefinitionByName(name) as Class;
-        //_currentScene = new sceneClass() as Scene;
-        //_mainMenu.removeFromParent();
-        //addChild(_currentScene);
+    showScene(sceneClass) {
+        if (this._currentScene) return;
+
+        this._currentScene = new sceneClass();
+        this._mainMenu.removeFromParent();
+        this.addChild(this._currentScene);
     }
 
-    static get assets()
-    {
+    static get assets() {
         return Game.sAssets;
     }
 }

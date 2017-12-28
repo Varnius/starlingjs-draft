@@ -67,8 +67,7 @@ export default class IndexData {
      *  <p>Thus, be sure to always make a generous educated guess, depending on the planned
      *  usage of your IndexData instances.</p>
      */
-    constructor(initialCapacity = 48)
-    {
+    constructor(initialCapacity = 48) {
         this._numIndices = 0;
         this._initialCapacity = initialCapacity;
         this._useQuadLayout = true;
@@ -77,8 +76,7 @@ export default class IndexData {
 
     /** Explicitly frees up the memory used by the ByteArray, thus removing all indices.
      *  Quad layout will be restored (until adding data violating that layout). */
-    clear()
-    {
+    clear() {
         if (this._rawData)
             this._rawData = new Uint16Array(this._initialCapacity);
 
@@ -87,13 +85,11 @@ export default class IndexData {
     }
 
     /** Creates a duplicate of the IndexData object. */
-    clone()
-    {
+    clone() {
         const { _numIndices, _useQuadLayout } = this;
         const clone = new IndexData(_numIndices);
 
-        if (!_useQuadLayout)
-        {
+        if (!_useQuadLayout) {
             clone.switchToGenericData();
             clone._rawData = new Uint16Array(this._rawData);
         }
@@ -109,26 +105,22 @@ export default class IndexData {
      *  <p>By passing a non-zero <code>offset</code>, you can raise all copied indices
      *  by that value in the target object.</p>
      */
-    copyTo(target, targetIndexID = 0, offset = 0, indexID = 0, numIndices = -1)
-    {
+    copyTo(target, targetIndexID = 0, offset = 0, indexID = 0, numIndices = -1) {
         if (numIndices < 0 || indexID + numIndices > this._numIndices)
             numIndices = this._numIndices - indexID;
 
         let sourceData, targetData;
         const newNumIndices = targetIndexID + numIndices;
 
-        if (target._numIndices < newNumIndices)
-        {
+        if (target._numIndices < newNumIndices) {
             target._numIndices = newNumIndices;
 
             if (IndexData.sQuadDataNumIndices < newNumIndices)
                 IndexData.ensureQuadDataCapacity(newNumIndices);
         }
 
-        if (this._useQuadLayout)
-        {
-            if (target._useQuadLayout)
-            {
+        if (this._useQuadLayout) {
+            if (target._useQuadLayout) {
                 let keepsQuadLayout = true;
                 const distance = targetIndexID - indexID;
                 const distanceInQuads = distance / 6;
@@ -143,16 +135,11 @@ export default class IndexData {
                 // (surprisingly costly) mod-operations.
 
                 if (distanceInQuads === offsetInQuads && (offset & 3) === 0 &&
-                    distanceInQuads * 6 === distance)
-                {
+                    distanceInQuads * 6 === distance) {
                     keepsQuadLayout = true;
-                }
-                else if (numIndices > 2)
-                {
+                } else if (numIndices > 2) {
                     keepsQuadLayout = false;
-                }
-                else
-                {
+                } else {
                     for (let i = 0; i < numIndices; ++i)
                         keepsQuadLayout = keepsQuadLayout && IndexData.getBasicQuadIndexAt(indexID + i) + offset === IndexData.getBasicQuadIndexAt(targetIndexID + i);
                 }
@@ -164,15 +151,12 @@ export default class IndexData {
             sourceData = IndexData.sQuadData;
             targetData = target._rawData;
 
-            if ((offset % 4) === 0)
-            {
+            if ((offset % 4) === 0) {
                 indexID += 6 * offset / 4;
                 offset = 0;
                 IndexData.ensureQuadDataCapacity(indexID + numIndices);
             }
-        }
-        else
-        {
+        } else {
             if (target._useQuadLayout)
                 target.switchToGenericData();
 
@@ -182,20 +166,17 @@ export default class IndexData {
 
         const slice = sourceData.slice(indexID, indexID + numIndices);
 
-        for (let i = targetIndexID; i < targetIndexID + slice.length; ++i)
-        {
+        for (let i = targetIndexID; i < targetIndexID + slice.length; ++i) {
             targetData[i] = slice[i - targetIndexID] + offset;
         }
     }
 
     /** Sets an index at the specified position. */
-    setIndex(indexID, index)
-    {
+    setIndex(indexID, index) {
         if (this._numIndices < indexID + 1)
             this.numIndices = indexID + 1;
 
-        if (this._useQuadLayout)
-        {
+        if (this._useQuadLayout) {
             if (IndexData.getBasicQuadIndexAt(indexID) === index) return;
             else this.switchToGenericData();
         }
@@ -204,24 +185,19 @@ export default class IndexData {
     }
 
     /** Reads the index from the specified position. */
-    getIndex(indexID)
-    {
-        if (this._useQuadLayout)
-        {
+    getIndex(indexID) {
+        if (this._useQuadLayout) {
             if (indexID < this._numIndices)
                 return IndexData.getBasicQuadIndexAt(indexID);
             else
                 throw new Error('[EOFError]');
-        }
-        else
-        {
+        } else {
             return this._rawData[indexID];
         }
     }
 
     /** Adds an offset to all indices in the specified range. */
-    offsetIndices(offset, indexID = 0, numIndices = -1)
-    {
+    offsetIndices(offset, indexID = 0, numIndices = -1) {
         if (numIndices < 0 || indexID + numIndices > this._numIndices)
             numIndices = this._numIndices - indexID;
 
@@ -233,20 +209,16 @@ export default class IndexData {
 
     /** Appends three indices representing a triangle. Reference the vertices clockwise,
      *  as this defines the front side of the triangle. */
-    addTriangle(a, b, c)
-    {
+    addTriangle(a, b, c) {
         const { _rawData } = this;
 
-        if (this._useQuadLayout)
-        {
-            if (a === IndexData.getBasicQuadIndexAt(this._numIndices))
-            {
+        if (this._useQuadLayout) {
+            if (a === IndexData.getBasicQuadIndexAt(this._numIndices)) {
                 const oddTriangleID = (this._numIndices & 1) !== 0;
                 const evenTriangleID = !oddTriangleID;
 
                 if ((evenTriangleID && b === a + 1 && c === b + 1) ||
-                    (oddTriangleID && c === a + 1 && b === c + 1))
-                {
+                    (oddTriangleID && c === a + 1 && b === c + 1)) {
                     this._numIndices += 3;
                     IndexData.ensureQuadDataCapacity(this._numIndices);
                     return;
@@ -275,22 +247,18 @@ export default class IndexData {
      *  <p>To make sure the indices will follow the basic quad layout, make sure each
      *  parameter increments the one before it (e.g. <code>0, 1, 2, 3</code>).</p>
      */
-    addQuad(a, b, c, d)
-    {
+    addQuad(a, b, c, d) {
         const { _rawData, _numIndices } = this;
 
-        if (this._useQuadLayout)
-        {
+        if (this._useQuadLayout) {
             if (a === IndexData.getBasicQuadIndexAt(_numIndices)
                 && b === a + 1
                 && c === b + 1
-                && d === c + 1)
-            {
+                && d === c + 1) {
                 this._numIndices += 6;
                 IndexData.ensureQuadDataCapacity(_numIndices);
                 return;
-            }
-            else this.switchToGenericData();
+            } else this.switchToGenericData();
         }
 
         const position = _numIndices;
@@ -334,23 +302,18 @@ export default class IndexData {
 
     // private helpers
 
-    switchToGenericData()
-    {
-        if (this._useQuadLayout)
-        {
+    switchToGenericData() {
+        if (this._useQuadLayout) {
             this._useQuadLayout = false;
 
-            if (!this._rawData)
-            {
+            if (!this._rawData) {
                 this._rawData = new Uint16Array(this._initialCapacity);
             }
 
-            if (this._numIndices)
-            {
+            if (this._numIndices) {
                 this._rawData = new Uint16Array(this._numIndices);
 
-                for (let i = 0; i < this._numIndices; ++i)
-                {
+                for (let i = 0; i < this._numIndices; ++i) {
                     this._rawData[i] = IndexData.sQuadData[i];
                 }
             }
@@ -360,8 +323,7 @@ export default class IndexData {
     /** Makes sure that the ByteArray containing the normalized, basic quad data contains at
      *  least <code>numIndices</code> indices. The array might grow, but it will never be
      *  made smaller. */
-    static ensureQuadDataCapacity(numIndices)
-    {
+    static ensureQuadDataCapacity(numIndices) {
         if (IndexData.sQuadDataNumIndices >= numIndices) return;
 
         let i, currentIndex = 0;
@@ -370,8 +332,7 @@ export default class IndexData {
         IndexData.sQuadData = new Uint16Array(newNumQuads * 6);
         IndexData.sQuadDataNumIndices = newNumQuads * 6;
 
-        for (i = 0; i < newNumQuads; ++i)
-        {
+        for (i = 0; i < newNumQuads; ++i) {
             IndexData.sQuadData[currentIndex] = 4 * i;
             IndexData.sQuadData[currentIndex + 1] = 4 * i + 1;
             IndexData.sQuadData[currentIndex + 2] = 4 * i + 2;
@@ -384,8 +345,7 @@ export default class IndexData {
     }
 
     /** Returns the index that's expected at this position if following basic quad layout. */
-    static getBasicQuadIndexAt(indexID)
-    {
+    static getBasicQuadIndexAt(indexID) {
         const quadID = Math.floor(indexID / 6);
         const posInQuad = indexID - quadID * 6; // => indexID % 6
         let offset;
@@ -402,12 +362,13 @@ export default class IndexData {
 
 
     /** Uploads the complete data (or a section of it) to the given index buffer. */
-    uploadToIndexBuffer(bufferUsage = STATIC_DRAW)
-    {
+    uploadToIndexBuffer(bufferUsage = STATIC_DRAW) {
         if (this._numIndices === 0) return null;
         const gl = Starling.context;
 
         const indexBuffer = gl.createBuffer();
+
+        //console.log('indices', this.rawData)
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.rawData, bufferUsage);
@@ -422,23 +383,18 @@ export default class IndexData {
      *  up with zeroes.</p>
      *
      *  <p>If you set the number of indices to zero, quad layout will be restored.</p> */
-    get numIndices()
-    {
+    get numIndices() {
         return this._numIndices;
     }
 
-    set numIndices(value)
-    {
-        if (value !== this._numIndices)
-        {
+    set numIndices(value) {
+        if (value !== this._numIndices) {
             if (this._useQuadLayout) IndexData.ensureQuadDataCapacity(value);
-            else
-            {
+            else {
                 const oldData = this._rawData;
                 this._rawData = new Uint16Array(value);
 
-                for (let i = 0; i < value; ++i)
-                {
+                for (let i = 0; i < value; ++i) {
                     this._rawData[i] = oldData[i];
                 }
             }
@@ -450,25 +406,21 @@ export default class IndexData {
 
     /** The number of triangles that can be spawned up with the contained indices.
      *  (In other words: the number of indices divided by three.) */
-    get numTriangles()
-    {
+    get numTriangles() {
         return this._numIndices / 3;
     }
 
-    set numTriangles(value)
-    {
+    set numTriangles(value) {
         this.numIndices = value * 3;
     }
 
     /** The number of quads that can be spawned up with the contained indices.
      *  (In other words: the number of triangles divided by two.) */
-    get numQuads()
-    {
+    get numQuads() {
         return this._numIndices / 6;
     }
 
-    set numQuads(value)
-    {
+    set numQuads(value) {
         this.numIndices = value * 6;
     }
 
@@ -487,17 +439,13 @@ export default class IndexData {
      *
      *  @default true
      */
-    get useQuadLayout()
-    {
+    get useQuadLayout() {
         return this._useQuadLayout;
     }
 
-    set useQuadLayout(value)
-    {
-        if (value !== this._useQuadLayout)
-        {
-            if (value)
-            {
+    set useQuadLayout(value) {
+        if (value !== this._useQuadLayout) {
+            if (value) {
                 IndexData.ensureQuadDataCapacity(this._numIndices);
                 this._rawData = null; // todo: was previously _rawData.length = 0
                 this._useQuadLayout = true;
@@ -506,8 +454,7 @@ export default class IndexData {
         }
     }
 
-    get rawData()
-    {
+    get rawData() {
         if (this._useQuadLayout) return IndexData.sQuadData;
         else return this._rawData;
     }

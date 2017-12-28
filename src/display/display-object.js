@@ -73,8 +73,7 @@ export default class DisplayObject extends EventDispatcher {
 
     /** Disposes all resources of the display object.
      * GPU buffers are released, event listeners are removed, filters and masks are disposed. */
-    dispose()
-    {
+    dispose() {
         const { _filter, _mask } = this;
         if (_filter) _filter.dispose();
         if (_mask) _mask.dispose();
@@ -83,8 +82,7 @@ export default class DisplayObject extends EventDispatcher {
     }
 
     /** Removes the object from its parent, if it has one, and optionally disposes it. */
-    removeFromParent(dispose = false)
-    {
+    removeFromParent(dispose = false) {
         if (this._parent) this._parent.removeChild(this, dispose);
         else if (dispose) this.dispose();
     }
@@ -92,40 +90,30 @@ export default class DisplayObject extends EventDispatcher {
     /** Creates a matrix that represents the transformation from the local coordinate system
      *  to another. If you pass an <code>out</code>-matrix, the result will be stored in this
      *  matrix instead of creating a new object. */
-    getTransformationMatrix(targetSpace, out = null)
-    {
+    getTransformationMatrix(targetSpace, out = null) {
         const { transformationMatrix, _parent, base } = this;
         let currentObject;
 
         if (out) out.identity();
         else out = new Matrix();
 
-        if (targetSpace === this)
-        {
+        if (targetSpace === this) {
             return out;
-        }
-        else if (targetSpace === _parent || (!targetSpace && !_parent))
-        {
+        } else if (targetSpace === _parent || (!targetSpace && !_parent)) {
             out.copyFrom(transformationMatrix);
             return out;
-        }
-        else if (!targetSpace || targetSpace === base)
-        {
+        } else if (!targetSpace || targetSpace === base) {
             // targetCoordinateSpace 'null' represents the target space of the base object.
             // -> move up from this to base
 
             currentObject = this;
-            while (currentObject !== targetSpace)
-            {
+            while (currentObject !== targetSpace) {
                 out.concat(currentObject.transformationMatrix);
                 currentObject = currentObject._parent;
             }
 
             return out;
-        }
-        // optimization
-        else if (targetSpace._parent === this)
-        {
+        } else if (targetSpace._parent === this) { // optimization
             targetSpace.getTransformationMatrix(this, out);
             out.invert();
 
@@ -139,8 +127,7 @@ export default class DisplayObject extends EventDispatcher {
         // 2. move up from this to common parent
 
         currentObject = this;
-        while (currentObject !== commonParent)
-        {
+        while (currentObject !== commonParent) {
             out.concat(currentObject.transformationMatrix);
             currentObject = currentObject._parent;
         }
@@ -152,8 +139,7 @@ export default class DisplayObject extends EventDispatcher {
 
         DisplayObject.sHelperMatrix.identity();
         currentObject = targetSpace;
-        while (currentObject !== commonParent)
-        {
+        while (currentObject !== commonParent) {
             DisplayObject.sHelperMatrix.concat(currentObject.transformationMatrix);
             currentObject = currentObject._parent;
         }
@@ -169,15 +155,13 @@ export default class DisplayObject extends EventDispatcher {
     /** Returns a rectangle that completely encloses the object as it appears in another
      *  coordinate system. If you pass an <code>out</code>-rectangle, the result will be
      *  stored in this rectangle instead of creating a new object. */
-    getBounds(targetSpace, out = null) // eslint-disable-line
-    {
+    getBounds(targetSpace, out = null) { // eslint-disable-line
         throw new AbstractMethodError();
     }
 
     /** Returns the object that is found topmost beneath a point in local coordinates, or nil
      *  if the test fails. Untouchable and invisible objects will cause the test to fail. */
-    hitTest(localPoint)
-    {
+    hitTest(localPoint) {
         const { _visible, _touchable, _mask, hitTestMask, getBounds } = this;
 
         // on a touch test, invisible or untouchable objects cause the test to fail
@@ -194,15 +178,12 @@ export default class DisplayObject extends EventDispatcher {
     /** Checks if a certain point is inside the display object's mask. If there is no mask,
      *  this method always returns <code>true</code> (because having no mask is equivalent
      *  to having one that's infinitely big). */
-    hitTestMask(localPoint)
-    {
+    hitTestMask(localPoint) {
         const { _mask, getTransformationMatrix } = this;
         const { sHelperPoint } = DisplayObject;
-        if (_mask)
-        {
+        if (_mask) {
             if (_mask.stage) getTransformationMatrix(_mask, DisplayObject.sHelperMatrixAlt);
-            else
-            {
+            else {
                 DisplayObject.sHelperMatrixAlt.copyFrom(_mask.transformationMatrix);
                 DisplayObject.sHelperMatrixAlt.invert();
             }
@@ -218,13 +199,11 @@ export default class DisplayObject extends EventDispatcher {
     /** Transforms a point from the local coordinate system to global (stage) coordinates.
      *  If you pass an <code>out</code>-point, the result will be stored in this point instead
      *  of creating a new object. */
-    localToGlobal(localPoint, out = null)
-    {
+    localToGlobal(localPoint, out = null) {
         const { is3D, local3DToGlobal } = this;
         const { sHelperPoint3D, sHelperMatrixAlt } = DisplayObject;
 
-        if (is3D)
-        {
+        if (is3D) {
             sHelperPoint3D.setTo(localPoint.x, localPoint.y, 0);
             return local3DToGlobal(sHelperPoint3D, out);
         }
@@ -236,13 +215,11 @@ export default class DisplayObject extends EventDispatcher {
     /** Transforms a point from global (stage) coordinates to the local coordinate system.
      *  If you pass an <code>out</code>-point, the result will be stored in this point instead
      *  of creating a new object. */
-    globalToLocal(globalPoint, out = null)
-    {
+    globalToLocal(globalPoint, out = null) {
         const { is3D, stage } = this;
         const { sHelperPoint3D, sHelperPointAlt3D } = DisplayObject;
 
-        if (is3D)
-        {
+        if (is3D) {
             this.globalToLocal3D(globalPoint, sHelperPoint3D);
             stage.getCameraPosition(this, sHelperPointAlt3D);
             return MathUtil.intersectLineWithXYPlane(sHelperPointAlt3D, sHelperPoint3D, out);
@@ -259,15 +236,13 @@ export default class DisplayObject extends EventDispatcher {
      *  @param painter Captures the current render state and provides utility functions
      *                 for rendering.
      */
-    render(painter) // eslint-disable-line
-    {
+    render(painter) { // eslint-disable-line
         throw new AbstractMethodError();
     }
 
     /** Moves the pivot point to a certain position within the local coordinate system
      *  of the object. If you pass no arguments, it will be centered. */
-    alignPivot(horizontalAlign = 'center', verticalAlign = 'center')
-    {
+    alignPivot(horizontalAlign = 'center', verticalAlign = 'center') {
         const { sHelperRect } = DisplayObject;
         const bounds = this.getBounds(this, sHelperRect);
         this.setOrientationChanged();
@@ -289,8 +264,7 @@ export default class DisplayObject extends EventDispatcher {
      *  to another. This method supports three dimensional objects created via 'Sprite3D'.
      *  If you pass an <code>out</code>-matrix, the result will be stored in this matrix
      *  instead of creating a new object. */
-    getTransformationMatrix3D(targetSpace, out = null)
-    {
+    getTransformationMatrix3D(targetSpace, out = null) {
         const { _parent } = this;
         const { sHelperMatrix3D } = DisplayObject;
         let currentObject;
@@ -298,31 +272,23 @@ export default class DisplayObject extends EventDispatcher {
         if (out) out.identity();
         else out = new Matrix3D();
 
-        if (targetSpace === this)
-        {
+        if (targetSpace === this) {
             return out;
-        }
-        else if (targetSpace === _parent || (!targetSpace && !_parent))
-        {
+        } else if (targetSpace === _parent || (!targetSpace && !_parent)) {
             out.copyFrom(this.transformationMatrix3D);
             return out;
-        }
-        else if (!targetSpace || targetSpace === this.base)
-        {
+        } else if (!targetSpace || targetSpace === this.base) {
             // targetCoordinateSpace 'null' represents the target space of the base object.
             // -> move up from this to base
 
             currentObject = this;
-            while (currentObject !== targetSpace)
-            {
+            while (currentObject !== targetSpace) {
                 out.append(currentObject.transformationMatrix3D);
                 currentObject = currentObject._parent;
             }
 
             return out;
-        }
-        else if (targetSpace._parent === this) // optimization
-        {
+        } else if (targetSpace._parent === this) { // optimization
             targetSpace.getTransformationMatrix3D(this, out);
             out.invert();
 
@@ -336,8 +302,7 @@ export default class DisplayObject extends EventDispatcher {
         // 2. move up from this to common parent
 
         currentObject = this;
-        while (currentObject !== commonParent)
-        {
+        while (currentObject !== commonParent) {
             out.append(currentObject.transformationMatrix3D);
             currentObject = currentObject._parent;
         }
@@ -349,8 +314,7 @@ export default class DisplayObject extends EventDispatcher {
 
         sHelperMatrix3D.identity();
         currentObject = targetSpace;
-        while (currentObject !== commonParent)
-        {
+        while (currentObject !== commonParent) {
             sHelperMatrix3D.append(currentObject.transformationMatrix3D);
             currentObject = currentObject._parent;
         }
@@ -368,8 +332,7 @@ export default class DisplayObject extends EventDispatcher {
      *
      *  <p>If you pass an <code>out</code>-point, the result will be stored in this point
      *  instead of creating a new object.</p> */
-    local3DToGlobal(localPoint, out = null)
-    {
+    local3DToGlobal(localPoint, out = null) {
         const { sHelperMatrixAlt3D, sHelperPoint3D } = DisplayObject;
         const stage = this.stage;
         if (!stage) throw new Error('[IllegalOperationError] Object not connected to stage');
@@ -382,8 +345,7 @@ export default class DisplayObject extends EventDispatcher {
     /** Transforms a point from global (stage) coordinates to the 3D local coordinate system.
      *  If you pass an <code>out</code>-vector, the result will be stored in this vector
      *  instead of creating a new object. */
-    globalToLocal3D(globalPoint, out = null)
-    {
+    globalToLocal3D(globalPoint, out = null) {
         const { sHelperMatrixAlt3D } = DisplayObject;
         const stage = this.stage;
         if (!stage) throw new Error('[IllegalOperationError] Object not connected to stage');
@@ -396,8 +358,7 @@ export default class DisplayObject extends EventDispatcher {
     // internal methods
 
     /** @private */
-    setParent(value)
-    {
+    setParent(value) {
         // check for a recursion
         let ancestor = value;
         while (ancestor !== this && !!ancestor)
@@ -411,15 +372,13 @@ export default class DisplayObject extends EventDispatcher {
     }
 
     /** @private */
-    setIs3D(value)
-    {
+    setIs3D(value) {
         this._is3D = value;
     }
 
 
     /** @private */
-    get isMask()
-    {
+    get isMask() {
         return !!this._maskee;
     }
 
@@ -436,8 +395,7 @@ export default class DisplayObject extends EventDispatcher {
      *  call <code>painter.excludeFromCache()</code> in the object's render method instead.
      *  That way, Starling's <code>skipUnchangedFrames</code> policy won't be disrupted.</p>
      */
-    setRequiresRedraw()
-    {
+    setRequiresRedraw() {
         const { _parent, _maskee, _alpha, _scaleX, _scaleY, _visible } = this;
         let parent = _parent || _maskee;
         const frameID = Starling.frameID;
@@ -452,8 +410,7 @@ export default class DisplayObject extends EventDispatcher {
             && _scaleY !== 0.0
         );
 
-        while (parent && parent._lastChildChangeFrameID !== frameID)
-        {
+        while (parent && parent._lastChildChangeFrameID !== frameID) {
             parent._lastChildChangeFrameID = frameID;
             parent = parent._parent || parent._maskee;
         }
@@ -462,8 +419,7 @@ export default class DisplayObject extends EventDispatcher {
     /** Indicates if the object needs to be redrawn in the upcoming frame, i.e. if it has
      *  changed its location relative to the stage or some other aspect of its appearance
      *  since it was last rendered. */
-    get requiresRedraw()
-    {
+    get requiresRedraw() {
         const frameID = Starling.frameID;
         return this._lastParentOrSelfChangeFrameID === frameID || this._lastChildChangeFrameID === frameID;
     }
@@ -471,13 +427,11 @@ export default class DisplayObject extends EventDispatcher {
     /** @private Makes sure the object is not drawn from cache in the next frame.
      *  This method is meant to be called only from <code>Painter.finishFrame()</code>,
      *  since it requires rendering to be concluded. */
-    excludeFromCache()
-    {
+    excludeFromCache() {
         let object = this;
         const max = 0xffffffff;
 
-        while (object && object._tokenFrameID !== max)
-        {
+        while (object && object._tokenFrameID !== max) {
             object._tokenFrameID = max;
             object = object._parent;
         }
@@ -485,19 +439,16 @@ export default class DisplayObject extends EventDispatcher {
 
     // helpers
 
-    setOrientationChanged()
-    {
+    setOrientationChanged() {
         this._orientationChanged = true;
         this.setRequiresRedraw();
     }
 
-    static findCommonParent(object1, object2)
-    {
+    static findCommonParent(object1, object2) {
         const { sAncestors } = DisplayObject;
         let currentObject = object1;
 
-        while (currentObject)
-        {
+        while (currentObject) {
             sAncestors[sAncestors.length] = currentObject; // avoiding 'push'
             currentObject = currentObject._parent;
         }
@@ -516,8 +467,7 @@ export default class DisplayObject extends EventDispatcher {
     // stage event handling
 
     /** @private */
-    dispatchEvent(event)
-    {
+    dispatchEvent(event) {
         if (event.type === Event.REMOVED_FROM_STAGE && !this.stage)
             return; // special check to avoid double-dispatch of RfS-event.
 
@@ -533,10 +483,8 @@ export default class DisplayObject extends EventDispatcher {
     // dispose and (c) there might be multiple listeners for this event.
 
     /** @inheritDoc */
-    addEventListener(type, listener)
-    {
-        if (type === Event.ENTER_FRAME && !this.hasEventListener(type))
-        {
+    addEventListener(type, listener) {
+        if (type === Event.ENTER_FRAME && !this.hasEventListener(type)) {
             this.addEventListener(Event.ADDED_TO_STAGE, this.addEnterFrameListenerToStage);
             this.addEventListener(Event.REMOVED_FROM_STAGE, this.removeEnterFrameListenerFromStage);
             if (this.stage) this.addEnterFrameListenerToStage();
@@ -546,12 +494,10 @@ export default class DisplayObject extends EventDispatcher {
     }
 
     /** @inheritDoc */
-    removeEventListener(type, listener)
-    {
+    removeEventListener(type, listener) {
         super.removeEventListener(type, listener);
 
-        if (type === Event.ENTER_FRAME && !this.hasEventListener(type))
-        {
+        if (type === Event.ENTER_FRAME && !this.hasEventListener(type)) {
             this.removeEventListener(Event.ADDED_TO_STAGE, this.addEnterFrameListenerToStage);
             this.removeEventListener(Event.REMOVED_FROM_STAGE, this.removeEnterFrameListenerFromStage);
             this.removeEnterFrameListenerFromStage();
@@ -559,10 +505,8 @@ export default class DisplayObject extends EventDispatcher {
     }
 
     /** @inheritDoc */
-    removeEventListeners(type = null)
-    {
-        if ((!type || type === Event.ENTER_FRAME) && this.hasEventListener(Event.ENTER_FRAME))
-        {
+    removeEventListeners(type = null) {
+        if ((!type || type === Event.ENTER_FRAME) && this.hasEventListener(Event.ENTER_FRAME)) {
             this.removeEventListener(Event.ADDED_TO_STAGE, this.addEnterFrameListenerToStage);
             this.removeEventListener(Event.REMOVED_FROM_STAGE, this.removeEnterFrameListenerFromStage);
             this.removeEnterFrameListenerFromStage();
@@ -571,13 +515,11 @@ export default class DisplayObject extends EventDispatcher {
         super.removeEventListeners(type);
     }
 
-    addEnterFrameListenerToStage()
-    {
+    addEnterFrameListenerToStage() {
         Starling.current.stage.addEnterFrameListener(this);
     }
 
-    removeEnterFrameListenerFromStage()
-    {
+    removeEnterFrameListenerFromStage() {
         Starling.current.stage.removeEnterFrameListener(this);
     }
 
@@ -592,24 +534,18 @@ export default class DisplayObject extends EventDispatcher {
      *  properties.</p>
      *
      *  <p>CAUTION: not a copy, but the actual object!</p> */
-    get transformationMatrix()
-    {
+    get transformationMatrix() {
         const { _transformationMatrix, _skewX, _skewY, _rotation, _pivotX, _pivotY, _scaleX, _scaleY, _x, _y } = this;
 
-        if (this._orientationChanged)
-        {
+        if (this._orientationChanged) {
             this._orientationChanged = false;
 
-            if (_skewX === 0.0 && _skewY === 0.0)
-            {
+            if (_skewX === 0.0 && _skewY === 0.0) {
                 // optimization: no skewing / rotation simplifies the matrix math
 
-                if (_rotation === 0.0)
-                {
+                if (_rotation === 0.0) {
                     _transformationMatrix.setTo(_scaleX, 0.0, 0.0, _scaleY, _x - _pivotX * _scaleX, _y - _pivotY * _scaleY);
-                }
-                else
-                {
+                } else {
                     const cos = Math.cos(_rotation);
                     const sin = Math.sin(_rotation);
                     const a = _scaleX * cos;
@@ -621,17 +557,14 @@ export default class DisplayObject extends EventDispatcher {
 
                     _transformationMatrix.setTo(a, b, c, d, tx, ty);
                 }
-            }
-            else
-            {
+            } else {
                 _transformationMatrix.identity();
                 _transformationMatrix.scale(_scaleX, _scaleY);
                 MatrixUtil.skew(_transformationMatrix, _skewX, _skewY);
                 _transformationMatrix.rotate(_rotation);
                 _transformationMatrix.translate(_x, _y);
 
-                if (_pivotX !== 0.0 || _pivotY !== 0.0)
-                {
+                if (_pivotX !== 0.0 || _pivotY !== 0.0) {
                     // prepend pivot transformation
                     _transformationMatrix.tx = _x - _transformationMatrix.a * _pivotX
                         - _transformationMatrix.c * _pivotY;
@@ -644,8 +577,7 @@ export default class DisplayObject extends EventDispatcher {
         return _transformationMatrix;
     }
 
-    set transformationMatrix(matrix)
-    {
+    set transformationMatrix(matrix) {
         const PI_Q = Math.PI / 4.0;
 
         this.setRequiresRedraw();
@@ -668,13 +600,10 @@ export default class DisplayObject extends EventDispatcher {
         this._scaleX = (this._skewY > -PI_Q && this._skewY < PI_Q) ? matrix.a / Math.cos(this._skewY)
             : matrix.b / Math.sin(this._skewY);
 
-        if (MathUtil.isEquivalent(this._skewX, this._skewY))
-        {
+        if (MathUtil.isEquivalent(this._skewX, this._skewY)) {
             this._rotation = this._skewX;
             this._skewX = this._skewY = 0;
-        }
-        else
-        {
+        } else {
             this._rotation = 0;
         }
     }
@@ -685,8 +614,7 @@ export default class DisplayObject extends EventDispatcher {
      *  matrix. Only the 'Sprite3D' class supports real 3D transformations.</p>
      *
      *  <p>CAUTION: not a copy, but the actual object!</p> */
-    get transformationMatrix3D()
-    {
+    get transformationMatrix3D() {
         // this method needs to be overridden in 3D-supporting subclasses (like Sprite3D).
 
         if (!this._transformationMatrix3D)
@@ -696,20 +624,17 @@ export default class DisplayObject extends EventDispatcher {
     }
 
     /** Indicates if this object or any of its parents is a 'Sprite3D' object. */
-    get is3D()
-    {
+    get is3D() {
         return this._is3D;
     }
 
     /** Indicates if th e mouse cursor should transform into a hand while it's over the sprite.
      *  @default false */
-    get useHandCursor()
-    {
+    get useHandCursor() {
         return this._useHandCursor;
     }
 
-    set useHandCursor(value)
-    {
+    set useHandCursor(value) {
         if (value === this._useHandCursor) return;
         this._useHandCursor = value;
 
@@ -726,21 +651,18 @@ export default class DisplayObject extends EventDispatcher {
     //}
 
     /** The bounds of the object relative to the local coordinates of the parent. */
-    get bounds()
-    {
+    get bounds() {
         return this.getBounds(this._parent);
     }
 
     /** The width of the object in pixels.
      *  Note that for objects in a 3D space (connected to a Sprite3D), this value might not
      *  be accurate until the object is part of the display list. */
-    get width()
-    {
+    get width() {
         return this.getBounds(this._parent, DisplayObject.sHelperRect).width;
     }
 
-    set width(value)
-    {
+    set width(value) {
         // this method calls 'this.scaleX' instead of changing _scaleX directly.
         // that way, subclasses reacting on size changes need to override only the scaleX method.
 
@@ -748,15 +670,12 @@ export default class DisplayObject extends EventDispatcher {
         const scaleIsNaN = this._scaleX !== this._scaleX; // avoid 'isNaN' call
         const scaleIsZero = this._scaleX < 1e-8 && this._scaleX > -1e-8;
 
-        if (scaleIsZero || scaleIsNaN)
-        {
+        if (scaleIsZero || scaleIsNaN) {
             this.scaleX = 1.0;
             actualWidth = this.width;
-        }
-        else actualWidth = Math.abs(this.width / this._scaleX);
+        } else actualWidth = Math.abs(this.width / this._scaleX);
 
-        if (actualWidth)
-        {
+        if (actualWidth) {
             this.scaleX = value / actualWidth;
         }
     }
@@ -764,82 +683,66 @@ export default class DisplayObject extends EventDispatcher {
     /** The height of the object in pixels.
      *  Note that for objects in a 3D space (connected to a Sprite3D), this value might not
      *  be accurate until the object is part of the display list. */
-    get height()
-    {
+    get height() {
         return this.getBounds(this._parent, DisplayObject.sHelperRect).height;
     }
 
-    set height(value)
-    {
+    set height(value) {
         let actualHeight;
         const scaleIsNaN = this._scaleY !== this._scaleY; // avoid 'isNaN' call
         const scaleIsZero = this._scaleY < 1e-8 && this._scaleY > -1e-8;
 
-        if (scaleIsZero || scaleIsNaN)
-        {
+        if (scaleIsZero || scaleIsNaN) {
             this.scaleY = 1.0;
             actualHeight = this.height;
-        }
-        else actualHeight = Math.abs(this.height / this._scaleY);
+        } else actualHeight = Math.abs(this.height / this._scaleY);
 
         if (actualHeight) this.scaleY = value / actualHeight;
     }
 
     /** The x coordinate of the object relative to the local coordinates of the parent. */
-    get x()
-    {
+    get x() {
         return this._x;
     }
 
-    set x(value)
-    {
-        if (this._x !== value)
-        {
+    set x(value) {
+        if (this._x !== value) {
             this._x = value;
             this.setOrientationChanged();
         }
     }
 
     /** The y coordinate of the object relative to the local coordinates of the parent. */
-    get y()
-    {
+    get y() {
         return this._y;
     }
 
-    set y(value)
-    {
-        if (this._y !== value)
-        {
+    set y(value) {
+        if (this._y !== value) {
             this._y = value;
             this.setOrientationChanged();
         }
     }
 
     /** The x coordinate of the object's origin in its own coordinate space (default: 0). */
-    get pivotX()
-    {
+    get pivotX() {
         return this._pivotX;
     }
 
-    set pivotX(value)
-    {
-        if (this._pivotX !== value)
-        {
+    set pivotX(value) {
+        if (this._pivotX !== value) {
             this._pivotX = value;
             this.setOrientationChanged();
         }
     }
 
     /** The y coordinate of the object's origin in its own coordinate space (default: 0). */
-    get pivotY()
-    {
+    get pivotY() {
         return this._pivotY;
     }
 
-    set pivotY(value)
-    {
-        if (this._pivotY !== value)
-        {
+    set pivotY(value) {
+        if (this._pivotY !== value) {
             this._pivotY = value;
             this.setOrientationChanged();
         }
@@ -847,15 +750,12 @@ export default class DisplayObject extends EventDispatcher {
 
     /** The horizontal scale factor. '1' means no scale, negative values flip the object.
      *  @default 1 */
-    get scaleX()
-    {
+    get scaleX() {
         return this._scaleX;
     }
 
-    set scaleX(value)
-    {
-        if (this._scaleX !== value)
-        {
+    set scaleX(value) {
+        if (this._scaleX !== value) {
             this._scaleX = value;
             this.setOrientationChanged();
         }
@@ -863,15 +763,12 @@ export default class DisplayObject extends EventDispatcher {
 
     /** The vertical scale factor. '1' means no scale, negative values flip the object.
      *  @default 1 */
-    get scaleY()
-    {
+    get scaleY() {
         return this._scaleY;
     }
 
-    set scaleY(value)
-    {
-        if (this._scaleY !== value)
-        {
+    set scaleY(value) {
+        if (this._scaleY !== value) {
             this._scaleY = value;
             this.setOrientationChanged();
         }
@@ -879,45 +776,37 @@ export default class DisplayObject extends EventDispatcher {
 
     /** Sets both 'scaleX' and 'scaleY' to the same value. The getter simply returns the
      *  value of 'scaleX' (even if the scaling values are different). @default 1 */
-    get scale()
-    {
+    get scale() {
         return this.scaleX;
     }
 
-    set scale(value)
-    {
+    set scale(value) {
         this.scaleX = this.scaleY = value;
     }
 
     /** The horizontal skew angle in radians. */
-    get skewX()
-    {
+    get skewX() {
         return this._skewX;
     }
 
-    set skewX(value)
-    {
+    set skewX(value) {
         value = MathUtil.normalizeAngle(value);
 
-        if (this._skewX !== value)
-        {
+        if (this._skewX !== value) {
             this._skewX = value;
             this.setOrientationChanged();
         }
     }
 
     /** The vertical skew angle in radians. */
-    get skewY()
-    {
+    get skewY() {
         return this._skewY;
     }
 
-    set skewY(value)
-    {
+    set skewY(value) {
         value = MathUtil.normalizeAngle(value);
 
-        if (this._skewY !== value)
-        {
+        if (this._skewY !== value) {
             this._skewY = value;
             this.setOrientationChanged();
         }
@@ -925,81 +814,66 @@ export default class DisplayObject extends EventDispatcher {
 
     /** The rotation of the object in radians. (In Starling, all angles are measured
      *  in radians.) */
-    get rotation()
-    {
+    get rotation() {
         return this._rotation;
     }
 
-    set rotation(value)
-    {
+    set rotation(value) {
         value = MathUtil.normalizeAngle(value);
 
-        if (this._rotation !== value)
-        {
+        if (this._rotation !== value) {
             this._rotation = value;
             this.setOrientationChanged();
         }
     }
 
     /** @private Indicates if the object is rotated or skewed in any way. */
-    get isRotated()
-    {
+    get isRotated() {
         return this._rotation !== 0.0 || this._skewX !== 0.0 || this._skewY !== 0.0;
     }
 
     /** The opacity of the object. 0 = transparent, 1 = opaque. @default 1 */
-    get alpha()
-    {
+    get alpha() {
         return this._alpha;
     }
 
-    set alpha(value)
-    {
-        if (value !== this._alpha)
-        {
+    set alpha(value) {
+        if (value !== this._alpha) {
             this._alpha = value < 0.0 ? 0.0 : (value > 1.0 ? 1.0 : value);
             this.setRequiresRedraw();
         }
     }
 
     /** The visibility of the object. An invisible object will be untouchable. */
-    get visible()
-    {
+    get visible() {
         return this._visible;
     }
 
-    set visible(value)
-    {
-        if (value !== this._visible)
-        {
+    set visible(value) {
+        if (value !== this._visible) {
             this._visible = value;
             this.setRequiresRedraw();
         }
     }
 
     /** Indicates if this object (and its children) will receive touch events. */
-    get touchable()
-    {
+    get touchable() {
         return this._touchable;
     }
 
-    set touchable(value)
-    {
+    set touchable(value) {
         this._touchable = value;
     }
 
     /** The blend mode determines how the object is blended with the objects underneath.
      *   @default auto
      *   @see starling.display.BlendMode */
-    get blendMode()
-    {
+    get blendMode() {
         return this._blendMode;
     }
 
-    set blendMode(value)
-    {
-        if (value !== this._blendMode)
-        {
+    set blendMode(value) {
+        if (value !== this._blendMode) {
             this._blendMode = value;
             this.setRequiresRedraw();
         }
@@ -1007,13 +881,11 @@ export default class DisplayObject extends EventDispatcher {
 
     /** The name of the display object (default: null). Used by 'getChildByName()' of
      *  display object containers. */
-    get name()
-    {
+    get name() {
         return this._name;
     }
 
-    set name(value)
-    {
+    set name(value) {
         this._name = value;
     }
 
@@ -1030,15 +902,12 @@ export default class DisplayObject extends EventDispatcher {
      *  @see starling.filters.FragmentFilter
      *  @see starling.filters.FilterChain
      */
-    get filter()
-    {
+    get filter() {
         return this._filter;
     }
 
-    set filter(value)
-    {
-        if (value !== this._filter)
-        {
+    set filter(value) {
+        if (value !== this._filter) {
             if (this._filter) this._filter.setTarget(null);
             if (value) value.setTarget(this);
 
@@ -1075,17 +944,13 @@ export default class DisplayObject extends EventDispatcher {
      *  @see Canvas
      *  @default null
      */
-    get mask()
-    {
+    get mask() {
         return this._mask;
     }
 
-    set mask(value)
-    {
-        if (this._mask !== value)
-        {
-            if (!DisplayObject.sMaskWarningShown)
-            {
+    set mask(value) {
+        if (this._mask !== value) {
+            if (!DisplayObject.sMaskWarningShown) {
                 // todo: not sure if need this
                 //if (!SystemUtil.supportsDepthAndStencil)
                 //    console.log('[Starling] Full mask support requires 'depthAndStencil' to be enabled in the application descriptor.');
@@ -1094,8 +959,7 @@ export default class DisplayObject extends EventDispatcher {
             }
 
             if (this._mask) this._mask._maskee = null;
-            if (value)
-            {
+            if (value) {
                 value._maskee = this;
                 value._hasVisibleArea = false;
             }
@@ -1106,14 +970,12 @@ export default class DisplayObject extends EventDispatcher {
     }
 
     /** The display object container that contains this display object. */
-    get parent()
-    {
+    get parent() {
         return this._parent;
     }
 
     /** The topmost object in the display tree the object is part of. */
-    get base()
-    {
+    get base() {
         let currentObject = this;
         while (currentObject._parent) currentObject = currentObject._parent;
         return currentObject;
@@ -1122,11 +984,9 @@ export default class DisplayObject extends EventDispatcher {
     /** The root object the display object is connected to (i.e. an instance of the class
      *  that was passed to the Starling constructor), or null if the object is not connected
      *  to the stage. */
-    get root()
-    {
+    get root() {
         let currentObject = this;
-        while (currentObject._parent)
-        {
+        while (currentObject._parent) {
             //if (currentObject._parent instanceof Stage) return currentObject;
             if (currentObject._parent.constructor.name === 'Stage') return currentObject;
 
@@ -1138,8 +998,7 @@ export default class DisplayObject extends EventDispatcher {
 
     /** The stage the display object is connected to, or null if it is not connected
      *  to the stage. */
-    get stage()
-    {
+    get stage() {
         const base = this.base;
         return base.constructor.name === 'Stage' ? base : null;
     }

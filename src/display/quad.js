@@ -44,8 +44,7 @@ export default class Quad extends Mesh {
     static sMatrix3D = new Matrix3D();
 
     /** Creates a quad with a certain size and color. */
-    constructor(width, height, color = 0xffffff)
-    {
+    constructor(width, height, color = 0xffffff) {
         const vertexData = new VertexData(MeshStyle.VERTEX_FORMAT, 4);
         const indexData = new IndexData(6);
 
@@ -61,8 +60,7 @@ export default class Quad extends Mesh {
     }
 
     /** Sets up vertex- and index-data according to the current settings. */
-    setupVertices()
-    {
+    setupVertices() {
         const { _bounds } = this;
         const posAttr = 'position';
         const texAttr = 'texCoords';
@@ -73,18 +71,14 @@ export default class Quad extends Mesh {
         indexData.numIndices = 0;
         indexData.addQuad(0, 1, 2, 3);
 
-        if (vertexData.numVertices !== 4)
-        {
+        if (vertexData.numVertices !== 4) {
             vertexData.numVertices = 4;
         }
 
-        if (texture)
-        {
+        if (texture) {
             texture.setupVertexPositions(vertexData, 0, 'position', _bounds);
             texture.setupTextureCoordinates(vertexData, 0, texAttr);
-        }
-        else
-        {
+        } else {
             vertexData.setPoint(0, posAttr, _bounds.left, _bounds.top);
             vertexData.setPoint(1, posAttr, _bounds.right, _bounds.top);
             vertexData.setPoint(2, posAttr, _bounds.left, _bounds.bottom);
@@ -100,43 +94,35 @@ export default class Quad extends Mesh {
     }
 
     /** @inheritDoc */
-    getBounds = (targetSpace, out = null) =>
-    {
+    getBounds = (targetSpace, out = null) => {
         const { _bounds, isRotated, x, y, pivotY, pivotX } = this;
         const { sMatrix3D, sPoint3D, sMatrix } = Quad;
+
         if (!out) out = new Rectangle();
 
-        if (targetSpace === this) // optimization
-        {
+        if (targetSpace === this) { // optimization
+
             out.copyFrom(_bounds);
-        }
-        else if (targetSpace === this.parent && !isRotated) // optimization
-        {
+        } else if (targetSpace === this.parent && !isRotated) { // optimization
             const scaleX = this.scaleX;
             const scaleY = this.scaleY;
 
             out.setTo(x - pivotX * scaleX, y - pivotY * scaleY,
                 _bounds.width * scaleX, _bounds.height * scaleY);
 
-            if (scaleX < 0)
-            {
+            if (scaleX < 0) {
                 out.width *= -1;
                 out.x -= out.width;
             }
-            if (scaleY < 0)
-            {
+            if (scaleY < 0) {
                 out.height *= -1;
                 out.y -= out.height;
             }
-        }
-        else if (this.is3D && this.stage)
-        {
+        } else if (this.is3D && this.stage) {
             this.stage.getCameraPosition(targetSpace, sPoint3D);
             this.getTransformationMatrix3D(targetSpace, sMatrix3D);
             RectangleUtil.getBoundsProjected(_bounds, sMatrix3D, sPoint3D, out);
-        }
-        else
-        {
+        } else {
             this.getTransformationMatrix(targetSpace, sMatrix);
             RectangleUtil.getBounds(_bounds, sMatrix, out);
         }
@@ -145,8 +131,7 @@ export default class Quad extends Mesh {
     };
 
     /** @inheritDoc */
-    hitTest(localPoint)
-    {
+    hitTest(localPoint) {
         if (!this.visible || !this.touchable || !this.hitTestMask(localPoint)) return null;
         else if (this._bounds.containsPoint(localPoint)) return this;
         else return null;
@@ -156,15 +141,13 @@ export default class Quad extends Mesh {
      *  synchronize quad and texture size after assigning a texture with a different size.
      *  You can also force a certain width and height by passing positive, non-zero
      *  values for width and height. */
-    readjustSize = (width = -1, height = -1) =>
-    {
+    readjustSize = (width = -1, height = -1) => {
         const texture = this.texture;
 
         if (width <= 0) width = texture ? texture.frameWidth : this._bounds.width;
         if (height <= 0) height = texture ? texture.frameHeight : this._bounds.height;
 
-        if (width !== this._bounds.width || height !== this._bounds.height)
-        {
+        if (width !== this._bounds.width || height !== this._bounds.height) {
             this._bounds.setTo(0, 0, width, height);
             this.setupVertices();
         }
@@ -172,8 +155,7 @@ export default class Quad extends Mesh {
 
     /** Creates a quad from the given texture.
      *  The quad will have the same size as the texture. */
-    static fromTexture(texture)
-    {
+    static fromTexture(texture) {
         const quad = new Quad(100, 100);
         quad.texture = texture;
         quad.readjustSize();
@@ -194,15 +176,12 @@ export default class Quad extends Mesh {
      *  objects can make use of a texture frame, only a property on the Quad class can do that.
      *  </p>
      */
-    get texture()
-    {
+    get texture() {
         return super.texture;
     }
 
-    set texture(value)
-    {
-        if (value !== this.texture)
-        {
+    set texture(value) {
+        if (value !== this.texture) {
             super.texture = value;
             this.setupVertices();
         }

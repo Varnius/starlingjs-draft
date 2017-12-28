@@ -1,6 +1,6 @@
 import Starling from '../core/starling';
-import { ONE, ZERO, ONE_MINUS_DST_ALPHA, ONE_MINUS_SRC_ALPHA, DST_COLOR, ONE_MINUS_DST_COLOR,
-ONE_MINUS_SRC_COLOR, DST_ALPHA, SRC_ALPHA } from 'gl-constants';
+import { ONE, ZERO, ONE_MINUS_DST_ALPHA, ONE_MINUS_SRC_ALPHA, DST_COLOR,
+    ONE_MINUS_SRC_COLOR, DST_ALPHA, SRC_ALPHA } from 'gl-constants';
 
 /** A class that provides constant values for visual blend mode effects.
  *
@@ -29,8 +29,7 @@ export default class BlendMode {
 
     /** Creates a new BlendMode instance. Don't call this method directly; instead,
      *  register a new blend mode using <code>BlendMode.register</code>. */
-    constructor(name, sourceFactor, destinationFactor)
-    {
+    constructor(name, sourceFactor, destinationFactor) {
         this._name = name;
         this._sourceFactor = sourceFactor;
         this._destinationFactor = destinationFactor;
@@ -69,24 +68,21 @@ export default class BlendMode {
 
     /** Returns the blend mode with the given name.
      *  Throws an ArgumentError if the mode does not exist. */
-    static get(modeName)
-    {
+    static get(modeName) {
         if (!BlendMode.sBlendModes) BlendMode.registerDefaults();
         if (modeName in BlendMode.sBlendModes) return BlendMode.sBlendModes[modeName];
         else throw new Error('[ArgumentError] Blend mode not found: ' + modeName);
     }
 
     /** Registers a blending mode under a certain name. */
-    static register(name, srcFactor, dstFactor)
-    {
+    static register(name, srcFactor, dstFactor) {
         if (!BlendMode.sBlendModes) BlendMode.registerDefaults();
         const blendMode = new BlendMode(name, srcFactor, dstFactor);
         BlendMode.sBlendModes[name] = blendMode;
         return blendMode;
     }
 
-    static registerDefaults()
-    {
+    static registerDefaults() {
         const { register } = BlendMode;
         if (BlendMode.sBlendModes) return;
 
@@ -105,33 +101,30 @@ export default class BlendMode {
     // instance methods / properties
 
     /** Sets the appropriate blend factors for source and destination on the current context. */
-    activate()
-    {
+    activate() {
         const gl = Starling.context;
-        Starling.context.blendFunc(gl.ONE, gl.ZERO); // todo: use class fields here
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(this._sourceFactor, this._destinationFactor);
     }
 
     /** Returns the name of the blend mode. */
-    toString()
-    {
+    toString() {
         return this._name;
     }
 
     /** The source blend factor of this blend mode. */
-    get sourceFactor()
-    {
+    get sourceFactor() {
         return this._sourceFactor;
     }
 
     /** The destination blend factor of this blend mode. */
-    get destinationFactor()
-    {
+    get destinationFactor() {
         return this._destinationFactor;
     }
 
     /** Returns the name of the blend mode. */
-    get name()
-    {
+    get name() {
         return this._name;
     }
 }

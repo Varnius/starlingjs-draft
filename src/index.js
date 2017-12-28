@@ -15,9 +15,15 @@ export { default as Texture } from './textures/texture';
 export { default as Event } from './events/event';
 export { default as EventDispatcher } from './events/event-dispatcher';
 export { default as TouchPhase } from './events/touch-phase';
+export { default as TouchEvent } from './events/touch-event';
 
 export { default as Rectangle } from './math/rectangle';
+export { default as Point } from './math/rectangle';
 
 export { default as AssetManager } from './utils/asset-manager';
+
+import deg2rad from './utils/deg2rad';
+
+export const Utils = { deg2rad };
 
 export * from './utils/texture-creators';

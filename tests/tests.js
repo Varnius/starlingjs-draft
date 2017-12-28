@@ -9,6 +9,8 @@ new Starling(
     // mock canvas
     {
         getContext: () => new FakeContext(),
+        addEventListener() {
+        },
     },
     null,
     {
@@ -22,3 +24,4 @@ global.window = {
     fetch,
     createImageBitmap: input => input,
 };
+global.navigator = {};

@@ -2,7 +2,9 @@ import DisplayObjectContainer from './display-object-container';
 import ButtonState from './button-state';
 import Rectangle from '../math/rectangle';
 import Sprite from './sprite';
+import Image from './image';
 import TouchPhase from '../events/touch-phase';
+import TouchEvent from '../events/touch-event';
 
 /** A simple button composed of an image and, optionally, text.
  *
@@ -43,8 +45,7 @@ export default class Button extends DisplayObjectContainer {
     /** Creates a button with a set of state-textures and (optionally) some text.
      *  Any state that is left 'null' will display the up-state texture. Beware that all
      *  state textures should have the same dimensions. */
-    constructor(upState, text = '', downState = null, overState = null, disabledState = null)
-    {
+    constructor(upState, text = '', downState = null, overState = null, disabledState = null) {
         super();
 
         if (!upState) throw new Error('[ArgumentError] Texture "upState" cannot be null');
@@ -68,15 +69,14 @@ export default class Button extends DisplayObjectContainer {
         this._contents = new Sprite();
         this._contents.addChild(this._body);
         this.addChild(this._contents);
-        addEventListener(TouchEvent.TOUCH, this.onTouch);
+        this.addEventListener(TouchEvent.TOUCH, this.onTouch);
 
         this.touchGroup = true;
         this.text = text;
     }
 
     /** @inheritDoc */
-    dispose()
-    {
+    dispose() {
         // text field might be disconnected from parent, so we have to dispose it manually
         if (this._textField)
             this._textField.dispose();
@@ -87,8 +87,7 @@ export default class Button extends DisplayObjectContainer {
     /** Readjusts the dimensions of the button according to its current state texture.
      *  Call this method to synchronize button and texture size after assigning a texture
      *  with a different size. */
-    readjustSize()
-    {
+    readjustSize() {
         const { _body, _textBounds, _textField } = this;
 
         const prevWidth = _body.width;
@@ -107,8 +106,7 @@ export default class Button extends DisplayObjectContainer {
         if (_textField) this.createTextField();
     }
 
-    createTextField()
-    {
+    createTextField() {
         console.log('implement: textfield')
         //const { _textBounds, _body } = this;
 
@@ -127,8 +125,7 @@ export default class Button extends DisplayObjectContainer {
         //this._textField.y = _textBounds.y;
     }
 
-    onTouch = event =>
-    {
+    onTouch = event => {
         // todo: make it work
         //Mouse.cursor = (_useHandCursor && _enabled && event.interactsWith(this)) ?
         //    MouseCursor.BUTTON : MouseCursor.AUTO;
@@ -137,42 +134,28 @@ export default class Button extends DisplayObjectContainer {
         const touch = event.getTouch(this);
         let isWithinBounds;
 
-        if (!_enabled)
-        {
+        if (!_enabled) {
             return;
-        }
-        else if (!touch)
-        {
+        } else if (!touch) {
             this.state = ButtonState.UP;
-        }
-        else if (touch.phase === TouchPhase.HOVER)
-        {
+        } else if (touch.phase === TouchPhase.HOVER) {
             this.state = ButtonState.OVER;
-        }
-        else if (touch.phase === TouchPhase.BEGAN && _state !== ButtonState.DOWN)
-        {
+        } else if (touch.phase === TouchPhase.BEGAN && _state !== ButtonState.DOWN) {
             this._triggerBounds = this.getBounds(stage, _triggerBounds);
             this._triggerBounds.inflate(Button.MAX_DRAG_DIST, Button.MAX_DRAG_DIST);
 
             this.state = ButtonState.DOWN;
-        }
-        else if (touch.phase === TouchPhase.MOVED)
-        {
+        } else if (touch.phase === TouchPhase.MOVED) {
             isWithinBounds = _triggerBounds.contains(touch.globalX, touch.globalY);
 
-            if (_state === ButtonState.DOWN && !isWithinBounds)
-            {
+            if (_state === ButtonState.DOWN && !isWithinBounds) {
                 // reset button when finger is moved too far away ...
                 this.state = ButtonState.UP;
-            }
-            else if (_state === ButtonState.UP && isWithinBounds)
-            {
+            } else if (_state === ButtonState.UP && isWithinBounds) {
                 // ... and reactivate when the finger moves back into the bounds.
                 this.state = ButtonState.DOWN;
             }
-        }
-        else if (touch.phase === TouchPhase.ENDED && _state === ButtonState.DOWN)
-        {
+        } else if (touch.phase === TouchPhase.ENDED && _state === ButtonState.DOWN) {
             this.state = ButtonState.UP;
             if (!touch.cancelled) this.dispatchEventWith(Event.TRIGGERED, true);
         }
@@ -180,13 +163,11 @@ export default class Button extends DisplayObjectContainer {
 
     /** The current state of the button. The corresponding strings are found
      *  in the ButtonState class. */
-    get state()
-    {
+    get state() {
         return this._state;
     }
 
-    set state(value)
-    {
+    set state(value) {
         const { _contents, _upState, _overState, _downState, _disabledState, _scaleWhenOver, _body,
             _scaleWhenDown, _alphaWhenDown, _alphaWhenDisabled } = this;
 
@@ -194,8 +175,7 @@ export default class Button extends DisplayObjectContainer {
         _contents.x = _contents.y = 0;
         _contents.scaleX = _contents.scaleY = _contents.alpha = 1.0;
 
-        switch (this._state)
-        {
+        switch (this._state) {
             case ButtonState.DOWN:
                 this.setStateTexture(_downState);
                 _contents.alpha = _alphaWhenDown;
@@ -221,204 +201,169 @@ export default class Button extends DisplayObjectContainer {
         }
     }
 
-    setStateTexture(texture)
-    {
+    setStateTexture(texture) {
         this._body.texture = texture || this._upState;
     }
 
     /** The scale factor of the button on touch. Per default, a button without a down state
      *  texture will be made slightly smaller, while a button with a down state texture
      *  remains unscaled. */
-    get scaleWhenDown()
-    {
+    get scaleWhenDown() {
         return this._scaleWhenDown;
     }
 
-    set scaleWhenDown(value)
-    {
+    set scaleWhenDown(value) {
         this._scaleWhenDown = value;
     }
 
     /** The scale factor of the button while the mouse cursor hovers over it. @default 1.0 */
-    get scaleWhenOver()
-    {
+    get scaleWhenOver() {
         return this._scaleWhenOver;
     }
 
-    set scaleWhenOver(value)
-    {
+    set scaleWhenOver(value) {
         this._scaleWhenOver = value;
     }
 
     /** The alpha value of the button on touch. @default 1.0 */
-    get alphaWhenDown()
-    {
+    get alphaWhenDown() {
         return this._alphaWhenDown;
     }
 
-    set alphaWhenDown(value)
-    {
+    set alphaWhenDown(value) {
         this._alphaWhenDown = value;
     }
 
     /** The alpha value of the button when it is disabled. @default 0.5 */
-    get alphaWhenDisabled()
-    {
+    get alphaWhenDisabled() {
         return this._alphaWhenDisabled;
     }
 
-    set alphaWhenDisabled(value)
-    {
+    set alphaWhenDisabled(value) {
         this._alphaWhenDisabled = value;
     }
 
     /** Indicates if the button can be triggered. */
-    get enabled()
-    {
+    get enabled() {
         return this._enabled;
     }
 
-    set enabled(value)
-    {
-        if (this._enabled !== value)
-        {
+    set enabled(value) {
+        if (this._enabled !== value) {
             this._enabled = value;
             this.state = value ? ButtonState.UP : ButtonState.DISABLED;
         }
     }
 
     /** The text that is displayed on the button. */
-    get text()
-    {
+    get text() {
         return this._textField ? this._textField.text : '';
     }
 
-    set text(value)
-    {
-        const { _textField, _contents } = this;
-
-        if (value.length === 0)
-        {
-            if (_textField)
-            {
-                _textField.text = value;
-                _textField.removeFromParent();
-            }
-        }
-        else
-        {
-            this.createTextField();
-            _textField.text = value;
-
-            if (!_textField.parent)
-                _contents.addChild(_textField);
-        }
+    set text(value) {
+        console.log('todo: implement');
+        //const { _textField, _contents } = this;
+        //
+        //if (value.length === 0) {
+        //    if (_textField) {
+        //        _textField.text = value;
+        //        _textField.removeFromParent();
+        //    }
+        //}
+        //else {
+        //    this.createTextField();
+        //    _textField.text = value;
+        //
+        //    if (!_textField.parent)
+        //        _contents.addChild(_textField);
+        //}
     }
 
     /** The format of the button's TextField. */
-    get textFormat()
-    {
+    get textFormat() {
         if (!this._textField) this.createTextField();
         return this._textField.format;
     }
 
-    set textFormat(value)
-    {
+    set textFormat(value) {
         if (!this._textField) this.createTextField();
         this._textField.format = value;
     }
 
     /** The style that is used to render the button's TextField. */
-    get textStyle()
-    {
+    get textStyle() {
         if (!this._textField) this.createTextField();
         return this._textField.style;
     }
 
-    set textStyle(value)
-    {
+    set textStyle(value) {
         if (!this._textField) this.createTextField();
         this._textField.style = value;
     }
 
     /** The style that is used to render the button.
      *  Note that a style instance may only be used on one mesh at a time. */
-    get style()
-    {
+    get style() {
         return this._body.style;
     }
 
-    set style(value)
-    {
+    set style(value) {
         this._body.style = value;
     }
 
     /** The texture that is displayed when the button is not being touched. */
-    get upState()
-    {
+    get upState() {
         return this._upState;
     }
 
-    set upState(value)
-    {
+    set upState(value) {
         if (!value)
             throw new Error('[ArgumentError] Texture "upState" cannot be null');
 
         const { _state, _downState, _disabledState, _overState } = this;
 
-        if (this._upState !== value)
-        {
+        if (this._upState !== value) {
             this._upState = value;
             if (_state === ButtonState.UP ||
                 (_state === ButtonState.DISABLED && !_disabledState) ||
                 (_state === ButtonState.DOWN && !_downState) ||
-                (_state === ButtonState.OVER && !_overState))
-            {
+                (_state === ButtonState.OVER && !_overState)) {
                 this.setStateTexture(value);
             }
         }
     }
 
     /** The texture that is displayed while the button is touched. */
-    get downState()
-    {
+    get downState() {
         return this._downState;
     }
 
-    set downState(value)
-    {
-        if (this._downState !== value)
-        {
+    set downState(value) {
+        if (this._downState !== value) {
             this._downState = value;
             if (this._state === ButtonState.DOWN) this.setStateTexture(value);
         }
     }
 
     /** The texture that is displayed while mouse hovers over the button. */
-    get overState()
-    {
+    get overState() {
         return this._overState;
     }
 
-    set overState(value)
-    {
-        if (this._overState !== value)
-        {
+    set overState(value) {
+        if (this._overState !== value) {
             this._overState = value;
             if (this._state === ButtonState.OVER) this.setStateTexture(value);
         }
     }
 
     /** The texture that is displayed when the button is disabled. */
-    get disabledState()
-    {
+    get disabledState() {
         return this._disabledState;
     }
 
-    set disabledState(value)
-    {
-        if (this._disabledState !== value)
-        {
+    set disabledState(value) {
+        if (this._disabledState !== value) {
             this._disabledState = value;
             if (this._state === ButtonState.DISABLED) this.setStateTexture(value);
         }
@@ -427,44 +372,37 @@ export default class Button extends DisplayObjectContainer {
     /** The bounds of the button's TextField. Allows moving the text to a custom position.
      *  CAUTION: not a copy, but the actual object! Text will only update on re-assignment.
      */
-    get textBounds()
-    {
+    get textBounds() {
         return this._textBounds;
     }
 
-    set textBounds(value)
-    {
+    set textBounds(value) {
         this._textBounds.copyFrom(value);
         this.createTextField();
     }
 
     /** The color of the button's state image. Just like every image object, each pixel's
      *  color is multiplied with this value. @default white */
-    get color()
-    {
+    get color() {
         return this._body.color;
     }
 
-    set color(value)
-    {
+    set color(value) {
         this._body.color = value;
     }
 
     /** The smoothing type used for the button's state image. */
-    get textureSmoothing()
-    {
+    get textureSmoothing() {
         return this._body.textureSmoothing;
     }
 
-    set textureSmoothing(value)
-    {
+    set textureSmoothing(value) {
         this._body.textureSmoothing = value;
     }
 
     /** The overlay sprite is displayed on top of the button contents. It scales with the
      *  button when pressed. Use it to add additional objects to the button (e.g. an icon). */
-    get overlay()
-    {
+    get overlay() {
         if (!this._overlay)
             this._overlay = new Sprite();
 
@@ -474,39 +412,33 @@ export default class Button extends DisplayObjectContainer {
 
     /** Indicates if the mouse cursor should transform into a hand while it's over the button.
      *  @default true */
-    get useHandCursor()
-    {
+    get useHandCursor() {
         return this._useHandCursor;
     }
 
-    set useHandCursor(value)
-    {
+    set useHandCursor(value) {
         this._useHandCursor = value;
     }
 
     /** Controls whether or not the instance snaps to the nearest pixel. This can prevent the
      *  object from looking blurry when it's not exactly aligned with the pixels of the screen.
      *  @default true */
-    get pixelSnapping()
-    {
+    get pixelSnapping() {
         return this._body.pixelSnapping;
     }
 
-    set pixelSnapping(value)
-    {
+    set pixelSnapping(value) {
         const { _textField, _body } = this;
 
         _body.pixelSnapping = value;
         if (_textField) _textField.pixelSnapping = value;
     }
 
-    get width()
-    {
+    get width() {
         return super.width;
     }
 
-    set width(value)
-    {
+    set width(value) {
         const { _textField, _textBounds, _body } = this;
 
         // The Button might use a Scale9Grid ->
@@ -522,13 +454,11 @@ export default class Button extends DisplayObjectContainer {
         if (_textField) _textField.width = newWidth;
     }
 
-    get height()
-    {
+    get height() {
         return super.height;
     }
 
-    set height(value)
-    {
+    set height(value) {
         const { _textField, _textBounds, _body } = this;
         const newHeight = value / (this.scaleY || 1.0);
         const scale = newHeight / (_body.height || 1.0);
@@ -547,13 +477,11 @@ export default class Button extends DisplayObjectContainer {
      *  @see Image#scale9Grid
      *  @default null
      */
-    get scale9Grid()
-    {
+    get scale9Grid() {
         return this._body.scale9Grid;
     }
 
-    set scale9Grid(value)
-    {
+    set scale9Grid(value) {
         this._body.scale9Grid = value;
     }
 }

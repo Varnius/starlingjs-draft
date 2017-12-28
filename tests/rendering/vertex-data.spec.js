@@ -8,13 +8,11 @@ import Color from '../../src/utils/color';
 import Helpers from '../helpers';
 import VertexDataFormat from '../../src/rendering/vertex-data-format';
 
-describe('VertexData', () =>
-{
+describe('VertexData', () => {
     const E = 0.001;
     const STD_FORMAT = 'position:float2, texCoords:float2, color:bytes4';
 
-    it('should allow to set number of vertices', () =>
-    {
+    it('should allow to set number of vertices', () => {
         const vd = new VertexData(STD_FORMAT);
         expect(vd.numVertices).to.equal(0);
 
@@ -39,8 +37,7 @@ describe('VertexData', () =>
         vd.numVertices = 10;
         expect(vd.numVertices).to.equal(10);
 
-        for (let i = 0; i < 10; ++i)
-        {
+        for (let i = 0; i < 10; ++i) {
             expect(vd.getAlpha(i)).to.equal(1.0);
             expect(vd.getColor(i)).to.equal(0xffffff);
             Helpers.comparePoints(vd.getPoint(i, 'position'), new Point());
@@ -48,22 +45,19 @@ describe('VertexData', () =>
         }
     });
 
-    it('should respect the range of existing vertices - min val', () =>
-    {
+    it('should respect the range of existing vertices - min val', () => {
         const vd = new VertexData(STD_FORMAT);
         vd.numVertices = 3;
         expect(() => vd.getColor(-1, 'color')).to.throw();
     });
 
-    it('should respect the range of existing vertices - max val', () =>
-    {
+    it('should respect the range of existing vertices - max val', () => {
         const vd = new VertexData(STD_FORMAT);
         vd.numVertices = 3;
         expect(() => vd.getColor(3, 'color')).to.throw();
     });
 
-    it('should allow to read/write simple attributes', () =>
-    {
+    it('should allow to read/write simple attributes', () => {
         const vd = new VertexData('pos1D:float1, pos2D:float2, pos3D:float3, pos4D:float4');
         vd.numVertices = 3;
 
@@ -95,8 +89,7 @@ describe('VertexData', () =>
         Helpers.compareVector3Ds(origin4D, vd.getPoint4D(2, 'pos4D'));
     });
 
-    it('should allow to set color', () =>
-    {
+    it('should allow to set color', () => {
         const vd = new VertexData(STD_FORMAT);
         vd.numVertices = 3;
         vd.premultipliedAlpha = true;
@@ -105,8 +98,7 @@ describe('VertexData', () =>
         expect(vd.premultipliedAlpha).to.be.true;
 
         // per default, colors must be white with full alpha
-        for (let i = 0; i < 3; ++i)
-        {
+        for (let i = 0; i < 3; ++i) {
             expect(vd.getAlpha(i)).to.equal(1.0);
             expect(vd.getColor(i)).to.equal(0xffffff);
         }
@@ -152,13 +144,11 @@ describe('VertexData', () =>
         expect(data[2]).to.equal(Color.rgba(red, green, blue, alpha));
     });
 
-    it('should allow to scale alpha', () =>
-    {
+    it('should allow to scale alpha', () => {
         makeTest(true);
         makeTest(false);
 
-        function makeTest(pma)
-        {
+        function makeTest(pma) {
             let i;
             const vd = new VertexData(STD_FORMAT);
             vd.numVertices = 3;
@@ -166,16 +156,14 @@ describe('VertexData', () =>
             vd.colorize('color', 0xffffff, 0.9);
             vd.scaleAlphas('color', 0.9);
 
-            for (i = 0; i < 3; ++i)
-            {
+            for (i = 0; i < 3; ++i) {
                 expect(vd.getAlpha(i)).to.be.closeTo(0.81, 0.005);
                 expect(vd.getColor(i)).to.equal(0xffffff);
             }
         }
     });
 
-    it('should allow to translate point', () =>
-    {
+    it('should allow to translate point', () => {
         const vd = new VertexData('pos:float2');
         vd.setPoint(0, 'pos', 10, 20);
         vd.setPoint(1, 'pos', 30, 40);
@@ -184,8 +172,7 @@ describe('VertexData', () =>
         Helpers.comparePoints(new Point(35, 46), vd.getPoint(1, 'pos'));
     });
 
-    it('should return correct bounds', () =>
-    {
+    it('should return correct bounds', () => {
         const vd = new VertexData('position:float2');
         let bounds = vd.getBounds();
         let expectedBounds = new Rectangle();
@@ -209,8 +196,7 @@ describe('VertexData', () =>
         Helpers.compareRectangles(expectedBounds, bounds);
     });
 
-    it('should return projected bounds', () =>
-    {
+    it('should return projected bounds', () => {
         const camPos = new Vector3D(0, 0, 10);
         const vd = new VertexData('pos:float2');
         let bounds = vd.getBoundsProjected('pos', null, camPos);
@@ -231,8 +217,7 @@ describe('VertexData', () =>
         Helpers.compareRectangles(expectedBounds, bounds);
     });
 
-    it('should allow to clone', () =>
-    {
+    it('should allow to clone', () => {
         const vd1 = new VertexData(STD_FORMAT, 2);
         vd1.setPoint(0, 'position', 1, 2);
         vd1.setColor(0, 'color', 0xaabbcc);
@@ -248,8 +233,7 @@ describe('VertexData', () =>
         Helpers.compareTypedArrays(vd1.rawData.texCoords, clone.rawData.texCoords);
     });
 
-    it('should allow to copyTo with same formats', () =>
-    {
+    it('should allow to copyTo with same formats', () => {
         const vd1 = new VertexData(STD_FORMAT, 2);
         vd1.setPoint(0, 'position', 1, 2);
         vd1.setColor(0, 'color', 0xaabbcc);
@@ -275,8 +259,7 @@ describe('VertexData', () =>
         );
     });
 
-    it('should allow to copyTo with different formats', () =>
-    {
+    it('should allow to copyTo with different formats', () => {
         const vd1 = new VertexData(STD_FORMAT);
         vd1.setPoint(0, 'position', 1, 2);
         vd1.setColor(0, 'color', 0xaabbcc);
@@ -308,8 +291,7 @@ describe('VertexData', () =>
         expect(vd3.getAlpha(1, 'color')).to.equal(1.0);
     });
 
-    it('should allow to copyTo transformed with identical formats', () =>
-    {
+    it('should allow to copyTo transformed with identical formats', () => {
         const format = 'pos:float2, color:bytes4';
         const vd1 = new VertexData(format);
         vd1.setPoint(0, 'pos', 10, 20);
@@ -333,8 +315,7 @@ describe('VertexData', () =>
         Helpers.comparePoints(p2, vd2.getPoint(1, 'pos'));
     });
 
-    it('should allow to copyTo transformed with different formats', () =>
-    {
+    it('should allow to copyTo transformed with different formats', () => {
         const format = 'color:bytes4, position:float2';
         const vd1 = new VertexData(format);
         vd1.setPoint(0, 'position', 10, 20);
@@ -358,8 +339,25 @@ describe('VertexData', () =>
         Helpers.comparePoints(p2, vd2.getPoint(1, 'position'));
     });
 
-    it('should allow to transform points', () =>
-    {
+    it('should allow to copyTo a subset to an end of another vertex data', () => {
+        const format = 'position:float2';
+        const vd1 = new VertexData(format);
+        vd1.setPoint(0, 'position', 10, 20);
+        vd1.setPoint(1, 'position', 30, 40);
+        vd1.setPoint(2, 'position', 40, 50);
+        vd1.setPoint(3, 'position', 50, 60);
+
+        const vd2 = new VertexData('position:float2');
+        vd2.setPoint(0, 'position', 1, 2);
+        vd2.setPoint(1, 'position', 3, 4);
+
+        vd1.copyTo(vd2, 2, null, 2, 2);
+
+        Helpers.comparePoints(new Point(40, 50), vd2.getPoint(2, 'position'));
+        Helpers.comparePoints(new Point(50, 60), vd2.getPoint(3, 'position'));
+    });
+
+    it('should allow to transform points', () => {
         const vd = new VertexData(STD_FORMAT);
         vd.setPoint(0, 'position', 10, 20);
         vd.setPoint(1, 'position', 30, 40);
@@ -383,8 +381,7 @@ describe('VertexData', () =>
         Helpers.comparePoints(position, new Point(15, 10));
     });
 
-    it('should allow to tint it', () =>
-    {
+    it('should allow to tint it', () => {
         const vd = new VertexData(STD_FORMAT);
         expect(vd.tinted).to.be.false;
 
@@ -421,8 +418,7 @@ describe('VertexData', () =>
         expect(vd.tinted).to.be.true;
     });
 
-    it('should allow to changer format', () =>
-    {
+    it('should allow to changer format', () => {
         const vd = new VertexData(STD_FORMAT);
         const p0 = new Point(10, 20);
         const p1 = new Point(30, 40);

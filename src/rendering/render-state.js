@@ -68,18 +68,15 @@ export default class RenderState {
     static sProjectionMatrix3DRev = 0;
 
     /** Creates a new render state with the default settings. */
-    constructor()
-    {
+    constructor() {
         this.reset();
     }
 
     /** Duplicates all properties of another instance on the current instance. */
-    copyFrom(renderState)
-    {
+    copyFrom(renderState) {
         const { _clipRect } = this;
 
-        if (!!this._onDrawRequired)
-        {
+        if (this._onDrawRequired) {
             const currentTarget = this._renderTarget ? this._renderTarget.base : null;
             const nextTarget = renderState._renderTarget ? renderState._renderTarget.base : null;
             const cullingChanges = (this._miscOptions & 0xf00) !== (renderState._miscOptions & 0xf00);
@@ -87,8 +84,7 @@ export default class RenderState {
                 !RectangleUtil.compare(_clipRect, renderState._clipRect) : false;
 
             if (this._blendMode !== renderState._blendMode ||
-                currentTarget !== nextTarget || clipRectChanges || cullingChanges)
-            {
+                currentTarget !== nextTarget || clipRectChanges || cullingChanges) {
                 this._onDrawRequired();
             }
         }
@@ -100,8 +96,7 @@ export default class RenderState {
 
         this._modelviewMatrix.copyFrom(renderState._modelviewMatrix);
 
-        if (this._projectionMatrix3DRev !== renderState._projectionMatrix3DRev)
-        {
+        if (this._projectionMatrix3DRev !== renderState._projectionMatrix3DRev) {
             this._projectionMatrix3DRev = renderState._projectionMatrix3DRev;
             this._projectionMatrix3D.copyFrom(renderState._projectionMatrix3D);
         }
@@ -115,8 +110,7 @@ export default class RenderState {
 
     /** Resets the RenderState to the default settings.
      *  (Check each property documentation for its default value.) */
-    reset()
-    {
+    reset() {
         this.alpha = 1.0;
         this.blendMode = BlendMode.NORMAL;
         //this.culling = Context3DTriangleFace.NONE;
@@ -137,8 +131,7 @@ export default class RenderState {
     // matrix methods / properties
 
     /** Prepends the given matrix to the 2D modelview matrix. */
-    transformModelviewMatrix(matrix)
-    {
+    transformModelviewMatrix(matrix) {
         MatrixUtil.prependMatrix(this._modelviewMatrix, matrix);
     }
 
@@ -146,8 +139,7 @@ export default class RenderState {
      *  The current contents of the 2D modelview matrix is stored in the 3D modelview matrix
      *  before doing so; the 2D modelview matrix is then reset to the identity matrix.
      */
-    transformModelviewMatrix3D(matrix)
-    {
+    transformModelviewMatrix3D(matrix) {
         if (!this._modelviewMatrix3D)
             this._modelviewMatrix3D = Pool.getMatrix3D();
 
@@ -169,8 +161,7 @@ export default class RenderState {
      *  <p>If you pass only the first 4 parameters, the camera will be set up above the center
      *  of the stage, with a field of view of 1.0 rad.</p>
      */
-    setProjectionMatrix(x, y, width, height, stageWidth = 0, stageHeight = 0, cameraPos = null)
-    {
+    setProjectionMatrix(x, y, width, height, stageWidth = 0, stageHeight = 0, cameraPos = null) {
         this._projectionMatrix3DRev = ++RenderState.sProjectionMatrix3DRev;
 
         MatrixUtil.createPerspectiveProjectionMatrix(x, y, width, height, stageWidth, stageHeight, cameraPos, this._projectionMatrix3D);
@@ -179,16 +170,14 @@ export default class RenderState {
     /** This method needs to be called whenever <code>projectionMatrix3D</code> was changed
      *  other than via <code>setProjectionMatrix</code>.
      */
-    setProjectionMatrixChanged()
-    {
+    setProjectionMatrixChanged() {
         this._projectionMatrix3DRev = ++RenderState.sProjectionMatrix3DRev;
     }
 
     /** Changes the modelview matrices (2D and, if available, 3D) to identity matrices.
      *  An object transformed an identity matrix performs no transformation.
      */
-    setModelviewMatricesToIdentity()
-    {
+    setModelviewMatricesToIdentity() {
         this._modelviewMatrix.identity();
         if (this._modelviewMatrix3D) this._modelviewMatrix3D.identity();
     }
@@ -196,33 +185,26 @@ export default class RenderState {
     /** Returns the current 2D modelview matrix.
      *  CAUTION: Use with care! Each call returns the same instance.
      *  @default identity matrix */
-    get modelviewMatrix()
-    {
+    get modelviewMatrix() {
         return this._modelviewMatrix;
     }
 
-    set modelviewMatrix(value)
-    {
+    set modelviewMatrix(value) {
         this._modelviewMatrix.copyFrom(value);
     }
 
     /** Returns the current 3D modelview matrix, if there have been 3D transformations.
      *  CAUTION: Use with care! Each call returns the same instance.
      *  @default null */
-    get modelviewMatrix3D()
-    {
+    get modelviewMatrix3D() {
         return this._modelviewMatrix3D;
     }
 
-    set modelviewMatrix3D(value)
-    {
-        if (value)
-        {
+    set modelviewMatrix3D(value) {
+        if (value) {
             if (!this._modelviewMatrix3D) this._modelviewMatrix3D = Pool.getMatrix3D(false);
             this._modelviewMatrix3D.copyFrom(value);
-        }
-        else if (this._modelviewMatrix3D)
-        {
+        } else if (this._modelviewMatrix3D) {
             Pool.putMatrix3D(this._modelviewMatrix3D);
             this._modelviewMatrix3D = null;
         }
@@ -233,21 +215,18 @@ export default class RenderState {
      *  CAUTION: Use with care! Each call returns the same instance. If you modify the matrix
      *           in place, you have to call <code>setProjectionMatrixChanged</code>.
      *  @default identity matrix */
-    get projectionMatrix3D()
-    {
+    get projectionMatrix3D() {
         return this._projectionMatrix3D;
     }
 
-    set projectionMatrix3D(value)
-    {
+    set projectionMatrix3D(value) {
         this.setProjectionMatrixChanged();
         this._projectionMatrix3D.copyFrom(value);
     }
 
     /** Calculates the product of modelview and projection matrix and stores it in a 3D matrix.
      *  CAUTION: Use with care! Each call returns the same instance. */
-    get mvpMatrix3D()
-    {
+    get mvpMatrix3D() {
         this._mvpMatrix3D.copyFrom(this._projectionMatrix3D);
         if (this._modelviewMatrix3D) this._mvpMatrix3D.prepend(this._modelviewMatrix3D);
         this._mvpMatrix3D.prepend(MatrixUtil.convertTo3D(this._modelviewMatrix, RenderState.sMatrix3D));
@@ -265,17 +244,15 @@ export default class RenderState {
      *                    This parameter affects only texture targets. Note that at the time
      *                    of this writing, AIR supports anti-aliasing only on Desktop.
      */
-    setRenderTarget(target, enableDepthAndStencil = true, antiAlias = 0)
-    {
+    setRenderTarget(target, enableDepthAndStencil = true, antiAlias = 0) {
         const { _miscOptions, _onDrawRequired } = this;
         const currentTarget = this._renderTarget ? this._renderTarget.base : null;
         const newTarget = target ? target.base : null;
         const newOptions = MathUtil.min(antiAlias, 0xf) | (enableDepthAndStencil >>> 0) << 4; // todo: was cast to uint
         const optionsChange = newOptions !== (_miscOptions & 0xff);
 
-        if (currentTarget !== newTarget || optionsChange)
-        {
-            if (!!_onDrawRequired) _onDrawRequired();
+        if (currentTarget !== newTarget || optionsChange) {
+            if (_onDrawRequired) _onDrawRequired();
 
             this._renderTarget = target;
             this._miscOptions = (_miscOptions & 0xffffff00) | newOptions;
@@ -288,13 +265,11 @@ export default class RenderState {
      *  this already includes the current object! The value is the product of current object's
      *  alpha value and all its parents. @default 1.0
      */
-    get alpha()
-    {
+    get alpha() {
         return this._alpha;
     }
 
-    set alpha(value)
-    {
+    set alpha(value) {
         this._alpha = value;
     }
 
@@ -304,15 +279,12 @@ export default class RenderState {
      *  @default BlendMode.NORMAL
      *  @see starling.display.BlendMode
      */
-    get blendMode()
-    {
+    get blendMode() {
         return this._blendMode;
     }
 
-    set blendMode(value)
-    {
-        if (value !== BlendMode.AUTO && this._blendMode !== value)
-        {
+    set blendMode(value) {
+        if (value !== BlendMode.AUTO && this._blendMode !== value) {
             if (this._onDrawRequired) this._onDrawRequired();
             this._blendMode = value;
         }
@@ -321,25 +293,21 @@ export default class RenderState {
     /** The texture that is currently being rendered into, or <code>null</code>
      *  to render into the back buffer. On assignment, calls <code>setRenderTarget</code>
      *  with its default parameters. */
-    get renderTarget()
-    {
+    get renderTarget() {
         return this._renderTarget;
     }
 
-    set renderTarget(value)
-    {
+    set renderTarget(value) {
         this.setRenderTarget(value);
     }
 
     /** @private */
-    get renderTargetBase()
-    {
+    get renderTargetBase() {
         return this._renderTarget ? this._renderTarget.base : null;
     }
 
     /** @private */
-    get renderTargetOptions()
-    {
+    get renderTargetOptions() {
         return this._miscOptions & 0xff;
     }
 
@@ -347,16 +315,13 @@ export default class RenderState {
      *  their orientation relative to the view plane.
      *  @default Context3DTriangleFace.NONE
      */
-    get culling()
-    {
+    get culling() {
         return this._culling;
     }
 
-    set culling(value)
-    {
-        if (this.culling !== value)
-        {
-            if (!!this._onDrawRequired) this._onDrawRequired();
+    set culling(value) {
+        if (this.culling !== value) {
+            if (this._onDrawRequired) this._onDrawRequired();
             this._culling = value;
         }
     }
@@ -367,23 +332,17 @@ export default class RenderState {
      *
      *  @default null
      */
-    get clipRect()
-    {
+    get clipRect() {
         return this._clipRect;
     }
 
-    set clipRect(value)
-    {
-        if (!RectangleUtil.compare(this._clipRect, value))
-        {
+    set clipRect(value) {
+        if (!RectangleUtil.compare(this._clipRect, value)) {
             if (this._onDrawRequired) this._onDrawRequired();
-            if (value)
-            {
+            if (value) {
                 if (!this._clipRect) this._clipRect = Pool.getRectangle();
                 this._clipRect.copyFrom(value);
-            }
-            else if (this._clipRect)
-            {
+            } else if (this._clipRect) {
                 Pool.putRectangle(this._clipRect);
                 this._clipRect = null;
             }
@@ -392,22 +351,19 @@ export default class RenderState {
 
     /** The anti-alias setting used when setting the current render target
      *  via <code>setRenderTarget</code>. */
-    get renderTargetAntiAlias()
-    {
+    get renderTargetAntiAlias() {
         return this._miscOptions & 0xf;
     }
 
     /** Indicates if the render target (set via <code>setRenderTarget</code>)
      *  has its depth and stencil buffers enabled. */
-    get renderTargetSupportsDepthAndStencil()
-    {
+    get renderTargetSupportsDepthAndStencil() {
         return (this._miscOptions & 0xf0) !== 0;
     }
 
     /** Indicates if there have been any 3D transformations.
      *  Returns <code>true</code> if the 3D modelview matrix contains a value. */
-    get is3D()
-    {
+    get is3D() {
         return !!this._modelviewMatrix3D;
     }
 
@@ -416,13 +372,11 @@ export default class RenderState {
      *  This callback is executed whenever a state change requires a draw operation.
      *  This is the case if blend mode, render target, culling or clipping rectangle
      *  are changing. */
-    get onDrawRequired()
-    {
+    get onDrawRequired() {
         return this._onDrawRequired;
     }
 
-    set onDrawRequired(value)
-    {
+    set onDrawRequired(value) {
         this._onDrawRequired = value;
     }
 }

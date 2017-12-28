@@ -4,10 +4,9 @@ import Scene from './scene';
 import Game from '../game';
 
 export default class TextureScene extends Scene {
-    constructor()
-    {
+    constructor() {
         super();
-        
+
         // the flight textures are actually loaded from an atlas texture.
         // the "AssetManager" class wraps it away for us.
 

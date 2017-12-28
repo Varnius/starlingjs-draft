@@ -1,10 +1,31 @@
+import detectIt from 'detect-it';
+
 import Stage from '../display/stage';
 import EventDispatcher from '../events/event-dispatcher';
 import Event from '../events/event';
+import KeyboardEvent from '../events/keyboard-event';
 import TouchProcessor from '../events/touch-processor';
+import TouchPhase from '../events/touch-phase';
 import Painter from '../rendering/painter';
 import Rectangle from '../math/rectangle';
 import RectangleUtil from '../utils/rectangle-util';
+
+const MouseEventType = {
+    MOUSE_DOWN: 'mousedown',
+    MOUSE_MOVE: 'mousemove',
+    MOUSE_UP: 'mouseup',
+};
+
+const TouchEventType = {
+    TOUCH_START: 'touchstart',
+    TOUCH_MOVE: 'touchmove',
+    TOUCH_END: 'touchend',
+};
+
+const KeyboardEventType = {
+    KEY_DOWN: 'keydown',
+    KEY_UP: 'keyup',
+};
 
 export default class Starling extends EventDispatcher {
 
@@ -34,8 +55,7 @@ export default class Starling extends EventDispatcher {
     static sCurrent;
     static sAll = [];
 
-    constructor(rootClass, canvas, viewPort = null, window)
-    {
+    constructor(rootClass, canvas, viewPort = null, window) {
         super();
 
         if (!canvas) throw new Error('[ArgumentError] Canvas must not be null');
@@ -58,14 +78,14 @@ export default class Starling extends EventDispatcher {
         this._frameID = 1;
 
         // register touch/mouse event handlers            
-        //for (const touchEventType of touchEventTypes)
-        //    stage.addEventListener(touchEventType, onTouch, false, 0, true);
+        for (const touchEventType of this.touchEventTypes)
+            canvas.addEventListener(touchEventType, this.onTouch, false); // todo: removed last two params
 
         // register other event handlers
 
         window.requestAnimationFrame(this.nextFrame);
-        //stage.addEventListener(KeyboardEvent.KEY_DOWN, onKey, false, 0, true);
-        //stage.addEventListener(KeyboardEvent.KEY_UP, onKey, false, 0, true);
+        canvas.addEventListener(KeyboardEventType.KEY_DOWN, this.onKey, false); // todo: removed last two params
+        canvas.addEventListener(KeyboardEventType.KEY_UP, this.onKey, false); // todo: removed last two params
         //stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
         //stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave, false, 0, true);
 
@@ -75,18 +95,15 @@ export default class Starling extends EventDispatcher {
         this.initialize();
     }
 
-    initialize()
-    {
+    initialize() {
         this.makeCurrent();
         this.updateViewPort(true);
         this.initializeRoot();
         this._frameTimestamp = new Date().getTime() / 1000.0;
     }
 
-    initializeRoot()
-    {
-        if (!this._root && this._rootClass)
-        {
+    initializeRoot() {
+        if (!this._root && this._rootClass) {
             this._root = new this._rootClass();
             if (!this._root) throw new Error('Invalid root class: ' + this._rootClass);
             this._stage.addChildAt(this._root, 0);
@@ -97,17 +114,14 @@ export default class Starling extends EventDispatcher {
 
     /** Calls <code>advanceTime()</code> (with the time that has passed since the last frame)
      *  and <code>render()</code>. */
-    nextFrame = highp =>
-    {
-        const now = new Date().getTime() / 1000.0;
+    nextFrame = now => {
         let passedTime = now - this._frameTimestamp;
         this._frameTimestamp = now;
 
         // to avoid overloading time-based animations, the maximum delta is truncated.
         if (passedTime > 1.0) passedTime = 1.0;
 
-        if (this._rendering)
-        {
+        if (this._rendering) {
             this.advanceTime(passedTime);
             this.render();
         }
@@ -117,11 +131,10 @@ export default class Starling extends EventDispatcher {
 
     /** Dispatches ENTER_FRAME events on the display list, advances the Juggler
      *  and processes touches. */
-    advanceTime(passedTime)
-    {
+    advanceTime(passedTime) {
         this.makeCurrent();
 
-        //this._touchProcessor.advanceTime(passedTime);
+        this._touchProcessor.advanceTime(passedTime);
         this._stage.advanceTime(passedTime);
         //_juggler.advanceTime(passedTime);
     }
@@ -132,14 +145,12 @@ export default class Starling extends EventDispatcher {
      *  <p>This method also dispatches an <code>Event.RENDER</code>-event on the Starling
      *  instance. That's the last opportunity to make changes before the display list is
      *  rendered.</p> */
-    render()
-    {
+    render() {
         this.makeCurrent();
         this.updateViewPort();
 
         const doRedraw = this._stage.requiresRedraw;
-        if (doRedraw)
-        {
+        if (doRedraw) {
             this.dispatchEventWith(Event.RENDER);
 
             //const shareContext = this._painter.shareContext;
@@ -168,7 +179,7 @@ export default class Starling extends EventDispatcher {
                 this._painter.present();
         }
 
-        console.log('[Starling] Draw count:', this._painter.drawCount)
+        //console.log('[Starling] Draw count:', this._painter.drawCount);
 
         //if (_statsDisplay)
         //{
@@ -177,13 +188,11 @@ export default class Starling extends EventDispatcher {
         //}
     }
 
-    updateViewPort(forceUpdate = false)
-    {
+    updateViewPort(forceUpdate = false) {
         // the last set viewport is stored in a variable; that way, people can modify the
         // viewPort directly (without a copy) and we still know if it has changed.
 
-        if (forceUpdate || !RectangleUtil.compare(this._viewPort, this._previousViewPort))
-        {
+        if (forceUpdate || !RectangleUtil.compare(this._viewPort, this._previousViewPort)) {
             //this._previousViewPort.setTo(this._viewPort.x, this._viewPort.y, this._viewPort.width, this._viewPort.height);
             //
             //// Constrained mode requires that the viewport is within the native stage bounds;
@@ -206,78 +215,185 @@ export default class Starling extends EventDispatcher {
         }
     }
 
-    makeCurrent = () =>
-    {
+    onTouch = event => {
+        if (!this._rendering) return;
+        const { _stage, _viewPort } = this;
+
+        let globalX;
+        let globalY;
+        let touchID;
+        let phase;
+        let pressure = 1.0;
+        let width = 1.0;
+        let height = 1.0;
+
+        // figure out general touch properties
+        if (event.constructor.name === 'MouseEvent') {
+            const mouseEvent = event
+
+            globalX = mouseEvent.offsetX;
+            globalY = mouseEvent.offsetY;
+            touchID = 0;
+
+            // MouseEvent.buttonDown returns true for both left and right button (AIR supports
+            // the right mouse button). We only want to react on the left button for now,
+            // so we have to save the state for the left button manually.
+            if (event.type === MouseEventType.MOUSE_DOWN) this._leftMouseDown = true;
+            else if (event.type === MouseEventType.MOUSE_UP) this._leftMouseDown = false;
+        } else {
+            console.log('todo: implement touch events')
+            //const touchEvent = event;
+            //
+            //// On a system that supports both mouse and touch input, the primary touch point
+            //// is dispatched as mouse event as well. Since we don't want to listen to that
+            //// event twice, we ignore the primary touch in that case.
+            //
+            //if (Mouse.supportsCursor && touchEvent.isPrimaryTouchPoint) return;
+            //else {
+            //    globalX = touchEvent.stageX;
+            //    globalY = touchEvent.stageY;
+            //    touchID = touchEvent.touchPointID;
+            //    pressure = touchEvent.pressure;
+            //    width = touchEvent.sizeX;
+            //    height = touchEvent.sizeY;
+            //}
+        }
+
+        // figure out touch phase
+        switch (event.type) {
+            case TouchEventType.TOUCH_START:
+                phase = TouchPhase.BEGAN;
+                break;
+            case TouchEventType.TOUCH_MOVE:
+                phase = TouchPhase.MOVED;
+                break;
+            case TouchEventType.TOUCH_END:
+                phase = TouchPhase.ENDED;
+                break;
+            case MouseEventType.MOUSE_DOWN:
+                phase = TouchPhase.BEGAN;
+                break;
+            case MouseEventType.MOUSE_UP:
+                phase = TouchPhase.ENDED;
+                break;
+            case MouseEventType.MOUSE_MOVE:
+                phase = (this._leftMouseDown ? TouchPhase.MOVED : TouchPhase.HOVER);
+                break;
+            default:
+        }
+
+        // move position into viewport bounds
+        globalX = _stage.stageWidth * (globalX - _viewPort.x) / _viewPort.width;
+        globalY = _stage.stageHeight * (globalY - _viewPort.y) / _viewPort.height;
+
+        // enqueue touch in touch processor
+        this._touchProcessor.enqueue(touchID, phase, globalX, globalY, pressure, width, height);
+
+        // allow objects that depend on mouse-over state to be updated immediately
+        if (event.type === MouseEvent.MOUSE_UP && detectIt.hasMouse)
+            this._touchProcessor.enqueue(touchID, TouchPhase.HOVER, globalX, globalY);
+    };
+
+    onKey = event => {
+        if (!this._rendering) return;
+
+        const keyEvent = new KeyboardEvent(
+            event.type, event.charCode, event.key, event.location,
+            event.ctrlKey, event.altKey, event.shiftKey);
+
+        this.makeCurrent();
+        this._stage.dispatchEvent(keyEvent);
+
+        if (keyEvent.isDefaultPrevented())
+            event.preventDefault();
+    };
+
+    get touchEventTypes() {
+        const types = [];
+
+        if (this.multitouchEnabled)
+            types.push(TouchEventType.TOUCH_START, TouchEventType.TOUCH_MOVE, TouchEventType.TOUCH_END);
+
+        if (!this.multitouchEnabled || detectIt.hasMouse)
+            types.push(MouseEventType.MOUSE_DOWN, MouseEventType.MOUSE_MOVE, MouseEventType.MOUSE_UP);
+
+        return types;
+    }
+
+    makeCurrent = () => {
         Starling.sCurrent = this;
     };
 
     // Public API
 
-    start()
-    {
+    start() {
         this._rendering = true;
         this._frameTimestamp = new Date().getTime() / 1000.0;
     }
 
-    stop()
-    {
+    stop() {
         this._rendering = false;
     }
 
-    get isStarted()
-    {
+    get isStarted() {
         return this._rendering;
     }
 
-    get contentScaleFactor()
-    {
+    get contentScaleFactor() {
         return (this._viewPort.width * this._painter.backBufferScaleFactor) / this._stage.stageWidth;
     }
 
-    get stage()
-    {
+    get stage() {
         return this._stage;
     }
 
-    get context()
-    {
+    get context() {
         return this._painter.context;
     }
 
-    get frameID()
-    {
+    get frameID() {
         return this._frameID;
+    }
+
+    get contextValid() {
+        return this._painter.contextValid;
     }
 
     /** The instance of the root class provided in the constructor. Available as soon as
      *  the event 'ROOT_CREATED' has been dispatched. */
-    get root()
-    {
+    get root() {
         return this._root;
     }
 
-    static get current()
-    {
+    get simulateMultitouch() {
+        return this._touchProcessor.simulateMultitouch;
+    }
+
+    set simulateMultitouch(value) {
+        this._touchProcessor.simulateMultitouch = value;
+    }
+
+    static get current() {
         return Starling.sCurrent;
     }
 
-    static get context()
-    {
+    static get context() {
         return Starling.sCurrent ? Starling.sCurrent.context : null;
     }
 
-    static get painter()
-    {
+    static get painter() {
         return Starling.sCurrent ? Starling.sCurrent._painter : null;
     }
 
-    static get contentScaleFactor()
-    {
+    static get contentScaleFactor() {
         return Starling.sCurrent ? Starling.sCurrent.contentScaleFactor : 1.0;
     }
 
-    static get frameID()
-    {
+    static get frameID() {
         return Starling.sCurrent ? Starling.sCurrent._frameID : 0;
+    }
+
+    static get multitouchEnabled() {
+        return detectIt.hasTouch;
     }
 }

@@ -5,11 +5,8 @@ import Color from './color';
 export default class RenderUtil {
 
     /** Clears the render context with a certain color and alpha value. */
-    static clear(rgb = 0, alpha = 0.0)
-    {
-        //console.log('clear', Color.getRed(rgb), Color.getGreen(rgb), Color.getBlue(rgb), alpha);
+    static clear(rgb = 0, alpha = 0.0) {
         const gl = Starling.context;
-
         gl.clearColor(
             Color.getRed(rgb) / 255.0,
             Color.getGreen(rgb) / 255.0,
@@ -49,15 +46,13 @@ export default class RenderUtil {
      *
      *  @return a bit field using the 3 least significant bits.
      */
-    static getTextureVariantBits(texture)
-    {
+    static getTextureVariantBits(texture) {
         if (!texture) return 0;
 
         let bitField = 0;
         let formatBits = 0;
 
-        switch (texture.format)
-        {
+        switch (texture.format) {
             //case Context3DTextureFormat.COMPRESSED_ALPHA:
             //    formatBits = 3;
             //    break;
@@ -180,8 +175,7 @@ export default class RenderUtil {
      *                   profile automatically. This will try all known Stage3D profiles,
      *                   beginning with the most powerful.</p>
      */
-    static requestContext3D()
-    {
+    static requestContext3D() {
         return null;
     }
 

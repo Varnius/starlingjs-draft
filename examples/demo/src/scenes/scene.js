@@ -6,8 +6,7 @@ export default class Scene extends Sprite {
 
     _backButton;
 
-    constructor()
-    {
+    constructor() {
         super();
 
         // the main menu listens for TRIGGERED events, so we just need to add the button.
@@ -15,7 +14,7 @@ export default class Scene extends Sprite {
 
         this._backButton = new MenuButton('Back', 88, 50);
         this._backButton.x = Constants.CenterX - this._backButton.width / 2;
-        this._backButton.y = Constants.GameHeight - this._backButton.height + 12;
+        this._backButton.y = Constants.StageHeight - this._backButton.height + 12;
         this._backButton.name = 'backButton';
         this._backButton.textBounds.y -= 3;
         this._backButton.readjustSize(); // forces textBounds to update

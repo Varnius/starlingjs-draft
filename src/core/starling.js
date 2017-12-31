@@ -9,6 +9,7 @@ import TouchPhase from '../events/touch-phase';
 import Painter from '../rendering/painter';
 import Rectangle from '../math/rectangle';
 import RectangleUtil from '../utils/rectangle-util';
+import Juggler from '../animation/juggler';
 
 const MouseEventType = {
     MOUSE_DOWN: 'mousedown',
@@ -70,7 +71,7 @@ export default class Starling extends EventDispatcher {
         this._previousViewPort = new Rectangle();
         this._stage = new Stage(viewPort.width, viewPort.height);
         this._touchProcessor = new TouchProcessor(this._stage);
-        //this._juggler = new Juggler();
+        this._juggler = new Juggler();
         this._antiAliasing = 0;
         this._supportHighResolutions = false;
         this._painter = new Painter(canvas);
@@ -114,7 +115,8 @@ export default class Starling extends EventDispatcher {
 
     /** Calls <code>advanceTime()</code> (with the time that has passed since the last frame)
      *  and <code>render()</code>. */
-    nextFrame = now => {
+    nextFrame = time => {
+        const now = time / 1000;
         let passedTime = now - this._frameTimestamp;
         this._frameTimestamp = now;
 
@@ -136,7 +138,7 @@ export default class Starling extends EventDispatcher {
 
         this._touchProcessor.advanceTime(passedTime);
         this._stage.advanceTime(passedTime);
-        //_juggler.advanceTime(passedTime);
+        this._juggler.advanceTime(passedTime);
     }
 
     /** Renders the complete display list. Before rendering, the context is cleared; afterwards,
@@ -373,6 +375,10 @@ export default class Starling extends EventDispatcher {
         this._touchProcessor.simulateMultitouch = value;
     }
 
+    get juggler() {
+        return this._juggler;
+    }
+
     static get current() {
         return Starling.sCurrent;
     }
@@ -395,5 +401,9 @@ export default class Starling extends EventDispatcher {
 
     static get multitouchEnabled() {
         return detectIt.hasTouch;
+    }
+
+    static get juggler() {
+        return Starling.sCurrent ? Starling.sCurrent._juggler : null;
     }
 }

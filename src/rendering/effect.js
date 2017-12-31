@@ -90,8 +90,7 @@ export default class Effect {
     static sProgramNameCache = new Map();
 
     /** Creates a new effect. */
-    constructor()
-    {
+    constructor() {
         this._mvpMatrix3D = new Matrix3D();
         this._programBaseName = this.constructor.name; // todo: vs getQualifiedClassName
 
@@ -101,21 +100,18 @@ export default class Effect {
     }
 
     /** Purges the index- and vertex-buffers. */
-    dispose()
-    {
+    dispose() {
         Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, this.onContextCreated);
         this.purgeBuffers();
     }
 
-    onContextCreated()
-    {
+    onContextCreated() {
         this.purgeBuffers();
         this.execute(this._onRestore, this);
     }
 
     /** Purges one or both of the vertex- and index-buffers. */
-    purgeBuffers()
-    {
+    purgeBuffers() {
         console.log('purge buffers?');
     }
 
@@ -127,12 +123,10 @@ export default class Effect {
      *                     <code>Context3DBufferUsage</code>. Only used when the method call
      *                     causes the creation of a new index buffer.
      */
-    uploadIndexData(indexData, bufferUsage = STATIC_DRAW)
-    {
+    uploadIndexData(indexData, bufferUsage = STATIC_DRAW) {
         const gl = Starling.context;
 
-        if (!this._vertexArray)
-        {
+        if (!this._vertexArray) {
             this._vertexArray = gl.createVertexArray();
         }
 
@@ -149,12 +143,10 @@ export default class Effect {
      *                     <code>Context3DBufferUsage</code>. Only used when the method call
      *                     causes the creation of a new vertex buffer.
      */
-    uploadVertexData(vertexData, bufferUsage = STATIC_DRAW)
-    {
+    uploadVertexData(vertexData, bufferUsage = STATIC_DRAW) {
         const gl = Starling.context;
 
-        if (!this._vertexArray)
-        {
+        if (!this._vertexArray) {
             this._vertexArray = gl.createVertexArray();
         }
 
@@ -168,8 +160,7 @@ export default class Effect {
     /** Draws the triangles described by the index- and vertex-buffers, or a range of them.
      *  This calls <code>beforeDraw</code>, <code>context.drawTriangles</code>, and
      *  <code>afterDraw</code>, in this order. */
-    render(firstIndex = 0, numTriangles = -1)
-    {
+    render(firstIndex = 0, numTriangles = -1) {
         if (numTriangles < 0) {
             console.log('is this possible?')
             numTriangles = this._indexBufferSize / 3;
@@ -196,8 +187,7 @@ export default class Effect {
      *    <li><code>va0</code> — vertex position (xy)</li>
      *  </ul>
      */
-    beforeDraw(gl)
-    {
+    beforeDraw(gl) {
         gl.bindVertexArray(this._vertexArray);
 
         this.program.activate(gl);
@@ -215,8 +205,7 @@ export default class Effect {
     /** This method is called by <code>render</code>, directly after
      *  <code>context.drawTriangles</code>. Resets vertex buffer attributes.
      */
-    afterDraw(gl)
-    {
+    afterDraw(gl) {
         gl.bindVertexArray(null);
     }
 
@@ -229,8 +218,7 @@ export default class Effect {
      *
      *  <p>The basic implementation always outputs pure white.</p>
      */
-    createProgram()
-    {
+    createProgram() {
         const vertexShader = `#version 300 es
             layout(location = 0) in vec2 aPosition;
 
@@ -271,13 +259,11 @@ export default class Effect {
     /** Returns the base name for the program.
      *  @default the fully qualified class name
      */
-    get programBaseName()
-    {
+    get programBaseName() {
         return this._programBaseName;
     }
 
-    set programBaseName(value)
-    {
+    set programBaseName(value) {
         this._programBaseName = value;
     }
 
@@ -288,22 +274,19 @@ export default class Effect {
      *  names (e.g. <code>LightEffect#42</code>). It shouldn't be necessary to override
      *  this method.</p>
      */
-    get programName()
-    {
+    get programName() {
         const baseName = this.programBaseName;
         const variantName = this.programVariantName;
         let nameCache = Effect.sProgramNameCache[baseName];
 
-        if (!nameCache)
-        {
+        if (!nameCache) {
             nameCache = new Map();
             Effect.sProgramNameCache[baseName] = nameCache;
         }
 
         let name = nameCache[variantName];
 
-        if (!name)
-        {
+        if (!name) {
             if (variantName) name = baseName + '#' + variantName.toString(16);
             else name = baseName;
 
@@ -316,14 +299,12 @@ export default class Effect {
     /** Returns the current program, either by creating a new one (via
      *  <code>createProgram</code>) or by getting it from the <code>Painter</code>.
      *  Do not override this method! Instead, implement <code>createProgram</code>. */
-    get program()
-    {
+    get program() {
         const name = this.programName;
         const painter = Starling.painter;
         let program = painter.getProgram(name);
 
-        if (!program)
-        {
+        if (!program) {
             program = this.createProgram();
             painter.registerProgram(name, program);
         }
@@ -336,13 +317,11 @@ export default class Effect {
     /** The function that you provide here will be called after a context loss.
      *  Call both 'upload...' methods from within the callback to restore any vertex or
      *  index buffers. The callback will be executed with the effect as its sole parameter. */
-    get onRestore()
-    {
+    get onRestore() {
         return this._onRestore;
     }
 
-    set onRestore(value)
-    {
+    set onRestore(value) {
         this._onRestore = value;
     }
 
@@ -354,13 +333,11 @@ export default class Effect {
     }
 
     /** The MVP (modelview-projection) matrix transforms vertices into clipspace. */
-    get mvpMatrix3D()
-    {
+    get mvpMatrix3D() {
         return this._mvpMatrix3D;
     }
 
-    set mvpMatrix3D(value)
-    {
+    set mvpMatrix3D(value) {
         this._mvpMatrix3D.copyFrom(value);
     }
 }

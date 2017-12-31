@@ -51,15 +51,6 @@ export default class MeshEffect extends FilterEffect {
             if (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0)
                 return super.createProgram();
 
-            //vertexShader =
-            //    'm44 op, va0, vc0 \n' + // 4x4 matrix transform to output clip-space
-            //    'mov v0, va1      \n' + // pass texture coordinates to fragment program
-            //    'mul v1, va2, vc4 \n';  // multiply alpha (vc4) with color (va2), pass to fp
-            //
-            //fragmentShader =
-            //    FilterEffect.tex('ft0', 'v0', 0, this.texture) +
-            //    'mul oc, ft0, v1  \n';  // multiply color with texel color
-
             vertexShader = `#version 300 es
                 layout(location = 0) in vec2 aPosition;
                 layout(location = 1) in vec2 aTexCoords;

@@ -89,8 +89,7 @@ export default class MeshStyle extends EventDispatcher {
 
     /** Creates a new MeshStyle instance.
      *  Subclasses must provide a constructor that can be called without any arguments. */
-    constructor()
-    {
+    constructor() {
         super();
         this._textureSmoothing = TextureSmoothing.BILINEAR;
         this._type = Object(this).constructor;
@@ -99,8 +98,7 @@ export default class MeshStyle extends EventDispatcher {
     /** Copies all properties of the given style to the current instance (or a subset, if the
      *  classes don't match). Must be overridden by all subclasses!
      */
-    copyFrom(meshStyle)
-    {
+    copyFrom(meshStyle) {
         this._texture = meshStyle._texture;
         this._textureBase = meshStyle._textureBase;
         this._textureRepeat = meshStyle._textureRepeat;
@@ -109,8 +107,7 @@ export default class MeshStyle extends EventDispatcher {
 
     /** Creates a clone of this instance. The method will work for subclasses automatically,
      *  no need to override it. */
-    clone()
-    {
+    clone() {
         const clone = new this._type();
         clone.copyFrom(this);
         return clone;
@@ -119,8 +116,7 @@ export default class MeshStyle extends EventDispatcher {
     /** Creates the effect that does the actual, low-level rendering.
      *  To be overridden by subclasses!
      */
-    createEffect() // eslint-disable-line
-    {
+    createEffect() { // eslint-disable-line
         return new MeshEffect();
     }
 
@@ -130,8 +126,7 @@ export default class MeshStyle extends EventDispatcher {
      *
      *  <p>To be overridden by subclasses!</p>
      */
-    updateEffect(effect, state)
-    {
+    updateEffect(effect, state) {
         const { _texture, _textureRepeat, _textureSmoothing, _vertexData } = this;
 
         effect.texture = _texture;
@@ -147,12 +142,10 @@ export default class MeshStyle extends EventDispatcher {
      *  The base implementation just checks if the styles are of the same type
      *  and if the textures are compatible.
      */
-    canBatchWith(meshStyle)
-    {
+    canBatchWith(meshStyle) {
         const { _texture, _textureRepeat, _textureSmoothing, _textureBase, _type } = this;
 
-        if (_type === meshStyle._type)
-        {
+        if (_type === meshStyle._type) {
             const newTexture = meshStyle._texture;
 
             if (!_texture && !newTexture) return true;
@@ -161,8 +154,7 @@ export default class MeshStyle extends EventDispatcher {
                     _textureSmoothing === meshStyle._textureSmoothing &&
                     _textureRepeat === meshStyle._textureRepeat;
             else return false;
-        }
-        else return false;
+        } else return false;
     }
 
     /** Copies the vertex data of the style's current target to the target of another style.
@@ -173,8 +165,7 @@ export default class MeshStyle extends EventDispatcher {
      *  subclass of <code>Mesh</code>). Subclasses may override this method if they need
      *  to modify the vertex data in that process.</p>
      */
-    batchVertexData(targetStyle, targetVertexID = 0, matrix = null, vertexID = 0, numVertices = -1)
-    {
+    batchVertexData(targetStyle, targetVertexID = 0, matrix = null, vertexID = 0, numVertices = -1) {
         this._vertexData.copyTo(targetStyle._vertexData, targetVertexID, matrix, vertexID, numVertices);
     }
 
@@ -186,49 +177,43 @@ export default class MeshStyle extends EventDispatcher {
      *  subclass of <code>Mesh</code>). Subclasses may override this method if they need
      *  to modify the index data in that process.</p>
      */
-    batchIndexData(targetStyle, targetIndexID = 0, offset = 0, indexID = 0, numIndices = -1)
-    {
+    batchIndexData(targetStyle, targetIndexID = 0, offset = 0, indexID = 0, numIndices = -1) {
         this._indexData.copyTo(targetStyle._indexData, targetIndexID, offset, indexID, numIndices);
     }
 
     /** Call this method if the target needs to be redrawn.
      *  The call is simply forwarded to the target mesh. */
-    setRequiresRedraw()
-    {
+    setRequiresRedraw() {
         if (this._target) this._target.setRequiresRedraw();
     }
 
     /** Call this method when the vertex data changed.
      *  The call is simply forwarded to the target mesh. */
-    setVertexDataChanged()
-    {
+    setVertexDataChanged() {
         if (this._target) this._target.setVertexDataChanged();
     }
 
     /** Call this method when the index data changed.
      *  The call is simply forwarded to the target mesh. */
-    setIndexDataChanged()
-    {
+    setIndexDataChanged() {
         if (this._target) this._target.setIndexDataChanged();
     }
 
     /** Called when assigning a target mesh. Override to plug in class-specific logic. */
-    onTargetAssigned(target) // eslint-disable-line
-    {
+    onTargetAssigned(target) { // eslint-disable-line
+
     }
 
     // enter frame event
 
-    addEventListener(type, listener)
-    {
+    addEventListener(type, listener) {
         if (type === Event.ENTER_FRAME && this._target)
             this._target.addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 
         super.addEventListener(type, listener);
     }
 
-    removeEventListener(type, listener)
-    {
+    removeEventListener(type, listener) {
         if (type === Event.ENTER_FRAME && this._target)
             this._target.removeEventListener(type, this.onEnterFrame);
 
@@ -240,12 +225,10 @@ export default class MeshStyle extends EventDispatcher {
     // internal methods
 
     /** @private */
-    setTarget(target = null, vertexData = null, indexData = null)
-    {
+    setTarget(target = null, vertexData = null, indexData = null) {
         const { _target } = this;
 
-        if (_target !== target)
-        {
+        if (_target !== target) {
             if (_target) _target.removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
             if (vertexData) vertexData.format = this.vertexFormat;
 
@@ -253,8 +236,7 @@ export default class MeshStyle extends EventDispatcher {
             this._vertexData = vertexData;
             this._indexData = indexData;
 
-            if (target)
-            {
+            if (target) {
                 if (this.hasEventListener(Event.ENTER_FRAME))
                     target.addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 
@@ -274,53 +256,45 @@ export default class MeshStyle extends EventDispatcher {
      *  area; some of its optimized methods won't work correctly if that premise is no longer
      *  fulfilled or the original bounds change.</p>
      */
-    getVertexPosition(vertexID, out = null)
-    {
+    getVertexPosition(vertexID, out = null) {
         return this._vertexData.getPoint(vertexID, 'position', out);
     }
 
-    setVertexPosition(vertexID, x, y)
-    {
+    setVertexPosition(vertexID, x, y) {
         this._vertexData.setPoint(vertexID, 'position', x, y);
         this.setVertexDataChanged();
     }
 
     /** Returns the alpha value of the vertex at the specified index. */
-    getVertexAlpha(vertexID)
-    {
+    getVertexAlpha(vertexID) {
         return this._vertexData.getAlpha(vertexID);
     }
 
     /** Sets the alpha value of the vertex at the specified index to a certain value. */
-    setVertexAlpha(vertexID, alpha)
-    {
+    setVertexAlpha(vertexID, alpha) {
         this._vertexData.setAlpha(vertexID, 'color', alpha);
         this.setVertexDataChanged();
     }
 
     /** Returns the RGB color of the vertex at the specified index. */
-    getVertexColor(vertexID)
-    {
+    getVertexColor(vertexID) {
         return this._vertexData.getColor(vertexID);
     }
 
     /** Sets the RGB color of the vertex at the specified index to a certain value. */
-    setVertexColor(vertexID, color)
-    {
+    setVertexColor(vertexID, color) {
         this._vertexData.setColor(vertexID, 'color', color);
         this.setVertexDataChanged();
     }
 
     /** Returns the texture coordinates of the vertex at the specified index. */
-    getTexCoords(vertexID, out = null)
-    {
+    getTexCoords(vertexID, out = null) {
         if (this._texture) return this._texture.getTexCoords(this._vertexData, vertexID, 'texCoords', out);
         else return this._vertexData.getPoint(vertexID, 'texCoords', out);
     }
 
     /** Sets the texture coordinates of the vertex at the specified index to the given values. */
-    setTexCoords(vertexID, u, v)
-    {
+    setTexCoords(vertexID, u, v) {
         if (this._texture) this._texture.setTexCoords(this._vertexData, vertexID, 'texCoords', u, v);
         else this._vertexData.setPoint(vertexID, 'texCoords', u, v);
 
@@ -332,35 +306,30 @@ export default class MeshStyle extends EventDispatcher {
     /** Returns a reference to the vertex data of the assigned target (or <code>null</code>
      *  if there is no target). Beware: the style itself does not own any vertices;
      *  it is limited to manipulating those of the target mesh. */
-    get vertexData()
-    {
+    get vertexData() {
         return this._vertexData;
     }
 
     /** Returns a reference to the index data of the assigned target (or <code>null</code>
      *  if there is no target). Beware: the style itself does not own any indices;
      *  it is limited to manipulating those of the target mesh. */
-    get indexData()
-    {
+    get indexData() {
         return this._indexData;
     }
 
     /** The actual class of this style. */
-    get type()
-    {
+    get type() {
         return this._type;
     }
 
     /** Changes the color of all vertices to the same value.
      *  The getter simply returns the color of the first vertex. */
-    get color()
-    {
+    get color() {
         if (this._vertexData.numVertices > 0) return this._vertexData.getColor(0);
         else return 0x0;
     }
 
-    set color(value)
-    {
+    set color(value) {
         let i;
         const numVertices = this._vertexData.numVertices;
 
@@ -374,35 +343,28 @@ export default class MeshStyle extends EventDispatcher {
     }
 
     /** The format used to store the vertices. */
-    get vertexFormat() // eslint-disable-line
-    {
+    get vertexFormat() { // eslint-disable-line
         return MeshStyle.VERTEX_FORMAT;
     }
 
     /** The texture that is mapped to the mesh (or <code>null</code>, if there is none). */
-    get texture()
-    {
+    get texture() {
         return this._texture;
     }
 
-    set texture(value)
-    {
-        if (value !== this._texture)
-        {
-            if (value)
-            {
+    set texture(value) {
+        if (value !== this._texture) {
+            if (value) {
                 let i;
                 const numVertices = this._vertexData ? this._vertexData.numVertices : 0;
 
-                for (i = 0; i < numVertices; ++i)
-                {
+                for (i = 0; i < numVertices; ++i) {
                     this.getTexCoords(i, MeshStyle.sPoint);
                     value.setTexCoords(this._vertexData, i, 'texCoords', MeshStyle.sPoint.x, MeshStyle.sPoint.y);
                 }
 
                 this.setVertexDataChanged();
-            }
-            else this.setRequiresRedraw();
+            } else this.setRequiresRedraw();
 
             this._texture = value;
             this._textureBase = value ? value.base : null;
@@ -410,15 +372,12 @@ export default class MeshStyle extends EventDispatcher {
     }
 
     /** The smoothing filter that is used for the texture. @default bilinear */
-    get textureSmoothing()
-    {
+    get textureSmoothing() {
         return this._textureSmoothing;
     }
 
-    set textureSmoothing(value)
-    {
-        if (value !== this._textureSmoothing)
-        {
+    set textureSmoothing(value) {
+        if (value !== this._textureSmoothing) {
             this._textureSmoothing = value;
             this.setRequiresRedraw();
         }
@@ -426,19 +385,16 @@ export default class MeshStyle extends EventDispatcher {
 
     /** Indicates if pixels at the edges will be repeated or clamped.
      *  Only works for power-of-two textures. @default false */
-    get textureRepeat()
-    {
+    get textureRepeat() {
         return this._textureRepeat;
     }
 
-    set textureRepeat(value)
-    {
+    set textureRepeat(value) {
         this._textureRepeat = value;
     }
 
     /** The target the style is currently assigned to. */
-    get target()
-    {
+    get target() {
         return this._target;
     }
 }

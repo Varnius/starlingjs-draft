@@ -1,4 +1,4 @@
-import { Starling, Sprite, Image, Quad } from '../../../src/index';
+import { Starling, Sprite, Image, Event, KeyboardEvent } from '../../../src/index';
 import MainMenu from './main-menu';
 
 export default class Game extends Sprite {

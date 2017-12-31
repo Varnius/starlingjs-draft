@@ -3,6 +3,7 @@ import ButtonState from './button-state';
 import Rectangle from '../math/rectangle';
 import Sprite from './sprite';
 import Image from './image';
+import Event from '../events/event';
 import TouchPhase from '../events/touch-phase';
 import TouchEvent from '../events/touch-event';
 
@@ -157,7 +158,9 @@ export default class Button extends DisplayObjectContainer {
             }
         } else if (touch.phase === TouchPhase.ENDED && _state === ButtonState.DOWN) {
             this.state = ButtonState.UP;
-            if (!touch.cancelled) this.dispatchEventWith(Event.TRIGGERED, true);
+            if (!touch.cancelled) {
+                this.dispatchEventWith(Event.TRIGGERED, true);
+            }
         }
     };
 

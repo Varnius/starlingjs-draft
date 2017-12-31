@@ -11,6 +11,8 @@ const DataType = {
 };
 
 export default class AssetManager {
+    static sNames = [];
+
     constructor(scaleFactor = 1, useMipmaps = false) {
         this._defaultTextureOptions = new TextureOptions(scaleFactor, useMipmaps);
         this._textures = new Map();
@@ -121,6 +123,40 @@ export default class AssetManager {
             }
             return null;
         }
+    }
+
+    getTextures(prefix, out = null) {
+        if (!out) out = [];
+
+        for (const name of this.getTextureNames(prefix, AssetManager.sNames)) {
+            out.push(this.getTexture(name));
+        }
+
+        AssetManager.sNames.length = 0;
+        return out;
+    }
+
+    getTextureNames(prefix = '', out = null) {
+        out = this.getDictionaryKeys(this._textures, prefix, out);
+
+        for (const atlas of this._atlases.values()) {
+            atlas.getNames(prefix, out);
+        }
+
+        out.sort();
+        return out;
+    }
+
+    getDictionaryKeys(dictionary, prefix = '', out = null) {
+        if (!out) out = [];
+
+        for (const name of dictionary.keys()) {
+            if (name.indexOf(prefix) === 0) out.push(name);
+        }
+
+        out.sort();
+
+        return out;
     }
 
     addTextureAtlas(name, atlas) {

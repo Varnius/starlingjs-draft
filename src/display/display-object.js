@@ -3,6 +3,7 @@ import Starling from '../core/starling';
 
 import EventDispatcher from '../events/event-dispatcher';
 import Event from '../events/event';
+import TouchEvent from '../events/touch-event';
 import AbstractMethodError from '../errors/abstract-method-error';
 import Align from '../utils/align';
 

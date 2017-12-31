@@ -11,24 +11,19 @@ export default class SystemUtil {
     //static sSupportsDepthAndStencil = true;
 
     // todo: tests
-    static isBaseClass(constructor, baseClassName)
-    {
-        if (constructor instanceof Function)
-        {
+    static isBaseClass(constructor, baseClassName) {
+        if (constructor instanceof Function) {
             let baseClass = constructor;
 
-            while (baseClass)
-            {
+            while (baseClass) {
                 const newBaseClass = Object.getPrototypeOf(baseClass);
 
                 if (baseClass.name === baseClassName)
                     return true;
 
-                if (newBaseClass && newBaseClass !== Object && newBaseClass.name)
-                {
+                if (newBaseClass && newBaseClass !== Object && newBaseClass.name) {
                     baseClass = newBaseClass;
-                } else
-                {
+                } else {
                     break;
                 }
             }
@@ -37,6 +32,10 @@ export default class SystemUtil {
         }
 
         return false;
+    }
+
+    static isString(value) {
+        return typeof value === 'string' || value instanceof String;
     }
 
     /** Initializes the <code>ACTIVATE/DEACTIVATE</code> event handlers on the native
@@ -122,8 +121,7 @@ export default class SystemUtil {
 
     /** Returns the value of the 'initialWindow.depthAndStencil' node of the application
      *  descriptor, if this in an AIR app; otherwise always <code>true</code>. */
-    static get supportsDepthAndStencil()
-    {
+    static get supportsDepthAndStencil() {
         return true;
     }
 

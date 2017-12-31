@@ -4,6 +4,8 @@ import MenuButton from './utils/menu-button';
 import Game from './game';
 import TextureScene from './scenes/texture-scene';
 import TouchScene from './scenes/touch-scene';
+import AnimationScene from './scenes/animation-scene';
+import MovieScene from './scenes/movie-scene';
 
 export default class MainMenu extends Sprite {
     constructor() {
@@ -19,9 +21,9 @@ export default class MainMenu extends Sprite {
             ['Textures', TextureScene],
             ['Multitouch', TouchScene],
             //['TextFields', TextScene],
-            //['Animations', AnimationScene],
+            ['Animations', AnimationScene],
             //['Custom hit-test', CustomHitTestScene],
-            //['Movie Clip', MovieScene],
+            ['Movie Clip', MovieScene],
             //['Filters', FilterScene],
             //['Blend Modes', BlendModeScene],
             //['Render Texture', RenderTextureScene],

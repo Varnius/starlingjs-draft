@@ -1,10 +1,8 @@
 import BlendMode from '../../src/display/blend-mode';
 import GLC from 'gl-constants';
 
-describe('BlendMode', () =>
-{
-    it('should register', () =>
-    {
+describe('BlendMode', () => {
+    it('should register', () => {
         const name = 'test';
         const srcFactor = GLC.ONE_MINUS_SRC_ALPHA;
         const dstFactor = GLC.DST_COLOR;

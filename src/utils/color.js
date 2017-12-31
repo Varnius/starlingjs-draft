@@ -1,13 +1,11 @@
 /** A utility class containing predefined colors and methods converting between different
  *  color representations. */
 
-export function premultiplyAlpha(rgba)
-{
+export function premultiplyAlpha(rgba) {
     const alpha = rgba & 0xff;
 
     if (alpha === 0xff) return rgba;
-    else
-    {
+    else {
         const factor = alpha / 255.0;
         const r = ((rgba >> 24) & 0xff) * factor;
         const g = ((rgba >> 16) & 0xff) * factor;
@@ -19,13 +17,11 @@ export function premultiplyAlpha(rgba)
     }
 }
 
-export function unmultiplyAlpha(rgba)
-{
+export function unmultiplyAlpha(rgba) {
     const alpha = rgba & 0xff;
 
     if (alpha === 0xff || alpha === 0x0) return rgba;
-    else
-    {
+    else {
         const factor = alpha / 255.0;
         const r = ((rgba >> 24) & 0xff) / factor;
         const g = ((rgba >> 16) & 0xff) / factor;
@@ -56,86 +52,72 @@ export default class Color {
     static PURPLE = 0x800080;
 
     /** Returns the alpha part of an ARGB color (0 - 255). */
-    static getAlpha(color)
-    {
+    static getAlpha(color) {
         return (color >> 24) & 0xff;
     }
 
-    static getAlphaRgba(color)
-    {
+    static getAlphaRgba(color) {
         return color & 0xff;
     }
 
     /** Returns the red part of an (A)RGB color (0 - 255). */
-    static getRed(color)
-    {
+    static getRed(color) {
         return (color >> 16) & 0xff;
     }
 
     /** Returns the green part of an (A)RGB color (0 - 255). */
-    static getGreen(color)
-    {
+    static getGreen(color) {
         return (color >> 8) & 0xff;
     }
 
     /** Returns the blue part of an (A)RGB color (0 - 255). */
-    static getBlue(color)
-    {
+    static getBlue(color) {
         return color & 0xff;
     }
 
     /** Sets the alpha part of an ARGB color (0 - 255). */
-    static setAlpha(color, alpha)
-    {
+    static setAlpha(color, alpha) {
         return (color & 0x00ffffff) | (alpha & 0xff) << 24;
     }
 
-    static setAlphaRgba(color, alpha)
-    {
+    static setAlphaRgba(color, alpha) {
         return (color & 0xffffff00) | (alpha & 0xff);
     }
 
     /** Sets the red part of an (A)RGB color (0 - 255). */
-    static setRed(color, red)
-    {
+    static setRed(color, red) {
         return (color & 0xff00ffff) | (red & 0xff) << 16;
     }
 
     /** Sets the green part of an (A)RGB color (0 - 255). */
-    static setGreen(color, green)
-    {
+    static setGreen(color, green) {
         return (color & 0xffff00ff) | (green & 0xff) << 8;
     }
 
     /** Sets the blue part of an (A)RGB color (0 - 255). */
-    static setBlue(color, blue)
-    {
+    static setBlue(color, blue) {
         return (color & 0xffffff00) | (blue & 0xff);
     }
 
     /** Creates an RGB color, stored in an unsigned integer. Channels are expected
      *  in the range 0 - 255. */
-    static rgb(red, green, blue)
-    {
+    static rgb(red, green, blue) {
         return (red << 16) | (green << 8) | blue;
     }
 
-    static rgba(red, green, blue, alpha)
-    {
+    static rgba(red, green, blue, alpha) {
         return (red << 24) | (green << 16) | (blue << 8) | 0xFF * alpha;
     }
 
     /** Creates an ARGB color, stored in an unsigned integer. Channels are expected
      *  in the range 0 - 255. */
-    static argb(alpha, red, green, blue)
-    {
+    static argb(alpha, red, green, blue) {
         return (alpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
     /** Converts a color to a vector containing the RGBA components (in this order) scaled
      *  between 0 and 1. */
-    static toVector(color, out = null)
-    {
+    static toVector(color, out = null) {
         if (!out) out = [];
 
         out[0] = ((color >> 16) & 0xff) / 255.0;
@@ -147,8 +129,7 @@ export default class Color {
     }
 
     /** Multiplies all channels of an (A)RGB color with a certain factor. */
-    static multiply(color, factor)
-    {
+    static multiply(color, factor) {
         let alpha = ((color >> 24) & 0xff) * factor;
         let red = ((color >> 16) & 0xff) * factor;
         let green = ((color >> 8) & 0xff) * factor;
@@ -164,8 +145,7 @@ export default class Color {
 
     /** Calculates a smooth transition between one color to the next.
      *  <code>ratio</code> is expected between 0 and 1. */
-    static interpolate(startColor, endColor, ratio)
-    {
+    static interpolate(startColor, endColor, ratio) {
         const startA = (startColor >> 24) & 0xff;
         const startR = (startColor >> 16) & 0xff;
         const startG = (startColor >> 8) & 0xff;

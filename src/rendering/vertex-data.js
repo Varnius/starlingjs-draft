@@ -131,6 +131,7 @@ export default class VertexData {
         this._attributes = this._format.attributes;
         this._numAttributes = this._attributes.length;
         this._vertexSize = this._format.vertexSize;
+        this._premultipliedAlpha = true;
 
         // Initialize buffers
         this._format.attributes.forEach(attribute => {
@@ -217,7 +218,6 @@ export default class VertexData {
                     value = isX ? matrix.a * x + matrix.c * y + matrix.tx : matrix.d * y + matrix.b * x + matrix.ty;
                 }
 
-                //if (attribute.name === 'position') console.log(j, value)
                 targetRawData[attribute.name][j] = value;
             }
         }
@@ -564,13 +564,13 @@ export default class VertexData {
         if (factor === 1.0) return;
         if (numVertices < 0 || vertexID + numVertices > _numVertices)
             numVertices = _numVertices - vertexID;
-
         this._tinted = true; // factor must be != 1, so there's definitely tinting.
 
         let i;
         let alpha, rgba;
+        const attributeSize = this.getAttribute(attrName).size;
 
-        for (i = 0; i < numVertices; ++i) {
+        for (i = vertexID * attributeSize; i < vertexID * attributeSize + numVertices * attributeSize; ++i) {
             alpha = Color.getAlphaRgba(_rawData[attrName][i]) / 255.0 * factor;
 
             if (alpha > 1.0) alpha = 1.0;
@@ -640,7 +640,7 @@ export default class VertexData {
             const attribute = _attributes[attributeIndex];
             const buffer = gl.createBuffer();
 
-            console.log(`SET attrib ${attribute.name} at index=${attributeIndex}, size ${attribute.size}`, _rawData[attribute.name]);
+            //console.log(`SET attrib ${attribute.name} at index=${attributeIndex}, size ${attribute.size}`, _rawData[attribute.name]);
 
             gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
             gl.bufferData(gl.ARRAY_BUFFER, _rawData[attribute.name], bufferUsage);

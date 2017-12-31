@@ -24,8 +24,7 @@ export default class FilterEffect extends Effect {
     _textureRepeat;
 
     /** Creates a new FilterEffect instance. */
-    constructor()
-    {
+    constructor() {
         super();
         this._textureSmoothing = TextureSmoothing.BILINEAR;
     }
@@ -36,16 +35,13 @@ export default class FilterEffect extends Effect {
      *
      *  <p>Reserve 4 bits for the variant name of the base class.</p>
      */
-    get programVariantName()
-    {
+    get programVariantName() {
         return RenderUtil.getTextureVariantBits(this._texture); // todo: implement
     }
 
     /** @private */
-    createProgram()
-    {
-        if (this._texture)
-        {
+    createProgram() {
+        if (this._texture) {
             const vertexShader = `#version 300 es
                 layout(location = 0) in vec2 aPosition;
                 layout(location = 1) in vec2 aTexCoords;
@@ -77,9 +73,7 @@ export default class FilterEffect extends Effect {
             `;
 
             return Program.fromSource(vertexShader, fragmentShader);
-        }
-        else
-        {
+        } else {
             return super.createProgram();
         }
     }
@@ -95,13 +89,11 @@ export default class FilterEffect extends Effect {
      *    <li><code>fs0</code> — texture</li>
      *  </ul>
      */
-    beforeDraw(gl)
-    {
+    beforeDraw(gl) {
         super.beforeDraw(gl);
         const { _texture, _textureSmoothing, _textureRepeat } = this;
 
-        if (_texture)
-        {
+        if (_texture) {
             gl.bindTexture(gl.TEXTURE_2D, _texture.base);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, _textureSmoothing);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, _textureRepeat ? gl.REPEAT : gl.CLAMP_TO_EDGE);
@@ -111,50 +103,42 @@ export default class FilterEffect extends Effect {
 
     /** This method is called by <code>render</code>, directly after
      *  <code>context.drawTriangles</code>. Resets texture and vertex buffer attributes. */
-    afterDraw(gl)
-    {
+    afterDraw(gl) {
         gl.bindTexture(gl.TEXTURE_2D, null);
         super.afterDraw(gl);
     }
 
     /** The data format that this effect requires from the VertexData that it renders:
      *  <code>'position:float2, texCoords:float2'</code> */
-    get vertexFormat() // eslint-disable-line
-    {
+    get vertexFormat() { // eslint-disable-line
         return FilterEffect.VERTEX_FORMAT;
     }
 
     /** The texture to be mapped onto the vertices. */
-    get texture()
-    {
+    get texture() {
         return this._texture;
     }
 
-    set texture(value)
-    {
+    set texture(value) {
         this._texture = value;
     }
 
     /** The smoothing filter that is used for the texture. @default bilinear */
-    get textureSmoothing()
-    {
+    get textureSmoothing() {
         return this._textureSmoothing;
     }
 
-    set textureSmoothing(value)
-    {
+    set textureSmoothing(value) {
         this._textureSmoothing = value;
     }
 
     /** Indicates if pixels at the edges will be repeated or clamped.
      *  Only works for power-of-two textures. @default false */
-    get textureRepeat()
-    {
+    get textureRepeat() {
         return this._textureRepeat;
     }
 
-    set textureRepeat(value)
-    {
+    set textureRepeat(value) {
         this._textureRepeat = value;
     }
 }

@@ -1,23 +1,19 @@
 import AssetManager from '../../src/utils/asset-manager';
 import nock from 'nock';
 
-describe('AssetManager', () =>
-{
+describe('AssetManager', () => {
     let assetManager;
     const basePath = 'http://something/';
 
-    beforeEach(() =>
-    {
+    beforeEach(() => {
         assetManager = new AssetManager();
     });
 
-    afterEach(() =>
-    {
+    afterEach(() => {
         nock.cleanAll();
     });
 
-    it('should load assets via enqueueWithName', async () =>
-    {
+    it('should load assets via enqueueWithName', async () => {
         const imageBlob = { width: 50, height: 40 };
 
         nock(basePath)
@@ -36,8 +32,7 @@ describe('AssetManager', () =>
         expect(assetManager.getTexture('leTexture')).to.exist;
     });
 
-    it('should load multiple assets via enqueue and assign correct names', async () =>
-    {
+    it('should load multiple assets via enqueue and assign correct names', async () => {
         const imageBlob = { width: 50, height: 40 };
         const textureResponse = { blob: () => Promise.resolve(imageBlob) };
 
@@ -61,8 +56,7 @@ describe('AssetManager', () =>
         expect(assetManager.getTexture('texture2')).to.exist;
     });
 
-    it('should load texture XML atlases', async () =>
-    {
+    it('should load texture XML atlases', async () => {
         const imageBlob = { width: 50, height: 40 };
         const atlas = `
             <?xml version="1.0" encoding="UTF-8"?>
@@ -90,5 +84,36 @@ describe('AssetManager', () =>
 
         expect(assetManager.getTexture('subtexture1')).to.exist;
         expect(assetManager.getTexture('subtexture2')).to.exist;
+    });
+
+    it('should return correct results with getTextures', async () => {
+        const imageBlob = { width: 50, height: 40 };
+        const atlas = `
+            <?xml version="1.0" encoding="UTF-8"?>
+            <TextureAtlas imagePath="atlas.png" width="788" height="788">
+                <SubTexture name="subtexture1" x="337" y="754" width="32" height="32"/>
+                <SubTexture name="subtexture2" x="1" y="704" width="63" height="64" frameX="0" frameY="0" frameWidth="64" frameHeight="64"/>
+                <SubTexture name="otherName" x="1" y="704" width="63" height="64" frameX="0" frameY="0" frameWidth="64" frameHeight="64"/>
+            </TextureAtlas>
+        `;
+
+        nock(basePath)
+            .get('/atlas.png')
+            .reply(() => ({ blob: () => Promise.resolve(imageBlob) }))
+            .get('/atlas.xml')
+            .reply(201, atlas, { 'Content-Type': 'application/xml' });
+
+        assetManager.enqueue([
+            { path: `${basePath}atlas.png` },
+            { path: `${basePath}atlas.xml` },
+        ]);
+
+        expect(assetManager.getTextures('subtex')).to.be.empty;
+
+        await assetManager.loadQueue();
+
+        expect(assetManager.getTextures('subtex')).to.have.lengthOf(2);
+        expect(assetManager.getTextures('subtex__')).to.have.lengthOf(0);
+        expect(assetManager.getTextures('other')).to.have.lengthOf(1);
     });
 });

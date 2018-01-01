@@ -1,476 +1,465 @@
-//import Mesh from '../../src/display/mesh';
-//import IndexData from '../../src/rendering/index-data';
-//import VertexData from '../../src/rendering/vertex-data';
-//
-//import Rectangle from '../../src/math/rectangle';
-//import Point from '../../src/math/point';
-//import MeshStyle from '../../src/styles/mesh-style';
-//import { fromTexture } from '../../src/textures/texture-factories';
-//
-//import MockTexture from '../test-utils/mock-texture';
-//import Helpers from '../helpers';
-//
-//describe('MovieClip', () => {
-//    const E = 0.0001;
-//
-//    const createFrames = count => {
-//        const frames = [];
-//
-//        for (let i = 0; i < count; ++i) {
-//            frames.push(new MockTexture());
-//        }
-//
-//        return frames;
-//    };
-//
-//    it('should manipulate frames', () => {
-//        var fps:Number = 4.0;
-//        var frameDuration:Number = 1.0 / fps;
-//
-//        var texture0:Texture = new MockTexture();
-//        var texture1:Texture = new MockTexture();
-//        var texture2:Texture = new MockTexture();
-//        var texture3:Texture = new MockTexture();
-//
-//        var movie:MovieClip = new MovieClip(new < Texture > [texture0], fps);
-//
-//        assertThat(movie.width, closeTo(texture0.width, E));
-//        assertThat(movie.height, closeTo(texture0.height, E));
-//        assertThat(movie.totalTime, closeTo(frameDuration, E));
-//        assertEquals(1, movie.numFrames);
-//        assertEquals(0, movie.currentFrame);
-//
-//        movie.loop = true;
-//        assertTrue(movie.loop);
-//
-//        movie.play();
-//        assertTrue(movie.isPlaying);
-//
-//        movie.addFrame(texture1);
-//        assertEquals(2, movie.numFrames);
-//        assertEquals(texture0, movie.getFrameTexture(0));
-//        assertEquals(texture1, movie.getFrameTexture(1));
-//        assertNull(movie.getFrameSound(0));
-//        assertNull(movie.getFrameSound(1));
-//        assertThat(movie.getFrameDuration(0), closeTo(frameDuration, E));
-//        assertThat(movie.getFrameDuration(1), closeTo(frameDuration, E));
-//
-//        movie.addFrame(texture2, null, 0.5);
-//        assertThat(movie.getFrameDuration(2), closeTo(0.5, E));
-//        assertThat(movie.totalTime, closeTo(1.0, E));
-//
-//        movie.addFrameAt(2, texture3); // -> 0, 1, 3, 2
-//        assertEquals(4, movie.numFrames);
-//        assertEquals(texture1, movie.getFrameTexture(1));
-//        assertEquals(texture3, movie.getFrameTexture(2));
-//        assertEquals(texture2, movie.getFrameTexture(3));
-//        assertThat(movie.totalTime, closeTo(1.0 + frameDuration, E));
-//
-//        movie.removeFrameAt(0); // -> 1, 3, 2
-//        assertEquals(3, movie.numFrames);
-//        assertEquals(texture1, movie.getFrameTexture(0));
-//        assertThat(movie.totalTime, closeTo(1.0, E));
-//
-//        movie.removeFrameAt(1); // -> 1, 2
-//        assertEquals(2, movie.numFrames);
-//        assertEquals(texture1, movie.getFrameTexture(0));
-//        assertEquals(texture2, movie.getFrameTexture(1));
-//        assertThat(movie.totalTime, closeTo(0.75, E));
-//
-//        movie.setFrameTexture(1, texture3);
-//        assertEquals(texture3, movie.getFrameTexture(1));
-//
-//        movie.setFrameDuration(1, 0.75);
-//        assertThat(movie.totalTime, closeTo(1.0, E));
-//
-//        movie.addFrameAt(2, texture3);
-//        assertEquals(texture3, movie.getFrameTexture(2));
-//    });
-//
-//    it('should advance time', () => {
-//        var fps:Number = 4.0;
-//        var frameDuration:Number = 1.0 / fps;
-//
-//        var texture0:Texture = new MockTexture();
-//        var texture1:Texture = new MockTexture();
-//        var texture2:Texture = new MockTexture();
-//        var texture3:Texture = new MockTexture();
-//
-//        var movie:MovieClip = new MovieClip(new < Texture > [texture0], fps);
-//        movie.addFrame(texture2, null, 0.5);
-//        movie.addFrame(texture3);
-//        movie.addFrameAt(0, texture1);
-//        movie.play();
-//        movie.loop = true;
-//
-//        assertEquals(0, movie.currentFrame);
-//        movie.advanceTime(frameDuration / 2.0);
-//        assertEquals(0, movie.currentFrame);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(1, movie.currentFrame);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(2, movie.currentFrame);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(2, movie.currentFrame);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(3, movie.currentFrame);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(0, movie.currentFrame);
-//        assertFalse(movie.isComplete);
-//
-//        movie.loop = false;
-//        movie.advanceTime(movie.totalTime + frameDuration);
-//        assertEquals(3, movie.currentFrame);
-//        assertFalse(movie.isPlaying);
-//        assertTrue(movie.isComplete);
-//
-//        movie.currentFrame = 0;
-//        assertEquals(0, movie.currentFrame);
-//        movie.advanceTime(frameDuration * 1.1);
-//        assertEquals(1, movie.currentFrame);
-//
-//        movie.stop();
-//        assertFalse(movie.isPlaying);
-//        assertFalse(movie.isComplete);
-//        assertEquals(0, movie.currentFrame);
-//    });
-//
-//    it('should change fps', () => {
-//        var frames:Vector.<Texture> = createFrames(3);
-//        var movie:MovieClip = new MovieClip(frames, 4.0);
-//
-//        assertThat(movie.fps, closeTo(4.0, E));
-//
-//        movie.fps = 3.0;
-//        assertThat(movie.fps, closeTo(3.0, E));
-//        assertThat(movie.getFrameDuration(0), closeTo(1.0 / 3.0, E));
-//        assertThat(movie.getFrameDuration(1), closeTo(1.0 / 3.0, E));
-//        assertThat(movie.getFrameDuration(2), closeTo(1.0 / 3.0, E));
-//
-//        movie.setFrameDuration(1, 1.0);
-//        assertThat(movie.getFrameDuration(1), closeTo(1.0, E));
-//
-//        movie.fps = 6.0;
-//        assertThat(movie.getFrameDuration(1), closeTo(0.5, E));
-//        assertThat(movie.getFrameDuration(0), closeTo(1.0 / 6.0, E));
-//    });
-//
-//    it('should handle COMPETE event', () => {
-//        var fps:Number = 4.0;
-//        var frameDuration:Number = 1.0 / fps;
-//        var completedCount:int = 0;
-//
-//        var frames:Vector.<Texture> = createFrames(4);
-//        var movie:MovieClip = new MovieClip(frames, fps);
-//        movie.addEventListener(Event.COMPLETE, onMovieCompleted);
-//        movie.loop = false;
-//        movie.play();
-//
-//        assertFalse(movie.isComplete);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(1, movie.currentFrame);
-//        assertEquals(0, completedCount);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(2, movie.currentFrame);
-//        assertEquals(0, completedCount);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(3, movie.currentFrame);
-//        assertEquals(0, completedCount);
-//        movie.advanceTime(frameDuration * 0.5);
-//        movie.advanceTime(frameDuration * 0.5);
-//        assertEquals(3, movie.currentFrame);
-//        assertEquals(1, completedCount);
-//        assertTrue(movie.isComplete);
-//        movie.advanceTime(movie.numFrames * 2 * frameDuration);
-//        assertEquals(3, movie.currentFrame);
-//        assertEquals(1, completedCount);
-//        assertTrue(movie.isComplete);
-//
-//        movie.loop = true;
-//        completedCount = 0;
-//
-//        assertFalse(movie.isComplete);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(1, movie.currentFrame);
-//        assertEquals(0, completedCount);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(2, movie.currentFrame);
-//        assertEquals(0, completedCount);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(3, movie.currentFrame);
-//        assertEquals(0, completedCount);
-//        movie.advanceTime(frameDuration);
-//        assertEquals(0, movie.currentFrame);
-//        assertEquals(1, completedCount);
-//        movie.advanceTime(movie.numFrames * 2 * frameDuration);
-//        assertEquals(3, completedCount);
-//
-//        function onMovieCompleted(event:Event):void {
-//            completedCount++;
-//        }
-//    });
-//
-//    it('should change current frame in COMPLETE event', () => {
-//        var fps:Number = 4.0;
-//        var frameDuration:Number = 1.0 / fps;
-//        var completedCount:int = 0;
-//
-//        var frames:Vector.<Texture> = createFrames(4);
-//        var movie:MovieClip = new MovieClip(frames, fps);
-//
-//        movie.loop = true;
-//        movie.addEventListener(Event.COMPLETE, onMovieCompleted);
-//        movie.play();
-//        movie.advanceTime(1.75);
-//
-//        assertFalse(movie.isPlaying);
-//        assertEquals(0, movie.currentFrame);
-//
-//        function onMovieCompleted(event:Event):void {
-//            movie.pause();
-//            movie.currentFrame = 0;
-//        }
-//    });
-//
-//    it('should remove all frames', () => {
-//        var frames:Vector.<Texture> = createFrames(2);
-//        var movie:MovieClip = new MovieClip(frames);
-//
-//        // it must not be allowed to remove the last frame
-//        movie.removeFrameAt(0);
-//        var throwsError:Boolean = false;
-//
-//        try {
-//            movie.removeFrameAt(0);
-//        }
-//        catch (error:Error) {
-//            throwsError = true;
-//        }
-//
-//        assertTrue(throwsError);
-//    });
-//
-//    it('should handle last texture with fast playback', () => {
-//        var fps:Number = 20.0;
-//        var frames:Vector.<Texture> = createFrames(3);
-//        var movie:MovieClip = new MovieClip(frames, fps);
-//        movie.addEventListener(Event.COMPLETE, onMovieCompleted);
-//        movie.play();
-//        movie.advanceTime(1.0);
-//
-//        function onMovieCompleted():void {
-//            assertEquals(frames[2], movie.texture);
-//        }
-//    });
-//
-//    it('should handle assigned texture with complete handler', () => {
-//// https://github.com/PrimaryFeather/Starling-Framework/issues/232
-//
-//        var frames:Vector.<Texture> = createFrames(2);
-//        var movie:MovieClip = new MovieClip(frames, 2);
-//        movie.loop = true;
-//        movie.play();
-//
-//        movie.addEventListener(Event.COMPLETE, onComplete);
-//        assertEquals(frames[0], movie.texture);
-//
-//        movie.advanceTime(0.5);
-//        assertEquals(frames[1], movie.texture);
-//
-//        movie.advanceTime(0.5);
-//        assertEquals(frames[0], movie.texture);
-//
-//        movie.advanceTime(0.5);
-//        assertEquals(frames[1], movie.texture);
-//
-//        function onComplete():void { /* does not have to do anything */
-//        }
-//    });
-//
-//    it('should stop movie in complete handler', () => {
-//        var frames:Vector.<Texture> = createFrames(5);
-//        var movie:MovieClip = new MovieClip(frames, 5);
-//
-//        movie.play();
-//        movie.addEventListener(Event.COMPLETE, onComplete);
-//        movie.advanceTime(1.3);
-//
-//        assertFalse(movie.isPlaying);
-//        assertThat(movie.currentTime, closeTo(0.0, E));
-//        assertEquals(frames[0], movie.texture);
-//
-//        movie.play();
-//        movie.advanceTime(0.3);
-//        assertThat(movie.currentTime, closeTo(0.3, E));
-//        assertEquals(frames[1], movie.texture);
-//
-//        function onComplete():void {
-//            movie.stop();
-//        }
-//    });
-//
-//    it('should reverse frames', () => {
-//        var i:int;
-//        var numFrames:int = 4;
-//        var frames:Vector.<Texture> = createFrames(numFrames);
-//        var movie:MovieClip = new MovieClip(frames, 5);
-//        movie.setFrameDuration(0, 0.4);
-//        movie.play();
-//
-//        for (i = 0; i < numFrames; ++i)
-//            assertEquals(movie.getFrameTexture(i), frames[i]);
-//
-//        movie.advanceTime(0.5);
-//        movie.reverseFrames();
-//
-//        for (i = 0; i < numFrames; ++i)
-//            assertEquals(movie.getFrameTexture(i), frames[numFrames - i - 1]);
-//
-//        assertEquals(movie.currentFrame, 2);
-//        assertThat(movie.currentTime, 0.5);
-//        assertThat(movie.getFrameDuration(0), closeTo(0.2, E));
-//        assertThat(movie.getFrameDuration(3), closeTo(0.4, E));
-//    });
-//
-//    it('should set current time', () => {
-//        var actionCount:int = 0;
-//        var numFrames:int = 4;
-//        var frames:Vector.<Texture> = createFrames(numFrames);
-//        var movie:MovieClip = new MovieClip(frames, numFrames);
-//        movie.setFrameAction(1, onAction);
-//        movie.play();
-//
-//        movie.currentTime = 0.1;
-//        assertEquals(0, movie.currentFrame);
-//        assertThat(movie.currentTime, closeTo(0.1, E));
-//        assertEquals(0, actionCount);
-//
-//        movie.currentTime = 0.25;
-//        assertEquals(1, movie.currentFrame);
-//        assertThat(movie.currentTime, closeTo(0.25, E));
-//        assertEquals(0, actionCount);
-//
-//        // 'advanceTime' should now get that action executed
-//        movie.advanceTime(0.01);
-//        assertEquals(1, actionCount);
-//        movie.advanceTime(0.01);
-//        assertEquals(1, actionCount);
-//
-//        movie.currentTime = 0.3;
-//        assertEquals(1, movie.currentFrame);
-//        assertThat(movie.currentTime, closeTo(0.3, E));
-//
-//        movie.currentTime = 1.0;
-//        assertEquals(3, movie.currentFrame);
-//        assertThat(movie.currentTime, closeTo(1.0, E));
-//
-//        function onAction():void {
-//            ++actionCount;
-//        }
-//    });
-//
-//    it('should handle basic frame actions', () => {
-//        var actionCount:int = 0;
-//        var completeCount:int = 0;
-//
-//        var numFrames:int = 4;
-//        var frames:Vector.<Texture> = createFrames(numFrames);
-//        var movie:MovieClip = new MovieClip(frames, numFrames);
-//        movie.setFrameAction(1, onFrame);
-//        movie.setFrameAction(3, onFrame);
-//        movie.loop = false;
-//        movie.play();
-//
-//        // simple test of two actions
-//        movie.advanceTime(1.0);
-//        assertEquals(2, actionCount);
-//
-//        // now pause movie in action
-//        movie.loop = true;
-//        movie.setFrameAction(2, pauseMovie);
-//        movie.advanceTime(1.0);
-//        assertEquals(3, actionCount);
-//        assertThat(movie.currentTime, closeTo(0.5, E));
-//        assertFalse(movie.isPlaying);
-//
-//        // restarting the clip should execute the action at the current frame
-//        movie.advanceTime(1.0);
-//        assertFalse(movie.isPlaying);
-//        assertEquals(3, actionCount);
-//
-//        // remove that action
-//        movie.play();
-//        movie.setFrameAction(2, null);
-//        movie.currentFrame = 0;
-//        movie.advanceTime(1.0);
-//        assertTrue(movie.isPlaying);
-//        assertEquals(5, actionCount);
-//
-//        // add a COMPLETE event handler as well
-//        movie.addEventListener(Event.COMPLETE, onComplete);
-//        movie.advanceTime(1.0);
-//        assertEquals(7, actionCount);
-//        assertEquals(1, completeCount);
-//
-//        // frame action should be executed before COMPLETE action, so we can pause the movie
-//        movie.setFrameAction(3, pauseMovie);
-//        movie.advanceTime(1.0);
-//        assertEquals(8, actionCount);
-//        assertFalse(movie.isPlaying);
-//        assertEquals(1, completeCount);
-//
-//        // adding a frame action while we're in the first frame and then moving on -> no action
-//        movie.currentFrame = 0;
-//        assertEquals(0, movie.currentFrame);
-//        movie.setFrameAction(0, onFrame);
-//        movie.play();
-//        movie.advanceTime(0.1);
-//        assertEquals(8, actionCount);
-//        movie.advanceTime(0.1);
-//        assertEquals(8, actionCount);
-//
-//        // but after stopping the clip, the action should be executed
-//        movie.stop();
-//        movie.play();
-//        movie.advanceTime(0.1);
-//        assertEquals(9, actionCount);
-//        movie.advanceTime(0.1);
-//        assertEquals(9, actionCount);
-//
-//        function onFrame(movieParam:MovieClip, frameID:int):void {
-//            actionCount++;
-//            assertEquals(movie, movieParam);
-//            assertEquals(frameID, movie.currentFrame);
-//            assertThat(movie.currentTime, closeTo(frameID / numFrames, E));
-//        }
-//
-//        function pauseMovie():void {
-//            movie.pause();
-//        }
-//
-//        function onComplete():void {
-//            assertThat(movie.currentTime, closeTo(movie.totalTime, E));
-//            completeCount++;
-//        }
-//    });
-//
-//    it('should handle floating point issue', () => {
-//// -> https://github.com/Gamua/Starling-Framework/issues/851
-//
-//        var numFrames:int = 30;
-//        var completeCount:int = 0;
-//        var frames:Vector.<Texture> = createFrames(numFrames);
-//        var movie:MovieClip = new MovieClip(frames, numFrames);
-//
-//        movie.loop = false;
-//        movie.addEventListener(Event.COMPLETE, onComplete);
-//        movie.currentTime = 0.9649999999999999;
-//        movie.advanceTime(0.03500000000000014);
-//
-//        assertEquals(1, completeCount);
-//
-//        function onComplete():void {
-//            completeCount++;
-//        }
-//    });
-//});
+import MovieClip from '../../src/display/movie-clip';
+import Event from '../../src/events/event';
+
+import MockTexture from '../test-utils/mock-texture';
+
+describe('MovieClip', () => {
+    const E = 0.0001;
+
+    const createFrames = count => {
+        const frames = [];
+
+        for (let i = 0; i < count; ++i) {
+            frames.push(new MockTexture());
+        }
+
+        return frames;
+    };
+
+    it('should manipulate frames', () => {
+        const fps = 4.0;
+        const frameDuration = 1.0 / fps;
+
+        const texture0 = new MockTexture();
+        const texture1 = new MockTexture();
+        const texture2 = new MockTexture();
+        const texture3 = new MockTexture();
+
+        const movie = new MovieClip([texture0], fps);
+
+        expect(movie.width).to.be.closeTo(texture0.width, E);
+        expect(movie.height).to.be.closeTo(texture0.height, E);
+        expect(movie.totalTime).to.be.closeTo(frameDuration, E);
+        expect(movie.numFrames).to.equal(1);
+        expect(movie.currentFrame).to.equal(0);
+
+        movie.loop = true;
+        expect(movie.loop).to.be.true;
+
+        movie.play();
+        expect(movie.isPlaying).to.be.true;
+
+        movie.addFrame(texture1);
+        expect(movie.numFrames).to.equal(2);
+        expect(movie.getFrameTexture(0)).to.equal(texture0);
+        expect(movie.getFrameTexture(1)).to.equal(texture1);
+        expect(movie.getFrameSound(0)).to.be.null;
+        expect(movie.getFrameSound(1)).to.be.null;
+        expect(movie.getFrameDuration(0)).to.be.closeTo(frameDuration, E);
+        expect(movie.getFrameDuration(1)).to.be.closeTo(frameDuration, E);
+
+        movie.addFrame(texture2, null, 0.5);
+        expect(movie.getFrameDuration(2)).to.be.closeTo(0.5, E);
+        expect(movie.totalTime).to.be.closeTo(1.0, E);
+
+        movie.addFrameAt(2, texture3); // -> 0, 1, 3, 2
+        expect(movie.numFrames).to.equal(4);
+        expect(movie.getFrameTexture(1)).to.equal(texture1);
+        expect(movie.getFrameTexture(2)).to.equal(texture3);
+        expect(movie.getFrameTexture(3)).to.equal(texture2);
+        expect(movie.totalTime).to.be.closeTo(1.0 + frameDuration, E);
+
+        movie.removeFrameAt(0); // -> 1, 3, 2
+        expect(movie.numFrames).to.equal(3);
+        expect(movie.getFrameTexture(0)).to.equal(texture1);
+        expect(movie.totalTime).to.be.closeTo(1.0, E);
+
+        movie.removeFrameAt(1); // -> 1, 2
+        expect(movie.numFrames).to.equal(2);
+        expect(movie.getFrameTexture(0)).to.equal(texture1);
+        expect(movie.getFrameTexture(1)).to.equal(texture2);
+        expect(movie.totalTime).to.be.closeTo(0.75, E);
+
+        movie.setFrameTexture(1, texture3);
+        expect(movie.getFrameTexture(1)).to.equal(texture3);
+
+        movie.setFrameDuration(1, 0.75);
+        expect(movie.totalTime).to.be.closeTo(1.0, E);
+
+        movie.addFrameAt(2, texture3);
+        expect(movie.getFrameTexture(2)).to.equal(texture3);
+    });
+
+    it('should advance time', () => {
+        const fps = 4.0;
+        const frameDuration = 1.0 / fps;
+
+        const texture0 = new MockTexture();
+        const texture1 = new MockTexture();
+        const texture2 = new MockTexture();
+        const texture3 = new MockTexture();
+
+        const movie = new MovieClip([texture0], fps);
+        movie.addFrame(texture2, null, 0.5);
+        movie.addFrame(texture3);
+        movie.addFrameAt(0, texture1);
+        movie.play();
+        movie.loop = true;
+
+        expect(movie.currentFrame).to.equal(0);
+        movie.advanceTime(frameDuration / 2.0);
+        expect(movie.currentFrame).to.equal(0);
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(1);
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(2);
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(2);
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(3);
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(0);
+        expect(movie.isComplete).to.be.false;
+
+        movie.loop = false;
+        movie.advanceTime(movie.totalTime + frameDuration);
+        expect(movie.currentFrame).to.equal(3);
+        expect(movie.isPlaying).to.be.false;
+        expect(movie.isComplete).to.be.true;
+
+        movie.currentFrame = 0;
+        expect(movie.currentFrame).to.equal(0);
+        movie.advanceTime(frameDuration * 1.1);
+        expect(movie.currentFrame).to.equal(1);
+
+        movie.stop();
+        expect(movie.isPlaying).to.be.false;
+        expect(movie.isComplete).to.be.false;
+        expect(movie.currentFrame).to.equal(0);
+    });
+
+    it('should change fps', () => {
+        const frames = createFrames(3);
+        const movie = new MovieClip(frames, 4.0);
+
+        expect(movie.fps).to.be.closeTo(4.0, E);
+
+        movie.fps = 3.0;
+        expect(movie.fps).to.be.closeTo(3.0, E);
+        expect(movie.getFrameDuration(0)).to.be.closeTo(1.0 / 3.0, E);
+        expect(movie.getFrameDuration(1)).to.be.closeTo(1.0 / 3.0, E);
+        expect(movie.getFrameDuration(2)).to.be.closeTo(1.0 / 3.0, E);
+
+        movie.setFrameDuration(1, 1.0);
+        expect(movie.getFrameDuration(1)).to.be.closeTo(1.0, E);
+
+        movie.fps = 6.0;
+        expect(movie.getFrameDuration(1)).to.be.closeTo(0.5, E);
+        expect(movie.getFrameDuration(0)).to.be.closeTo(1.0 / 6.0, E);
+    });
+
+    it('should handle COMPETE event', () => {
+        const fps = 4.0;
+        const frameDuration = 1.0 / fps;
+        let completedCount = 0;
+
+        const frames = createFrames(4);
+        const movie = new MovieClip(frames, fps);
+        movie.addEventListener(Event.COMPLETE, onMovieCompleted);
+        movie.loop = false;
+        movie.play();
+
+        expect(movie.isComplete).to.be.false;
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(1);
+        expect(completedCount).to.equal(0);
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(2);
+        expect(completedCount).to.equal(0);
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(3);
+        expect(completedCount).to.equal(0);
+        movie.advanceTime(frameDuration * 0.5);
+        movie.advanceTime(frameDuration * 0.5);
+        expect(movie.currentFrame).to.equal(3);
+        expect(completedCount).to.equal(1);
+        expect(movie.isComplete).to.be.true;
+        movie.advanceTime(movie.numFrames * 2 * frameDuration);
+        expect(movie.currentFrame).to.equal(3);
+        expect(completedCount).to.equal(1);
+        expect(movie.isComplete).to.be.true;
+
+        movie.loop = true;
+        completedCount = 0;
+
+        expect(movie.isComplete).to.be.false;
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(1);
+        expect(completedCount).to.equal(0);
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(2);
+        expect(completedCount).to.equal(0);
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(3);
+        expect(completedCount).to.equal(0);
+        movie.advanceTime(frameDuration);
+        expect(movie.currentFrame).to.equal(0);
+        expect(completedCount).to.equal(1);
+        movie.advanceTime(movie.numFrames * 2 * frameDuration);
+        expect(completedCount).to.equal(3);
+
+        function onMovieCompleted() {
+            completedCount++;
+        }
+    });
+
+    it('should change current frame in COMPLETE event', () => {
+        const fps = 4.0;
+        const frames = createFrames(4);
+        const movie = new MovieClip(frames, fps);
+
+        movie.loop = true;
+        movie.addEventListener(Event.COMPLETE, onMovieCompleted);
+        movie.play();
+        movie.advanceTime(1.75);
+
+        expect(movie.isPlaying).to.be.false;
+        expect(movie.currentFrame).to.equal(0);
+
+        function onMovieCompleted() {
+            movie.pause();
+            movie.currentFrame = 0;
+        }
+    });
+
+    it('should remove all frames', () => {
+        const frames = createFrames(2);
+        const movie = new MovieClip(frames);
+
+        // it must not be allowed to remove the last frame
+        movie.removeFrameAt(0);
+        let throwsError = false;
+
+        try {
+            movie.removeFrameAt(0);
+        } catch (error) {
+            throwsError = true;
+        }
+
+        expect(throwsError).to.be.true;
+    });
+
+    it('should handle last texture with fast playback', () => {
+        const fps = 20.0;
+        const frames = createFrames(3);
+        const movie = new MovieClip(frames, fps);
+        movie.addEventListener(Event.COMPLETE, onMovieCompleted);
+        movie.play();
+        movie.advanceTime(1.0);
+
+        function onMovieCompleted() {
+            expect(movie.texture).to.equal(frames[2]);
+        }
+    });
+
+    it('should handle assigned texture with complete handler', () => {
+        // https://github.com/PrimaryFeather/Starling-Framework/issues/232
+
+        const frames = createFrames(2);
+        const movie = new MovieClip(frames, 2);
+        movie.loop = true;
+        movie.play();
+
+        movie.addEventListener(Event.COMPLETE, onComplete);
+        expect(movie.texture).to.equal(frames[0]);
+
+        movie.advanceTime(0.5);
+        expect(movie.texture).to.equal(frames[1]);
+
+        movie.advanceTime(0.5);
+        expect(movie.texture).to.equal(frames[0]);
+
+        movie.advanceTime(0.5);
+        expect(movie.texture).to.equal(frames[1]);
+
+        function onComplete() { /* does not have to do anything */
+        }
+    });
+
+    it('should stop movie in complete handler', () => {
+        const frames = createFrames(5);
+        const movie = new MovieClip(frames, 5);
+
+        movie.play();
+        movie.addEventListener(Event.COMPLETE, onComplete);
+        movie.advanceTime(1.3);
+
+        expect(movie.isPlaying).to.be.false;
+        expect(movie.currentTime).to.be.closeTo(0.0, E);
+        expect(movie.texture).to.equal(frames[0]);
+
+        movie.play();
+        movie.advanceTime(0.3);
+        expect(movie.currentTime).to.be.closeTo(0.3, E);
+        expect(movie.texture).to.equal(frames[1]);
+
+        function onComplete() {
+            movie.stop();
+        }
+    });
+
+    it.only('should reverse frames', () => {
+        let i;
+        const numFrames = 4;
+        const frames = createFrames(numFrames);
+        const movie = new MovieClip(frames, 5);
+        movie.setFrameDuration(0, 0.4);
+        movie.play();
+
+        for (i = 0; i < numFrames; ++i)
+            expect(frames[i]).to.equal(movie.getFrameTexture(i));
+
+        movie.advanceTime(0.5);
+        movie.reverseFrames();
+
+        for (i = 0; i < numFrames; ++i)
+            expect(frames[numFrames - i - 1]).to.equal(movie.getFrameTexture(i));
+
+        expect(2).to.equal(movie.currentFrame);
+        expect(movie.currentTime).to.equal(0.5);
+        expect(movie.getFrameDuration(0)).to.be.closeTo(0.2, E);
+        expect(movie.getFrameDuration(3)).to.be.closeTo(0.4, E);
+    });
+
+    it('should set current time', () => {
+        let actionCount = 0;
+        const numFrames = 4;
+        const frames = createFrames(numFrames);
+        const movie = new MovieClip(frames, numFrames);
+        movie.setFrameAction(1, onAction);
+        movie.play();
+
+        movie.currentTime = 0.1;
+        expect(movie.currentFrame).to.equal(0);
+        expect(movie.currentTime).to.be.closeTo(0.1, E);
+        expect(actionCount).to.equal(0);
+
+        movie.currentTime = 0.25;
+        expect(movie.currentFrame).to.equal(1);
+        expect(movie.currentTime).to.be.closeTo(0.25, E);
+        expect(actionCount).to.equal(0);
+
+        // 'advanceTime' should now get that action executed
+        movie.advanceTime(0.01);
+        expect(actionCount).to.equal(1);
+        movie.advanceTime(0.01);
+        expect(actionCount).to.equal(1);
+
+        movie.currentTime = 0.3;
+        expect(movie.currentFrame).to.equal(1);
+        expect(movie.currentTime).to.be.closeTo(0.3, E);
+
+        movie.currentTime = 1.0;
+        expect(movie.currentFrame).to.equal(3);
+        expect(movie.currentTime).to.be.closeTo(1.0, E);
+
+        function onAction() {
+            ++actionCount;
+        }
+    });
+
+    it('should handle basic frame actions', () => {
+        let actionCount = 0;
+        let completeCount = 0;
+
+        const numFrames = 4;
+        const frames = createFrames(numFrames);
+        const movie = new MovieClip(frames, numFrames);
+        movie.setFrameAction(1, onFrame);
+        movie.setFrameAction(3, onFrame);
+        movie.loop = false;
+        movie.play();
+
+        // simple test of two actions
+        movie.advanceTime(1.0);
+        expect(actionCount).to.equal(2);
+
+        // now pause movie in action
+        movie.loop = true;
+        movie.setFrameAction(2, pauseMovie);
+        movie.advanceTime(1.0);
+        expect(actionCount).to.equal(3);
+        expect(movie.currentTime).to.be.closeTo(0.5, E);
+        expect(movie.isPlaying).to.be.false;
+
+        // restarting the clip should execute the action at the current frame
+        movie.advanceTime(1.0);
+        expect(movie.isPlaying).to.be.false;
+        expect(actionCount).to.equal(3);
+
+        // remove that action
+        movie.play();
+        movie.setFrameAction(2, null);
+        movie.currentFrame = 0;
+        movie.advanceTime(1.0);
+        expect(movie.isPlaying).to.be.true;
+        expect(actionCount).to.equal(5);
+
+        // add a COMPLETE event handler as well
+        movie.addEventListener(Event.COMPLETE, onComplete);
+        movie.advanceTime(1.0);
+        expect(actionCount).to.equal(7);
+        expect(completeCount).to.equal(1);
+
+        // frame action should be executed before COMPLETE action, so we can pause the movie
+        movie.setFrameAction(3, pauseMovie);
+        movie.advanceTime(1.0);
+        expect(actionCount).to.equal(8);
+        expect(movie.isPlaying).to.be.false;
+        expect(completeCount).to.equal(1);
+
+        // adding a frame action while we're in the first frame and then moving on -> no action
+        movie.currentFrame = 0;
+        expect(movie.currentFrame).to.equal(0);
+        movie.setFrameAction(0, onFrame);
+        movie.play();
+        movie.advanceTime(0.1);
+        expect(actionCount).to.equal(8);
+        movie.advanceTime(0.1);
+        expect(actionCount).to.equal(8);
+
+        // but after stopping the clip, the action should be executed
+        movie.stop();
+        movie.play();
+        movie.advanceTime(0.1);
+        expect(actionCount).to.equal(9);
+        movie.advanceTime(0.1);
+        expect(actionCount).to.equal(9);
+
+        function onFrame(movieParam, frameID) {
+            actionCount++;
+            expect(movieParam).to.equal(movie);
+            expect(movie.currentFrame).to.equal(frameID);
+            expect(movie.currentTime).to.be.closeTo(frameID / numFrames, E);
+        }
+
+        function pauseMovie() {
+            movie.pause();
+        }
+
+        function onComplete() {
+            expect(movie.currentTime).to.be.closeTo(movie.totalTime, E);
+            completeCount++;
+        }
+    });
+
+    it('should handle floating point issue', () => {
+        // -> https://github.com/Gamua/Starling-Framework/issues/851
+
+        const numFrames = 30;
+        let completeCount = 0;
+        const frames = createFrames(numFrames);
+        const movie = new MovieClip(frames, numFrames);
+
+        movie.loop = false;
+        movie.addEventListener(Event.COMPLETE, onComplete);
+        movie.currentTime = 0.9649999999999999;
+        movie.advanceTime(0.03500000000000014);
+
+        expect(completeCount).to.equal(1);
+
+        function onComplete() {
+            completeCount++;
+        }
+    });
+});

@@ -10,10 +10,8 @@ import { fromTexture } from '../../src/textures/texture-factories';
 import MockTexture from '../test-utils/mock-texture';
 import Helpers from '../helpers';
 
-describe('Mesh', () =>
-{
-    it('should return correct bounds', () =>
-    {
+describe('Mesh', () => {
+    it('should return correct bounds', () => {
         const vertexData = new VertexData('position:float2');
         vertexData.setPoint(0, 'position', 10, 10);
         vertexData.setPoint(1, 'position', 20, 10);
@@ -32,8 +30,7 @@ describe('Mesh', () =>
         Helpers.compareRectangles(expected, mesh.bounds);
     });
 
-    it('should have correct colors', () =>
-    {
+    it('should have correct colors', () => {
         const vertexData = new VertexData();
         vertexData.numVertices = 3;
 
@@ -51,14 +48,12 @@ describe('Mesh', () =>
 
         mesh.color = 0xf0f0f0;
 
-        for (let i = 0; i < 3; ++i)
-        {
+        for (let i = 0; i < 3; ++i) {
             expect(mesh.getVertexColor(i)).to.equal(0xf0f0f0);
         }
     });
 
-    it('should have correct alpha', () =>
-    {
+    it('should have correct alpha', () => {
         const vertexData = new VertexData();
         vertexData.numVertices = 3;
 
@@ -76,8 +71,7 @@ describe('Mesh', () =>
         expect(mesh.getVertexAlpha(2)).to.be.closeTo(0.8, E);
     });
 
-    it('should have correct texCoords', () =>
-    {
+    it('should have correct texCoords', () => {
         const rootTexture = new MockTexture(100, 100);
         const subTexture = fromTexture(rootTexture, new Rectangle(50, 50, 50, 50));
 
@@ -122,8 +116,7 @@ describe('Mesh', () =>
         Helpers.comparePoints(new Point(0.25, 0.75), vertexData.getPoint(2, 'texCoords'));
     });
 
-    it('should have correct vertex position', () =>
-    {
+    it('should have correct vertex position', () => {
         const vertexData = new VertexData();
         vertexData.numVertices = 3;
 
@@ -139,8 +132,7 @@ describe('Mesh', () =>
         Helpers.comparePoints(mesh.getVertexPosition(2), new Point(1, 1));
     });
 
-    it('should have correct hit test', () =>
-    {
+    it('should have correct hit test', () => {
         // +  0
         //   /|
         //  / |

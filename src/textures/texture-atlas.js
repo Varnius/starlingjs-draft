@@ -62,7 +62,7 @@ export default class TextureAtlas {
 
     static sNames = [];
 
-    /** Create a texture atlas from a texture by parsing the regions from an XML file. */
+    /** Create a texture atlas from a texture by parsing the regions from an JSON file. */
     constructor(texture, atlasData) {
         this._subTextures = new Map();
         this._atlasTexture = texture;
@@ -80,7 +80,7 @@ export default class TextureAtlas {
         return value === 'true' || value === 'TRUE' || value === 'True' || value === '1';
     }
 
-    /** This function is called by the constructor and will parse an XML in Starling's
+    /** This function is called by the constructor and will parse JSON in Starling's
      *  default atlas file format. Override this method to create custom parsing logic
      *  (e.g. to support a different file format). */
     parseAtlasData(atlasData) {

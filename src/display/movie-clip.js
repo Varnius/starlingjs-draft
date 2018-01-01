@@ -1,4 +1,5 @@
 import Image from './image';
+import Event from '../events/event';
 
 /** A MovieClip is a simple way to display an animation depicted by a list of textures.
  *
@@ -76,7 +77,7 @@ export default class MovieClip extends Image {
 
         const frame = new MovieClipFrame(texture, duration);
         frame.sound = sound;
-        _frames.insertAt(frameID, frame);
+        _frames.splice(frameID, 0, frame);
 
         if (frameID === this.numFrames) {
             const prevStartTime = frameID > 0 ? _frames[frameID - 1].startTime : 0.0;
@@ -91,7 +92,7 @@ export default class MovieClip extends Image {
         if (frameID < 0 || frameID >= this.numFrames) throw new Error('[ArgumentError] Invalid frame id');
         if (this.numFrames === 1) throw new Error('[IllegalOperationError] Movie clip must not be empty');
 
-        this._frames.removeAt(frameID);
+        this._frames.splice(frameID, 1);
 
         if (frameID !== this.numFrames)
             this.updateStartTimes();
@@ -150,10 +151,10 @@ export default class MovieClip extends Image {
     /** Reverses the order of all frames, making the clip run from end to start.
      *  Makes sure that the currently visible frame stays the same. */
     reverseFrames() {
-        this._frames.reverse();
+        this._frames.reverse()
+        this.updateStartTimes();
         this._currentTime = this.totalTime - this._currentTime;
         this._currentFrameID = this.numFrames - this._currentFrameID - 1;
-        this.updateStartTimes();
     }
 
     // playback methods
@@ -270,7 +271,7 @@ export default class MovieClip extends Image {
                 return;
             } else if (frameAction) {
                 this.texture = frame.texture;
-                this.frame.executeAction(this, this._currentFrameID);
+                frame.executeAction(this, this._currentFrameID);
                 this.advanceTime(passedTime);
                 return;
             }
@@ -297,7 +298,9 @@ export default class MovieClip extends Image {
 
     /** The total duration of the clip in seconds. */
     get totalTime() {
+
         const lastFrame = this._frames[this._frames.length - 1];
+        console.log(lastFrame.startTime , lastFrame.duration)
         return lastFrame.startTime + lastFrame.duration;
     }
 
@@ -404,8 +407,8 @@ class MovieClipFrame {
         this.startTime = startTime;
     }
 
-    texture;
-    sound;
+    texture = null;
+    sound = null;
     duration;
     startTime;
     action;

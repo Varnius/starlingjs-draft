@@ -1,5 +1,5 @@
 import { values } from 'ramda';
-import XMLJS from 'xml-js';
+import { xml2json } from 'xml-js';
 
 import { createTextureFromData } from './texture-creators';
 import TextureOptions from '../textures/texture-options';
@@ -89,7 +89,7 @@ export default class AssetManager {
                 }));
             } else if (type === DataType.XML_ATLAS) {
                 parsedAtlases.push({
-                    data: JSON.parse(XMLJS.xml2json(item, { compact: true, spaces: 4 })),
+                    data: JSON.parse(xml2json(item, { compact: true })),
                     descriptor,
                 });
             }

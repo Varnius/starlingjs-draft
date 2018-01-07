@@ -300,7 +300,6 @@ export default class MovieClip extends Image {
     get totalTime() {
 
         const lastFrame = this._frames[this._frames.length - 1];
-        console.log(lastFrame.startTime , lastFrame.duration)
         return lastFrame.startTime + lastFrame.duration;
     }
 

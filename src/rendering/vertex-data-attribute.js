@@ -16,8 +16,7 @@ export default class VertexDataAttribute {
     size;   // amount of vals per attribute
 
     /** Creates a new instance with the given properties. */
-    constructor(name, format)
-    {
+    constructor(name, format) {
         if (!(format in VertexDataAttribute.FORMAT_SIZES))
             throw new Error(
                 `[ArgumentError] Invalid attribute format: ${format}.

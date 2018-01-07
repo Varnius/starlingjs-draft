@@ -37,8 +37,7 @@ export default class VertexDataFormat {
 
     /** Don't use the constructor, but call <code>VertexDataFormat.fromString</code> instead.
      *  This allows for efficient format caching. */
-    constructor()
-    {
+    constructor() {
         this._attributes = [];
     }
 
@@ -69,14 +68,12 @@ export default class VertexDataFormat {
      *        created or resized.</li>
      *  </ul>
      */
-    static fromString(format)
-    {
+    static fromString(format) {
         const { sFormats } = VertexDataFormat;
 
         // todo: works same as with as3?
         if (format in sFormats) return sFormats[format];
-        else
-        {
+        else {
             let instance = new VertexDataFormat();
             instance.parseFormat(format);
 
@@ -94,35 +91,30 @@ export default class VertexDataFormat {
 
     /** Creates a new VertexDataFormat instance by appending the given format string
      *  to the current instance's format. */
-    extend(format)
-    {
+    extend(format) {
         return VertexDataFormat.fromString(this._format + ', ' + format);
     }
 
     // query methods
 
     /** Returns the size of a certain vertex attribute in bytes. */
-    getSize(attrName)
-    {
+    getSize(attrName) {
         return this.getAttribute(attrName).size;
     }
 
     /** Returns the format of a certain vertex attribute, identified by its name.
      *  Typical values: <code>float1, float2, float3, float4, bytes4</code>. */
-    getFormat(attrName)
-    {
+    getFormat(attrName) {
         return this.getAttribute(attrName).format;
     }
 
     /** Returns the name of the attribute at the given position within the vertex format. */
-    getName(attrIndex)
-    {
+    getName(attrIndex) {
         return this._attributes[attrIndex].name;
     }
 
     /** Indicates if the format contains an attribute with the given name. */
-    hasAttribute(attrName)
-    {
+    hasAttribute(attrName) {
         const numAttributes = this._attributes.length;
 
         for (let i = 0; i < numAttributes; ++i)
@@ -137,20 +129,17 @@ export default class VertexDataFormat {
      *  program input. This wraps the <code>Context3D</code>-method with the same name,
      *  automatically replacing <code>attrName</code> with the corresponding values for
      *  <code>bufferOffset</code> and <code>format</code>. */
-    setVertexBufferAt(index, buffer, attrName)
-    {
+    setVertexBufferAt(index, buffer, attrName) {
         const attribute = this.getAttribute(attrName);
         Starling.context.setVertexBufferAt(index, buffer, attribute.offset / 4, attribute.format);
     }
 
     // parsing
 
-    parseFormat(format)
-    {
+    parseFormat(format) {
         const { _attributes } = this;
 
-        if (!!format && format !== '')
-        {
+        if (!!format && format !== '') {
             _attributes.length = 0;
             this._format = '';
 
@@ -158,8 +147,7 @@ export default class VertexDataFormat {
             const numParts = parts.length;
             let offset = 0;
 
-            for (let i = 0; i < numParts; ++i)
-            {
+            for (let i = 0; i < numParts; ++i) {
                 const attrDesc = parts[i];
                 const attrParts = attrDesc.split(':');
 
@@ -181,29 +169,24 @@ export default class VertexDataFormat {
             }
 
             this._vertexSize = offset;
-        }
-        else
-        {
+        } else {
             this._format = '';
         }
     }
 
     /** Returns the normalized format string. */
-    toString()
-    {
+    toString() {
         return this._format;
     }
 
     // internal methods
 
     /** @private */
-    getAttribute(attrName)
-    {
+    getAttribute(attrName) {
         let i, attribute;
         const numAttributes = this._attributes.length;
 
-        for (i = 0; i < numAttributes; ++i)
-        {
+        for (i = 0; i < numAttributes; ++i) {
             attribute = this._attributes[i];
             if (attribute.name === attrName) return attribute;
         }
@@ -212,34 +195,29 @@ export default class VertexDataFormat {
     }
 
     /** @private */
-    get attributes()
-    {
+    get attributes() {
         return this._attributes;
     }
 
     // properties
 
     /** Returns the normalized format string. */
-    get formatString()
-    {
+    get formatString() {
         return this._format;
     }
 
     /** The size (in bytes) of each vertex. */
-    get vertexSize()
-    {
+    get vertexSize() {
         return this._vertexSize;
     }
 
     /** The size (in 32 bit units) of each vertex. */
-    get vertexSizeIn32Bits()
-    {
+    get vertexSizeIn32Bits() {
         return this._vertexSize / 4;
     }
 
     /** The number of attributes per vertex. */
-    get numAttributes()
-    {
+    get numAttributes() {
         return this._attributes.length;
     }
 }

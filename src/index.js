@@ -29,6 +29,7 @@ export { default as Point } from './math/rectangle';
 export { default as AssetManager } from './utils/asset-manager';
 
 import deg2rad from './utils/deg2rad';
+
 export const Utils = { deg2rad };
 export { default as Color } from './utils/color';
 

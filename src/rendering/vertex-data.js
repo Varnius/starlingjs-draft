@@ -775,25 +775,33 @@ export default class VertexData {
         if (this._numVertices === 0) return;
         const gl = Starling.context;
         if (!gl) throw new Error('[MissingContextError]');
-        const { _numAttributes, _rawData, _attributes } = this;
+        const { _numAttributes, _rawData, _attributes, _format } = this;
 
-        for (let attributeIndex = 0; attributeIndex < _numAttributes; ++attributeIndex) {
-            const attribute = _attributes[attributeIndex];
-            const buffer = gl.createBuffer();
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, _rawData.buffer, bufferUsage);
 
-            //console.log(`SET attrib ${attribute.name} at index=${attributeIndex}, size ${attribute.size}`, _rawData[attribute.name]);
+        for (let i = 0; i < _numAttributes; ++i) {
+            const attribute = _attributes[i];
+            console.log(attribute)
+            gl.enableVertexAttribArray(i);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, _rawData[attribute.name], bufferUsage);
-            gl.enableVertexAttribArray(attributeIndex);
+            gl.vertexAttribPointer(
+                i,
+                attribute.numComponents,
+                attribute.isColor ? gl.UNSIGNED_BYTE : gl.FLOAT,
+                attribute.normalized,
+                _format.vertexSize,
+                attribute.offset
+            );
 
-            if (attribute.isColor)
-                gl.vertexAttribPointer(attributeIndex, 4, gl.UNSIGNED_BYTE, true, 4, 0);
-            else
-                gl.vertexAttribPointer(attributeIndex, attribute.size, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            //if (attribute.isColor)
+            //    gl.vertexAttribPointer(i, 4, gl.UNSIGNED_BYTE, true, _format.vertexSize, attribute.offset);
+            //else
+            //    gl.vertexAttribPointer(i, attribute.size / 4, gl.FLOAT, false, _format.vertexSize, attribute.offset);
         }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
     getAttribute(attrName) {

@@ -7,7 +7,7 @@ export function copyFromDataView(source, target, sourceStartPos = 0, numBytes = 
     let targetPos = targetStartPos;
     let sourcePos = sourceStartPos;
 
-    if (targetStartPos >= target.byteLength) {
+    if (targetStartPos + numBytesToCopy >= target.byteLength) {
         target = getExtendedDataView(target, numBytes);
     }
 

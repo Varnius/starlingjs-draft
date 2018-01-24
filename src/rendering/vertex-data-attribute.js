@@ -15,9 +15,11 @@ export default class VertexDataAttribute {
     isColor;
     offset; // in bytes
     size; // in bytes
+    normalized;
+    numComponents;
 
     /** Creates a new instance with the given properties. */
-    constructor(name, format, offset) {
+    constructor(name, format, offset, normalized) {
         if (!(format in VertexDataAttribute.FORMAT_SIZES))
             throw new Error(
                 `[ArgumentError] Invalid attribute format: ${format}.
@@ -28,5 +30,13 @@ export default class VertexDataAttribute {
         this.offset = offset;
         this.size = VertexDataAttribute.FORMAT_SIZES[format];
         this.isColor = name.indexOf('color') !== -1 || name.indexOf('Color') !== -1;
+
+        if (normalized) {
+            this.normalized = normalized;
+        } else {
+            this.normalized = this.isColor;
+        }
+
+        this.numComponents = this.isColor ? 4 : this.size / 4;
     }
 }

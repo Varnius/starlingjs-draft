@@ -3,20 +3,21 @@
  *  for performance reasons. */
 export default class VertexDataAttribute {
     static FORMAT_SIZES = {
-        bytes4: 1, // unsigned 32 bit int - used for colors, converted to vec4 of floats on upload
-        float1: 1,
-        float2: 2,
-        float3: 3,
-        float4: 4,
+        bytes4: 4,
+        float1: 4,
+        float2: 8,
+        float3: 12,
+        float4: 16,
     };
 
     name;
     format;
     isColor;
-    size;   // amount of vals per attribute
+    offset; // in bytes
+    size; // in bytes
 
     /** Creates a new instance with the given properties. */
-    constructor(name, format) {
+    constructor(name, format, offset) {
         if (!(format in VertexDataAttribute.FORMAT_SIZES))
             throw new Error(
                 `[ArgumentError] Invalid attribute format: ${format}.
@@ -24,6 +25,7 @@ export default class VertexDataAttribute {
 
         this.name = name;
         this.format = format;
+        this.offset = offset;
         this.size = VertexDataAttribute.FORMAT_SIZES[format];
         this.isColor = name.indexOf('color') !== -1 || name.indexOf('Color') !== -1;
     }

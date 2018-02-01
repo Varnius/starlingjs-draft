@@ -14,24 +14,18 @@ app.use(require('webpack-dev-middleware')(compiler, {
 app.use(express.static(path.join(__dirname, 'examples')));
 app.use(express.static(path.join(__dirname, 'static')));
 
-app.get('/demo.html', (req, res) =>
-{
+app.get('/demo.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'examples/demo/src/index.html'));
 });
 
-app.get('/quads.html', (req, res) =>
-{
+app.get('/quads.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'examples/quads/index.html'));
 });
 
-app.listen(3333, 'localhost', (err) =>
-{
-    if (err)
-    {
+app.listen(3333, 'localhost', (err) => {
+    if (err) {
         console.log(chalk.red(err));
-    }
-    else
-    {
+    } else {
         console.log(chalk.yellow('Listening at http://localhost:3333'));
     }
 });

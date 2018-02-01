@@ -10,6 +10,7 @@ import Color, { premultiplyAlpha, unmultiplyAlpha } from '../utils/color';
 import MeshStyle from '../styles/mesh-style';
 import Starling from '../core/starling';
 import { copyFromDataView, getDataViewOfLength } from '../utils/data-view';
+import { vertexDataToSomethingReadable } from '../utils/debug';
 
 /** The VertexData class manages a raw list of vertex information, allowing direct upload
  *  to Stage3D vertex buffers. <em>You only have to work with this class if you're writing
@@ -781,11 +782,12 @@ export default class VertexData {
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(gl.ARRAY_BUFFER, _rawData.buffer, bufferUsage);
 
+        console.log(vertexDataToSomethingReadable(this));
+
         for (let i = 0; i < _numAttributes; ++i) {
             const attribute = _attributes[i];
-            console.log(attribute)
-            gl.enableVertexAttribArray(i);
 
+            gl.enableVertexAttribArray(i);
             gl.vertexAttribPointer(
                 i,
                 attribute.numComponents,
@@ -794,11 +796,6 @@ export default class VertexData {
                 _format.vertexSize,
                 attribute.offset
             );
-
-            //if (attribute.isColor)
-            //    gl.vertexAttribPointer(i, 4, gl.UNSIGNED_BYTE, true, _format.vertexSize, attribute.offset);
-            //else
-            //    gl.vertexAttribPointer(i, attribute.size / 4, gl.FLOAT, false, _format.vertexSize, attribute.offset);
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, null);

@@ -8,12 +8,12 @@ export function vertexDataToSomethingReadable(vertexData) {
     const rawData = vertexData._rawData;
 
     while (i < length) {
-        let curr = [];
+        const curr = [];
         let offset = 0;
 
         vertexData._attributes.forEach(attribute => {
             times(() => {
-                curr.push(attribute.isColor ? '#' + rawData.getUint32(i + offset).toString(16) : rawData.getFloat32(i + offset));
+                curr.push(attribute.isColor ? '#' + rawData.getUint32(i + offset, true).toString(16) : rawData.getFloat32(i + offset, true).toFixed(2));
                 offset += 4; // bytes
             }, attribute.isColor ? 1 : attribute.numComponents);
         });

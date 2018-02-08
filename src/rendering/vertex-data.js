@@ -126,7 +126,7 @@ export default class VertexData {
      *  <p>Thus, be sure to always make a generous educated guess, depending on the planned
      *  usage of your VertexData instances.</p>
      */
-    constructor(format = null, initialCapacity = 32) {
+    constructor(format = null, initialCapacity = 32, createRawData = true) {
         if (!format) this._format = MeshStyle.VERTEX_FORMAT;
         else if (format instanceof VertexDataFormat) this._format = format;
         else if (typeof (format) === 'string' || format instanceof String) this._format = VertexDataFormat.fromString(format);
@@ -137,10 +137,10 @@ export default class VertexData {
         this._posOffset = this._format.hasAttribute('position') ? this._format.getOffset('position') : 0;
         this._colOffset = this._format.hasAttribute('color') ? this._format.getOffset('color') : 0;
         this._vertexSize = this._format.vertexSize;
-        this._numVertices = 0; // todo: remove the one below???
+        this._numVertices = 0;
         this._premultipliedAlpha = true;
 
-        this._rawData = getDataViewOfLength(initialCapacity * this._vertexSize);
+        if (createRawData) this._rawData = getDataViewOfLength(initialCapacity * this._vertexSize);
     }
 
     /** Explicitly frees up the memory used by the ByteArray. */
@@ -153,9 +153,8 @@ export default class VertexData {
     /** Creates a duplicate of the vertex data object. */
     clone() {
         const { _numVertices, _premultipliedAlpha, _rawData } = this;
-        const clone = new VertexData(this._format, _numVertices);
+        const clone = new VertexData(this._format, _numVertices, false);
 
-        //todo: clean up extra arraybuffer creation in the copy
         clone._rawData = new DataView(_rawData.buffer.slice(0));
         clone._numVertices = _numVertices;
         clone._premultipliedAlpha = _premultipliedAlpha;
@@ -212,11 +211,11 @@ export default class VertexData {
                 const endPos = pos + (numVertices * _vertexSize);
 
                 while (pos < endPos) {
-                    x = target._rawData.getFloat32(pos);
-                    y = target._rawData.getFloat32(pos + 4);
+                    x = target._rawData.getFloat32(pos, true);
+                    y = target._rawData.getFloat32(pos + 4, true);
 
-                    target._rawData.setFloat32(pos, matrix.a * x + matrix.c * y + matrix.tx);
-                    target._rawData.setFloat32(pos + 4, matrix.d * y + matrix.b * x + matrix.ty);
+                    target._rawData.setFloat32(pos, matrix.a * x + matrix.c * y + matrix.tx, true);
+                    target._rawData.setFloat32(pos + 4, matrix.d * y + matrix.b * x + matrix.ty, true);
 
                     pos += _vertexSize;
                 }
@@ -270,14 +269,14 @@ export default class VertexData {
 
         if (matrix) {
             for (i = 0; i < numVertices; ++i) {
-                x = sourceData.getFloat32(sourcePos);
+                x = sourceData.getFloat32(sourcePos, true);
                 sourcePos += 4;
-                y = sourceData.getFloat32(sourcePos);
+                y = sourceData.getFloat32(sourcePos, true);
                 sourcePos += 4;
 
-                targetData.setFloat32(targetPos, matrix.a * x + matrix.c * y + matrix.tx);
+                targetData.setFloat32(targetPos, matrix.a * x + matrix.c * y + matrix.tx, true);
                 targetPos += 4;
-                targetData.setFloat32(targetPos, matrix.d * y + matrix.b * x + matrix.ty);
+                targetData.setFloat32(targetPos, matrix.d * y + matrix.b * x + matrix.ty, true);
                 targetPos += 4;
 
                 sourcePos += sourceDelta;
@@ -286,7 +285,7 @@ export default class VertexData {
         } else {
             for (i = 0; i < numVertices; ++i) {
                 for (j = 0; j < attributeSizeIn32Bits; ++j) {
-                    targetData.setUint32(targetPos, sourceData.getUint32(sourcePos));
+                    targetData.setUint32(targetPos, sourceData.getUint32(sourcePos, true), true);
                     sourcePos += 4;
                     targetPos += 4;
                 }
@@ -309,7 +308,7 @@ export default class VertexData {
 
         const { _rawData, _vertexSize } = this;
         const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
-        return _rawData.getFloat32(position);
+        return _rawData.getFloat32(position, true);
     }
 
     /** Writes a float value to the specified vertex and attribute. */
@@ -319,7 +318,7 @@ export default class VertexData {
             this.numVertices = vertexID + 1;
 
         const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
-        _rawData.setFloat32(position, value);
+        _rawData.setFloat32(position, value, true);
     }
 
     /** Reads a Point from the specified vertex and attribute. */
@@ -331,8 +330,8 @@ export default class VertexData {
         const { _posOffset, _rawData, _vertexSize } = this;
         const offset = attrName === 'position' ? _posOffset : this.getAttribute(attrName).offset;
         const position = vertexID * _vertexSize + offset;
-        out.x = _rawData.getFloat32(position);
-        out.y = _rawData.getFloat32(position + 4);
+        out.x = _rawData.getFloat32(position, true);
+        out.y = _rawData.getFloat32(position + 4, true);
 
         return out;
     }
@@ -345,8 +344,8 @@ export default class VertexData {
         const { _posOffset, _rawData, _vertexSize } = this;
         const offset = attrName === 'position' ? _posOffset : this.getAttribute(attrName).offset;
         const position = vertexID * _vertexSize + offset;
-        _rawData.setFloat32(position, x);
-        _rawData.setFloat32(position + 4, y);
+        _rawData.setFloat32(position, x, true);
+        _rawData.setFloat32(position + 4, y, true);
     }
 
     /** Reads a Vector3D from the specified vertex and attribute.
@@ -358,9 +357,9 @@ export default class VertexData {
 
         const { _rawData, _vertexSize } = this;
         const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
-        out.x = _rawData.getFloat32(position);
-        out.y = _rawData.getFloat32(position + 4);
-        out.z = _rawData.getFloat32(position + 8);
+        out.x = _rawData.getFloat32(position, true);
+        out.y = _rawData.getFloat32(position + 4, true);
+        out.z = _rawData.getFloat32(position + 8, true);
 
         return out;
     }
@@ -371,9 +370,9 @@ export default class VertexData {
 
         const { _rawData, _vertexSize } = this;
         const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
-        _rawData.setFloat32(position, x);
-        _rawData.setFloat32(position + 4, y);
-        _rawData.setFloat32(position + 8, z);
+        _rawData.setFloat32(position, x, true);
+        _rawData.setFloat32(position + 4, y, true);
+        _rawData.setFloat32(position + 8, z, true);
     }
 
     /** Reads a Vector3D from the specified vertex and attribute, including the fourth
@@ -385,10 +384,10 @@ export default class VertexData {
 
         const { _rawData, _vertexSize } = this;
         const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
-        out.x = _rawData.getFloat32(position);
-        out.y = _rawData.getFloat32(position + 4);
-        out.z = _rawData.getFloat32(position + 8);
-        out.w = _rawData.getFloat32(position + 12);
+        out.x = _rawData.getFloat32(position, true);
+        out.y = _rawData.getFloat32(position + 4, true);
+        out.z = _rawData.getFloat32(position + 8, true);
+        out.w = _rawData.getFloat32(position + 12, true);
 
         return out;
     }
@@ -399,10 +398,10 @@ export default class VertexData {
 
         const { _rawData, _vertexSize } = this;
         const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
-        _rawData.setFloat32(position, x);
-        _rawData.setFloat32(position + 4, y);
-        _rawData.setFloat32(position + 8, z);
-        _rawData.setFloat32(position + 12, w);
+        _rawData.setFloat32(position, x, true);
+        _rawData.setFloat32(position + 4, y, true);
+        _rawData.setFloat32(position + 8, z, true);
+        _rawData.setFloat32(position + 12, w, true);
     }
 
     /** Reads an RGB color from the specified vertex and attribute (no alpha). */
@@ -413,7 +412,7 @@ export default class VertexData {
         const offset = attrName === 'color' ? _colOffset : this.getAttribute(attrName).offset;
         const position = vertexID * _vertexSize + offset;
 
-        let rgba = _rawData.getUint32(position);
+        let rgba = _rawData.getUint32(position, true);
 
         if (_premultipliedAlpha) {
             rgba = unmultiplyAlpha(rgba);
@@ -438,7 +437,7 @@ export default class VertexData {
         const { _colOffset, _rawData, _vertexSize } = this;
         const offset = attrName === 'color' ? _colOffset : this.getAttribute(attrName).offset;
         const position = vertexID * _vertexSize + offset;
-        const rgba = _rawData.getUint32(position);
+        const rgba = _rawData.getUint32(position, true);
         return (rgba & 0xff) / 255.0;
     }
 
@@ -482,8 +481,8 @@ export default class VertexData {
 
             if (!matrix) {
                 for (i = 0; i < numVertices; ++i) {
-                    x = _rawData.getFloat32(position);
-                    y = _rawData.getFloat32(position + 4);
+                    x = _rawData.getFloat32(position, true);
+                    y = _rawData.getFloat32(position + 4, true);
                     position += _vertexSize;
 
                     if (minX > x) minX = x;
@@ -493,8 +492,8 @@ export default class VertexData {
                 }
             } else {
                 for (i = 0; i < numVertices; ++i) {
-                    x = _rawData.getFloat32(position);
-                    y = _rawData.getFloat32(position + 4);
+                    x = _rawData.getFloat32(position, true);
+                    y = _rawData.getFloat32(position + 4, true);
                     position += _vertexSize;
 
                     MatrixUtil.transformCoords(matrix, x, y, sHelperPoint);
@@ -545,8 +544,8 @@ export default class VertexData {
             let x, y, i;
 
             for (i = 0; i < numVertices; ++i) {
-                x = _rawData.getFloat32(position);
-                y = _rawData.getFloat32(position);
+                x = _rawData.getFloat32(position, true);
+                y = _rawData.getFloat32(position, true);
 
                 position += _vertexSize;
 
@@ -595,9 +594,9 @@ export default class VertexData {
                     let newColor;
 
                     for (let j = 0; j < _numVertices; ++j) {
-                        oldColor = _rawData.getUint32(pos); // todo: endianess
+                        oldColor = _rawData.getUint32(pos, true);
                         newColor = value ? premultiplyAlpha(oldColor) : unmultiplyAlpha(oldColor);
-                        _rawData.setUint32(pos, newColor);
+                        _rawData.setUint32(pos, newColor, true);
 
                         pos += _vertexSize;
                     }
@@ -619,7 +618,7 @@ export default class VertexData {
         this._tinted = false;
 
         for (let i = 0; i < _numVertices; ++i) {
-            if (_rawData.getUint32(pos) !== 0xffffffff) {
+            if (_rawData.getUint32(pos, true) !== 0xffffffff) {
                 this._tinted = true;
                 break;
             }
@@ -646,11 +645,11 @@ export default class VertexData {
         const endPos = pos + numVertices * _vertexSize;
 
         while (pos < endPos) {
-            x = _rawData.getFloat32(pos);
-            y = _rawData.getFloat32(pos + 4);
+            x = _rawData.getFloat32(pos, true);
+            y = _rawData.getFloat32(pos + 4, true);
 
-            _rawData.setFloat32(pos, matrix.a * x + matrix.c * y + matrix.tx);
-            _rawData.setFloat32(pos + 4, matrix.d * y + matrix.b * x + matrix.ty);
+            _rawData.setFloat32(pos, matrix.a * x + matrix.c * y + matrix.tx, true);
+            _rawData.setFloat32(pos + 4, matrix.d * y + matrix.b * x + matrix.ty, true);
 
             pos += _vertexSize;
         }
@@ -669,11 +668,11 @@ export default class VertexData {
         const endPos = pos + numVertices * _vertexSize;
 
         while (pos < endPos) {
-            x = _rawData.getFloat32(pos);
-            y = _rawData.getFloat32(pos + 4);
+            x = _rawData.getFloat32(pos, true);
+            y = _rawData.getFloat32(pos + 4, true);
 
-            _rawData.setFloat32(pos, x + deltaX);
-            _rawData.setFloat32(pos + 4, y + deltaY);
+            _rawData.setFloat32(pos, x + deltaX, true);
+            _rawData.setFloat32(pos + 4, y + deltaY, true);
 
             pos += _vertexSize;
         }
@@ -693,20 +692,20 @@ export default class VertexData {
         let alpha, rgba;
 
         for (let i = 0; i < numVertices; ++i) {
-            const color = _rawData.getUint32(colorPos);
+            const color = _rawData.getUint32(colorPos, true);
             alpha = Color.getAlphaRgba(color) / 255.0 * factor;
 
             if (alpha > 1.0) alpha = 1.0;
             else if (alpha < 0.0) alpha = 0.0;
 
             if (alpha === 1.0 || !_premultipliedAlpha) {
-                _rawData.setUint32(colorPos, Color.setAlphaRgba(color, alpha * 255.0));
+                _rawData.setUint32(colorPos, Color.setAlphaRgba(color, alpha * 255.0), true);
             } else {
                 rgba = unmultiplyAlpha(_rawData.getInt32(colorPos));
                 rgba = (rgba & 0xffffff00) | ((alpha * 255.0) & 0xff);
                 rgba = premultiplyAlpha(rgba);
 
-                _rawData.setUint32(colorPos, rgba);
+                _rawData.setUint32(colorPos, rgba, true);
             }
 
             colorPos += _vertexSize;
@@ -737,10 +736,10 @@ export default class VertexData {
         if (_premultipliedAlpha && alpha !== 1.0) rgba = premultiplyAlpha(rgba);
 
         const position = vertexID * _vertexSize + offset;
-        _rawData.setUint32(position, rgba); // todo: endian?
+        _rawData.setUint32(position, rgba, true);
 
         while (pos < endPos) {
-            _rawData.setUint32(pos, rgba); // todo: endian
+            _rawData.setUint32(pos, rgba, true);
             pos += _vertexSize;
         }
     }
@@ -782,7 +781,7 @@ export default class VertexData {
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(gl.ARRAY_BUFFER, _rawData.buffer, bufferUsage);
 
-        console.log(vertexDataToSomethingReadable(this));
+        //console.log(vertexDataToSomethingReadable(this));
 
         for (let i = 0; i < _numAttributes; ++i) {
             const attribute = _attributes[i];
@@ -830,9 +829,8 @@ export default class VertexData {
             if (this._rawData.byteLength > oldLength) {
                 let position = oldLength;
 
-                // todo: fills with zeros, may go out of bounds tho (?)
                 while (position < this._rawData.byteLength) {
-                    this._rawData.setUint32(position, 0);
+                    this._rawData.setUint32(position, 0, true);
                     position += 4;
                 }
             }
@@ -850,7 +848,7 @@ export default class VertexData {
                 if (attribute.isColor) { // initialize color values with "white" and full alpha
                     let pos = this._numVertices * _vertexSize + attribute.offset;
                     for (let j = this._numVertices; j < value; ++j) {
-                        this._rawData.setUint32(pos, 0xffffffff);
+                        this._rawData.setUint32(pos, 0xffffffff, true);
                         pos += _vertexSize;
                     }
                 }
@@ -913,7 +911,7 @@ export default class VertexData {
                 pos = tgtAttr.offset;
 
                 for (i = 0; i < _numVertices; ++i) {
-                    newData.setUint32(pos, 0xffffffff);
+                    newData.setUint32(pos, 0xffffffff, true);
                     pos += tgtVertexSize;
                 }
             }

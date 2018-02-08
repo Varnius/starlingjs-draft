@@ -172,7 +172,7 @@ export default class Effect {
 
         this.beforeDraw(gl);
 
-        console.log(`Effect: drawElements, ${numTriangles} triangles <<<<<<<<<<<<<<<<<<<<`);
+        //console.log(`Effect: drawElements, ${numTriangles} triangles <<<<<<<<<<<<<<<<<<<<`);
         gl.drawElements(gl.TRIANGLES, numTriangles * 3, gl.UNSIGNED_SHORT, firstIndex);
 
         this.afterDraw(gl);

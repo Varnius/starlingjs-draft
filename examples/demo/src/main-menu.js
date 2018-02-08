@@ -8,6 +8,7 @@ import AnimationScene from './scenes/animation-scene';
 import MovieScene from './scenes/movie-scene';
 import BlendModeScene from './scenes/blend-mode-scene';
 import BenchmarkScene from './scenes/benchmark-scene';
+import Sprite3DScene from './scenes/sprite3d-scene';
 
 export default class MainMenu extends Sprite {
     constructor() {
@@ -31,7 +32,7 @@ export default class MainMenu extends Sprite {
             //['Render Texture', RenderTextureScene],
             ['Benchmark', BenchmarkScene],
             //['Masks', MaskScene],
-            //['Sprite 3D', Sprite3DScene]
+            ['Sprite 3D', Sprite3DScene]
         ];
 
         let count = 0;

@@ -131,7 +131,7 @@ describe('VertexData', () => {
         const data = vd.rawData;
         const offset = (vd.vertexSize * 2 + vd.getOffset('color'));
 
-        let color = data.getUint32(offset);
+        let color = data.getUint32(offset, true);
         expect(color >>> 24).to.equal(red * alpha);
         expect((color >>> 16) & 0x00FF).to.equal(green * alpha);
         expect((color >>> 8) & 0x0000FF).to.equal(blue * alpha);
@@ -150,7 +150,7 @@ describe('VertexData', () => {
         expect(vd.getColor(2, 'color')).to.equal(rgb);
         expect(vd.getAlpha(2, 'color')).to.equal(alpha);
 
-        color = data.getUint32(offset);
+        color = data.getUint32(offset, true);
         expect(color >>> 24).to.equal(red);
         expect((color >>> 16) & 0x00FF).to.equal(green);
         expect((color >>> 8) & 0x0000FF).to.equal(blue);

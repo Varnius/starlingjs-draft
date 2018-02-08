@@ -47,7 +47,7 @@ export default class DisplayObject extends EventDispatcher {
     _useHandCursor;
     _transformationMatrix = new Matrix();
     _transformationMatrix3D;
-    _orientationChanged;
+    _transformationChanged;
     _is3D;
     _maskee;
 
@@ -246,7 +246,7 @@ export default class DisplayObject extends EventDispatcher {
     alignPivot(horizontalAlign = 'center', verticalAlign = 'center') {
         const { sHelperRect } = DisplayObject;
         const bounds = this.getBounds(this, sHelperRect);
-        this.setOrientationChanged();
+        this.setTransformationChanged();
 
         if (horizontalAlign === Align.LEFT) this._pivotX = bounds.x;
         else if (horizontalAlign === Align.CENTER) this._pivotX = bounds.x + bounds.width / 2.0;
@@ -284,7 +284,7 @@ export default class DisplayObject extends EventDispatcher {
 
             currentObject = this;
             while (currentObject !== targetSpace) {
-                out.append(currentObject.transformationMatrix3D);
+                out.concat(currentObject.transformationMatrix3D); // todo: was append
                 currentObject = currentObject._parent;
             }
 
@@ -304,7 +304,7 @@ export default class DisplayObject extends EventDispatcher {
 
         currentObject = this;
         while (currentObject !== commonParent) {
-            out.append(currentObject.transformationMatrix3D);
+            out.concat(currentObject.transformationMatrix3D);
             currentObject = currentObject._parent;
         }
 
@@ -316,14 +316,14 @@ export default class DisplayObject extends EventDispatcher {
         sHelperMatrix3D.identity();
         currentObject = targetSpace;
         while (currentObject !== commonParent) {
-            sHelperMatrix3D.append(currentObject.transformationMatrix3D);
+            sHelperMatrix3D.concat(currentObject.transformationMatrix3D);
             currentObject = currentObject._parent;
         }
 
         // 4. now combine the two matrices
 
         sHelperMatrix3D.invert();
-        out.append(sHelperMatrix3D);
+        out.concat(sHelperMatrix3D);
 
         return out;
     }
@@ -440,9 +440,47 @@ export default class DisplayObject extends EventDispatcher {
 
     // helpers
 
-    setOrientationChanged() {
-        this._orientationChanged = true;
+    /** @private */
+    setTransformationChanged() {
+        this._transformationChanged = true;
         this.setRequiresRedraw();
+    }
+
+    /** @private */
+    updateTransformationMatrices(x, y, pivotX, pivotY, scaleX, scaleY,
+                                 skewX, skewY, rotation, out, out3D) {
+        if (skewX === 0.0 && skewY === 0.0) {
+            // optimization: no skewing / rotation simplifies the matrix math
+
+            if (rotation === 0.0) {
+                out.setTo(scaleX, 0.0, 0.0, scaleY, x - pivotX * scaleX, y - pivotY * scaleY);
+            } else {
+                const cos = Math.cos(rotation);
+                const sin = Math.sin(rotation);
+                const a = scaleX * cos;
+                const b = scaleX * sin;
+                const c = scaleY * -sin;
+                const d = scaleY * cos;
+                const tx = x - pivotX * a - pivotY * c;
+                const ty = y - pivotX * b - pivotY * d;
+
+                out.setTo(a, b, c, d, tx, ty);
+            }
+        } else {
+            out.identity();
+            out.scale(scaleX, scaleY);
+            MatrixUtil.skew(out, skewX, skewY);
+            out.rotate(rotation);
+            out.translate(x, y);
+
+            if (pivotX !== 0.0 || pivotY !== 0.0) {
+                // prepend pivot transformation
+                out.tx = x - out.a * pivotX - out.c * pivotY;
+                out.ty = y - out.b * pivotX - out.d * pivotY;
+            }
+        }
+
+        if (out3D) MatrixUtil.convertTo3D(out, out3D);
     }
 
     static findCommonParent(object1, object2) {
@@ -538,8 +576,8 @@ export default class DisplayObject extends EventDispatcher {
     get transformationMatrix() {
         const { _transformationMatrix, _skewX, _skewY, _rotation, _pivotX, _pivotY, _scaleX, _scaleY, _x, _y } = this;
 
-        if (this._orientationChanged) {
-            this._orientationChanged = false;
+        if (this._transformationChanged) {
+            this._transformationChanged = false;
 
             if (_skewX === 0.0 && _skewY === 0.0) {
                 // optimization: no skewing / rotation simplifies the matrix math
@@ -582,7 +620,7 @@ export default class DisplayObject extends EventDispatcher {
         const PI_Q = Math.PI / 4.0;
 
         this.setRequiresRedraw();
-        this._orientationChanged = false;
+        this._transformationChanged = false;
         this._transformationMatrix.copyFrom(matrix);
         this._pivotX = this._pivotY = 0;
 
@@ -616,12 +654,17 @@ export default class DisplayObject extends EventDispatcher {
      *
      *  <p>CAUTION: not a copy, but the actual object!</p> */
     get transformationMatrix3D() {
-        // this method needs to be overridden in 3D-supporting subclasses (like Sprite3D).
-
         if (!this._transformationMatrix3D)
-            this._transformationMatrix3D = new Matrix3D();
+            this._transformationMatrix3D = MatrixUtil.convertTo3D(this._transformationMatrix);
 
-        return MatrixUtil.convertTo3D(this.transformationMatrix, this._transformationMatrix3D);
+        if (this._transformationChanged) {
+            this._transformationChanged = false;
+            this.updateTransformationMatrices(
+                this._x, this._y, this._pivotX, this._pivotY, this._scaleX, this._scaleY, this._skewX, this._skewY, this._rotation,
+                this._transformationMatrix, this._transformationMatrix3D);
+        }
+
+        return this._transformationMatrix3D;
     }
 
     /** Indicates if this object or any of its parents is a 'Sprite3D' object. */
@@ -709,7 +752,7 @@ export default class DisplayObject extends EventDispatcher {
     set x(value) {
         if (this._x !== value) {
             this._x = value;
-            this.setOrientationChanged();
+            this.setTransformationChanged();
         }
     }
 
@@ -721,7 +764,7 @@ export default class DisplayObject extends EventDispatcher {
     set y(value) {
         if (this._y !== value) {
             this._y = value;
-            this.setOrientationChanged();
+            this.setTransformationChanged();
         }
     }
 
@@ -733,7 +776,7 @@ export default class DisplayObject extends EventDispatcher {
     set pivotX(value) {
         if (this._pivotX !== value) {
             this._pivotX = value;
-            this.setOrientationChanged();
+            this.setTransformationChanged();
         }
     }
 
@@ -745,7 +788,7 @@ export default class DisplayObject extends EventDispatcher {
     set pivotY(value) {
         if (this._pivotY !== value) {
             this._pivotY = value;
-            this.setOrientationChanged();
+            this.setTransformationChanged();
         }
     }
 
@@ -758,7 +801,7 @@ export default class DisplayObject extends EventDispatcher {
     set scaleX(value) {
         if (this._scaleX !== value) {
             this._scaleX = value;
-            this.setOrientationChanged();
+            this.setTransformationChanged();
         }
     }
 
@@ -771,7 +814,7 @@ export default class DisplayObject extends EventDispatcher {
     set scaleY(value) {
         if (this._scaleY !== value) {
             this._scaleY = value;
-            this.setOrientationChanged();
+            this.setTransformationChanged();
         }
     }
 
@@ -795,7 +838,7 @@ export default class DisplayObject extends EventDispatcher {
 
         if (this._skewX !== value) {
             this._skewX = value;
-            this.setOrientationChanged();
+            this.setTransformationChanged();
         }
     }
 
@@ -809,7 +852,7 @@ export default class DisplayObject extends EventDispatcher {
 
         if (this._skewY !== value) {
             this._skewY = value;
-            this.setOrientationChanged();
+            this.setTransformationChanged();
         }
     }
 
@@ -824,7 +867,7 @@ export default class DisplayObject extends EventDispatcher {
 
         if (this._rotation !== value) {
             this._rotation = value;
-            this.setOrientationChanged();
+            this.setTransformationChanged();
         }
     }
 

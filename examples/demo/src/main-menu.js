@@ -9,6 +9,7 @@ import MovieScene from './scenes/movie-scene';
 import BlendModeScene from './scenes/blend-mode-scene';
 import BenchmarkScene from './scenes/benchmark-scene';
 import Sprite3DScene from './scenes/sprite3d-scene';
+import CustomHitTestScene from './scenes/custom-hit-test-scene';
 
 export default class MainMenu extends Sprite {
     constructor() {
@@ -25,14 +26,14 @@ export default class MainMenu extends Sprite {
             ['Multitouch', TouchScene],
             //['TextFields', TextScene],
             ['Animations', AnimationScene],
-            //['Custom hit-test', CustomHitTestScene],
+            ['Custom hit-test', CustomHitTestScene],
             ['Movie Clip', MovieScene],
             //['Filters', FilterScene],
             ['Blend Modes', BlendModeScene],
             //['Render Texture', RenderTextureScene],
             ['Benchmark', BenchmarkScene],
             //['Masks', MaskScene],
-            ['Sprite 3D', Sprite3DScene]
+            ['Sprite 3D', Sprite3DScene],
         ];
 
         let count = 0;

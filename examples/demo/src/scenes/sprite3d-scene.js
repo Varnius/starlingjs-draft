@@ -1,5 +1,5 @@
 import { Image, Starling, Sprite3D, Event, Quad, Sprite } from '../../../../src/index';
-import { FRONT, BACK, FRONT_AND_BACK, NONE } from 'gl-constants';
+import { BACK } from 'gl-constants';
 
 import Scene from './scene';
 import Game from '../game';

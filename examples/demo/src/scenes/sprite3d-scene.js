@@ -1,4 +1,5 @@
-import { Image, Starling, Sprite3D } from '../../../../src/index';
+import { Image, Starling, Sprite3D, Event, Quad, Sprite } from '../../../../src/index';
+import { FRONT, BACK, FRONT_AND_BACK, NONE } from 'gl-constants';
 
 import Scene from './scene';
 import Game from '../game';
@@ -12,37 +13,37 @@ export default class Sprite3DScene extends Scene {
 
         const texture = Game.assets.getTexture('gamua-logo');
 
-        this._cube = this.createCube(texture);
-        this._cube.x = Constants.CenterX;
-        this._cube.y = Constants.CenterY;
-        this._cube.z = 100;
+        const cube = this._cube = this.createCube(texture);
+        cube.x = Constants.CenterX;
+        cube.y = Constants.CenterY;
+        cube.z = -100;
 
-        this.addChild(this._cube);
+        this.addChild(cube);
 
-        addEventListener(Event.ADDED_TO_STAGE, this.start);
-        addEventListener(Event.REMOVED_FROM_STAGE, this.stop);
+        this.addEventListener(Event.ENTER_FRAME, this.start);
+        this.addEventListener(Event.REMOVED_FROM_STAGE, this.stop);
     }
 
-    start() {
+    start = () => {
         Starling.juggler.tween(this._cube, 6, { rotationX: 2 * Math.PI, repeatCount: 0 });
         Starling.juggler.tween(this._cube, 7, { rotationY: 2 * Math.PI, repeatCount: 0 });
         Starling.juggler.tween(this._cube, 8, { rotationZ: 2 * Math.PI, repeatCount: 0 });
-    }
+    };
 
-    stop() {
+    stop = () => {
         Starling.juggler.removeTweens(this._cube);
-    }
+    };
 
     createCube(texture) {
         const { createSidewall } = this;
         const offset = texture.width / 2;
 
         const front = createSidewall(texture, 0xff0000);
-        front.z = -offset;
+        front.z = offset;
 
         const back = createSidewall(texture, 0x00ff00);
         back.rotationX = Math.PI;
-        back.z = offset;
+        back.z = -offset;
 
         const top = createSidewall(texture, 0x0000ff);
         top.y = -offset;
@@ -53,11 +54,11 @@ export default class Sprite3DScene extends Scene {
         bottom.rotationX = Math.PI / 2.0;
 
         const left = createSidewall(texture, 0xff00ff);
-        left.x = -offset;
+        left.x = offset;
         left.rotationY = Math.PI / 2.0;
 
         const right = createSidewall(texture, 0x00ffff);
-        right.x = offset;
+        right.x = -offset;
         right.rotationY = Math.PI / -2.0;
 
         const cube = new Sprite3D();
@@ -74,10 +75,13 @@ export default class Sprite3DScene extends Scene {
     createSidewall(texture, color = 0xffffff) {
         const image = new Image(texture);
         image.color = color;
-        image.alignPivot();
+        image.alignPivot(); // todo: why?
 
         const sprite = new Sprite3D();
         sprite.addChild(image);
+
+        sprite.pivotX = texture.width / 2;
+        sprite.pivotY = texture.height / 2; // todo: ???
 
         return sprite;
     }
@@ -88,7 +92,7 @@ export default class Sprite3DScene extends Scene {
         // we look from behind. 
 
         painter.pushState();
-        //painter.state.culling = Context3DTriangleFace.BACK; todo: ???
+        painter.state.culling = BACK;
         super.render(painter);
         painter.popState();
     }

@@ -1,20 +1,16 @@
 import Starling from '../core/starling';
-//import Stage from './stage'; todo: cyclic???
-
+import BlendMode from './blend-mode';
 import EventDispatcher from '../events/event-dispatcher';
 import Event from '../events/event';
 import TouchEvent from '../events/touch-event';
 import AbstractMethodError from '../errors/abstract-method-error';
 import Align from '../utils/align';
-
 import Point from '../math/point';
 import Vector3D from '../math/vector3d';
 import Rectangle from '../math/rectangle';
 import Matrix from '../math/matrix';
 import Matrix3D from '../math/matrix3d';
-
 import BatchToken from '../rendering/batch-token';
-
 import MathUtil from '../utils/math-util';
 import MatrixUtil from '../utils/matrix-util';
 
@@ -60,17 +56,23 @@ export default class DisplayObject extends EventDispatcher {
     _hasVisibleArea = true;
     _filter;
     _mask;
+    _maskInverted = false;
 
-    //constructor()
-    //{
-    //    // todo: find eqq
-    //    //if (getQualifiedClassName(this) == 'starling.display::DisplayObject')
-    //    //{
-    //    //    throw new AbstractClassError();
-    //    //}
-    //
-    //    super();
-    //}
+    constructor() {
+        // todo: find eqq
+        //if (getQualifiedClassName(this) == 'starling.display::DisplayObject')
+        //{
+        //    throw new AbstractClassError();
+        //}
+
+        super();
+
+        this._x = this._y = this._pivotX = this._pivotY = this._rotation = this._skewX = this._skewY = 0.0;
+        this._scaleX = this._scaleY = this._alpha = 1.0;
+        this._visible = this._touchable = this._hasVisibleArea = true;
+        this._blendMode = BlendMode.AUTO;
+        this._transformationMatrix = new Matrix();
+    }
 
     /** Disposes all resources of the display object.
      * GPU buffers are released, event listeners are removed, filters and masks are disposed. */
@@ -191,7 +193,8 @@ export default class DisplayObject extends EventDispatcher {
 
             const helperPoint = localPoint === sHelperPoint ? new Point() : sHelperPoint;
             MatrixUtil.transformPoint(DisplayObject.sHelperMatrixAlt, localPoint, helperPoint);
-            return !!_mask.hitTest(helperPoint);
+            const isMaskHit = !!_mask.hitTest(helperPoint);
+            return this._maskInverted ? !isMaskHit : isMaskHit;
         }
 
         return true;
@@ -207,10 +210,10 @@ export default class DisplayObject extends EventDispatcher {
         if (is3D) {
             sHelperPoint3D.setTo(localPoint.x, localPoint.y, 0);
             return local3DToGlobal(sHelperPoint3D, out);
+        } else {
+            this.getTransformationMatrix(this.base, sHelperMatrixAlt);
+            return MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, out);
         }
-
-        this.getTransformationMatrix(this.base, sHelperMatrixAlt);
-        return MatrixUtil.transformPoint(sHelperMatrixAlt, localPoint, out);
     }
 
     /** Transforms a point from global (stage) coordinates to the local coordinate system.
@@ -218,17 +221,17 @@ export default class DisplayObject extends EventDispatcher {
      *  of creating a new object. */
     globalToLocal(globalPoint, out = null) {
         const { is3D, stage } = this;
-        const { sHelperPoint3D, sHelperPointAlt3D } = DisplayObject;
+        const { sHelperPoint3D, sHelperPointAlt3D, sHelperMatrixAlt } = DisplayObject;
 
         if (is3D) {
             this.globalToLocal3D(globalPoint, sHelperPoint3D);
             stage.getCameraPosition(this, sHelperPointAlt3D);
             return MathUtil.intersectLineWithXYPlane(sHelperPointAlt3D, sHelperPoint3D, out);
+        } else {
+            this.getTransformationMatrix(this.base, sHelperMatrixAlt);
+            sHelperMatrixAlt.invert();
+            return MatrixUtil.transformPoint(sHelperMatrixAlt, globalPoint, out);
         }
-
-        this.getTransformationMatrix(this.base, DisplayObject.sHelperMatrixAlt);
-        DisplayObject.sHelperMatrixAlt.invert();
-        return MatrixUtil.transformPoint(DisplayObject.sHelperMatrixAlt, globalPoint, out);
     }
 
     /** Renders the display object with the help of a painter object. Never call this method
@@ -246,7 +249,6 @@ export default class DisplayObject extends EventDispatcher {
     alignPivot(horizontalAlign = 'center', verticalAlign = 'center') {
         const { sHelperRect } = DisplayObject;
         const bounds = this.getBounds(this, sHelperRect);
-        this.setTransformationChanged();
 
         if (horizontalAlign === Align.LEFT) this._pivotX = bounds.x;
         else if (horizontalAlign === Align.CENTER) this._pivotX = bounds.x + bounds.width / 2.0;
@@ -574,46 +576,21 @@ export default class DisplayObject extends EventDispatcher {
      *
      *  <p>CAUTION: not a copy, but the actual object!</p> */
     get transformationMatrix() {
-        const { _transformationMatrix, _skewX, _skewY, _rotation, _pivotX, _pivotY, _scaleX, _scaleY, _x, _y } = this;
+        const { _is3D, _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation,
+            _transformationMatrix } = this;
 
         if (this._transformationChanged) {
             this._transformationChanged = false;
 
-            if (_skewX === 0.0 && _skewY === 0.0) {
-                // optimization: no skewing / rotation simplifies the matrix math
+            if (!this._transformationMatrix3D && _is3D)
+                this._transformationMatrix3D = new Matrix3D();
 
-                if (_rotation === 0.0) {
-                    _transformationMatrix.setTo(_scaleX, 0.0, 0.0, _scaleY, _x - _pivotX * _scaleX, _y - _pivotY * _scaleY);
-                } else {
-                    const cos = Math.cos(_rotation);
-                    const sin = Math.sin(_rotation);
-                    const a = _scaleX * cos;
-                    const b = _scaleX * sin;
-                    const c = _scaleY * -sin;
-                    const d = _scaleY * cos;
-                    const tx = _x - _pivotX * a - _pivotY * c;
-                    const ty = _y - _pivotX * b - _pivotY * d;
-
-                    _transformationMatrix.setTo(a, b, c, d, tx, ty);
-                }
-            } else {
-                _transformationMatrix.identity();
-                _transformationMatrix.scale(_scaleX, _scaleY);
-                MatrixUtil.skew(_transformationMatrix, _skewX, _skewY);
-                _transformationMatrix.rotate(_rotation);
-                _transformationMatrix.translate(_x, _y);
-
-                if (_pivotX !== 0.0 || _pivotY !== 0.0) {
-                    // prepend pivot transformation
-                    _transformationMatrix.tx = _x - _transformationMatrix.a * _pivotX
-                        - _transformationMatrix.c * _pivotY;
-                    _transformationMatrix.ty = _y - _transformationMatrix.b * _pivotX
-                        - _transformationMatrix.d * _pivotY;
-                }
-            }
+            this.updateTransformationMatrices(
+                _x, _y, _pivotX, _pivotY, _scaleX, _scaleY, _skewX, _skewY, _rotation,
+                _transformationMatrix, this._transformationMatrix3D);
         }
 
-        return _transformationMatrix;
+        return this._transformationMatrix;
     }
 
     set transformationMatrix(matrix) {
@@ -659,6 +636,7 @@ export default class DisplayObject extends EventDispatcher {
 
         if (this._transformationChanged) {
             this._transformationChanged = false;
+            console.log('opa')
             this.updateTransformationMatrices(
                 this._x, this._y, this._pivotX, this._pivotY, this._scaleX, this._scaleY, this._skewX, this._skewY, this._rotation,
                 this._transformationMatrix, this._transformationMatrix3D);

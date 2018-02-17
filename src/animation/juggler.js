@@ -275,9 +275,9 @@ export default class Juggler {
         for (const property in properties) { // eslint-disable-line
             const value = properties[property];
 
-            if (tween.hasOwnProperty(property)) // eslint-disable-line
+            if (tween[property] !== undefined) // eslint-disable-line
                 tween[property] = value;
-            else if (target.hasOwnProperty(Tween.getPropertyName(property))) // eslint-disable-line
+            else if (target[Tween.getPropertyName(property)] !== undefined) // eslint-disable-line
                 tween.animate(property, value);
             else
                 throw new Error(`[ArgumentError] Invalid property: ${property}`);

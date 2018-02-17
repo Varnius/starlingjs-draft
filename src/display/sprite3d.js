@@ -154,18 +154,13 @@ export default class Sprite3D extends DisplayObjectContainer {
 
         const E = Sprite3D.E;
 
-        //todo:
         if (scaleX !== 1.0 || scaleY !== 1.0 || scaleZ !== 1.0)
-        //out3D.appendScale(scaleX || E, scaleY || E, scaleZ || E);
             out3D.scale(scaleX || E, scaleY || E, scaleZ || E);
         if (rotationX !== 0.0)
-        //out3D.appendRotation(rad2deg(rotationX), Vector3D.X_AXIS);
             out3D.rotateX(rotationX);
         if (rotationY !== 0.0)
-        //out3D.appendRotation(rad2deg(rotationY), Vector3D.Y_AXIS);
             out3D.rotateY(rotationY);
         if (rotationZ !== 0.0)
-        //out3D.appendRotation(rad2deg(rotationZ), Vector3D.Z_AXIS);
             out3D.rotateZ(rotationZ);
         if (x !== 0.0 || y !== 0.0 || z !== 0.0)
             out3D.appendTranslation(x, y, z);

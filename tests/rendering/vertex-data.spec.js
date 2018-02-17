@@ -18,6 +18,7 @@ describe('VertexData', () => {
 
         vd.setPoint(0, 'position', 1, 2);
         vd.setPoint(0, 'texCoords', 0.1, 0.2);
+
         expect(vd.numVertices).to.equal(1);
         expect(vd.getAlpha(0)).to.equal(1.0);
         expect(vd.getColor(0)).to.equal(0xffffff);
@@ -124,8 +125,16 @@ describe('VertexData', () => {
         expect(vd.getAlpha(1, 'color')).to.equal(1.0);
         expect(vd.getAlpha(2, 'color')).to.equal(alpha);
 
-        const data = vd.rawData.color;
-        expect(data[2]).to.equal(Color.rgba(red * alpha, green * alpha, blue * alpha, alpha));
+        //const data = vd.rawData.color;
+        //expect(data[2]).to.equal(Color.rgba(red * alpha, green * alpha, blue * alpha, alpha));
+
+        const data = vd.rawData;
+        const offset = (vd.vertexSize * 2 + vd.getOffset('color'));
+
+        let color = data.getUint32(offset, true);
+        expect(color >>> 24).to.equal(red * alpha);
+        expect((color >>> 16) & 0x00FF).to.equal(green * alpha);
+        expect((color >>> 8) & 0x0000FF).to.equal(blue * alpha);
 
         // changing the pma setting should update contents
 
@@ -141,7 +150,10 @@ describe('VertexData', () => {
         expect(vd.getColor(2, 'color')).to.equal(rgb);
         expect(vd.getAlpha(2, 'color')).to.equal(alpha);
 
-        expect(data[2]).to.equal(Color.rgba(red, green, blue, alpha));
+        color = data.getUint32(offset, true);
+        expect(color >>> 24).to.equal(red);
+        expect((color >>> 16) & 0x00FF).to.equal(green);
+        expect((color >>> 8) & 0x0000FF).to.equal(blue);
     });
 
     it('should allow to scale alpha', () => {
@@ -167,7 +179,7 @@ describe('VertexData', () => {
         const vd = new VertexData('pos:float2');
         vd.setPoint(0, 'pos', 10, 20);
         vd.setPoint(1, 'pos', 30, 40);
-        vd.translatePoints('pos', 5, 6, 0, -1);
+        vd.translatePoints('pos', 5, 6);
         Helpers.comparePoints(new Point(15, 26), vd.getPoint(0, 'pos'));
         Helpers.comparePoints(new Point(35, 46), vd.getPoint(1, 'pos'));
     });
@@ -228,9 +240,7 @@ describe('VertexData', () => {
 
         const clone = vd1.clone();
         expect(vd1.numVertices).to.equal(clone.numVertices);
-        Helpers.compareTypedArrays(vd1.rawData.position, clone.rawData.position);
-        Helpers.compareTypedArrays(vd1.rawData.color, clone.rawData.color);
-        Helpers.compareTypedArrays(vd1.rawData.texCoords, clone.rawData.texCoords);
+        Helpers.compareDataViews(vd1.rawData, clone.rawData);
     });
 
     it('should allow to copyTo with same formats', () => {
@@ -245,18 +255,20 @@ describe('VertexData', () => {
         const vd2 = new VertexData(STD_FORMAT, 2);
         vd1.copyTo(vd2);
 
-        Helpers.compareTypedArrays(vd1.rawData.position, vd2.rawData.position);
+        Helpers.compareDataViews(vd1.rawData, vd2.rawData);
         expect(vd1.numVertices).to.equal(vd2.numVertices);
 
         vd1.copyTo(vd2, 2);
         expect(vd2.numVertices).to.equal(4);
 
-        vd1.format.attributes.forEach(
-            attribute =>
-                vd1.rawData[attribute.name]
-                    .forEach((element, index) =>
-                        expect(element).to.equal(vd2.rawData[attribute.name][index + (attribute.isColor ? 2 : 4)]))
-        );
+        // Expected:
+        // vd1 = [x y u v c x y u v c]
+        // vd1 = [x y u v c x y u v c x y u v c x y u v c]
+
+        for (let j = 0; j < 10; ++j) {
+            expect(vd1.rawData.getUint32(j)).to.equal(vd2.rawData.getUint32(j));
+            expect(vd1.rawData.getUint32(j)).to.equal(vd2.rawData.getUint32(j + 40));
+        }
     });
 
     it('should allow to copyTo with different formats', () => {

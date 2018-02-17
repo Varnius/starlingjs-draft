@@ -9,6 +9,8 @@ import MathUtil from '../utils/math-util';
 import Color, { premultiplyAlpha, unmultiplyAlpha } from '../utils/color';
 import MeshStyle from '../styles/mesh-style';
 import Starling from '../core/starling';
+import { copyFromDataView, getDataViewOfLength } from '../utils/data-view';
+import { vertexDataToSomethingReadable } from '../utils/debug';
 
 /** The VertexData class manages a raw list of vertex information, allowing direct upload
  *  to Stage3D vertex buffers. <em>You only have to work with this class if you're writing
@@ -84,14 +86,16 @@ import Starling from '../core/starling';
  *  @see IndexData
  */
 export default class VertexData {
-    _rawData = {};
+    _rawData;
     _numVertices = 0;
     _format;
     _attributes;
     _numAttributes;
-    _premultipliedAlpha;
-    _tinted;
+    _premultipliedAlpha = false;
+    _tinted = false;
 
+    _posOffset; // in bytes
+    _colOffset; // in bytes
     _vertexSize; // in bytes
 
     // helper objects
@@ -122,7 +126,7 @@ export default class VertexData {
      *  <p>Thus, be sure to always make a generous educated guess, depending on the planned
      *  usage of your VertexData instances.</p>
      */
-    constructor(format = null, initialCapacity = 4) {
+    constructor(format = null, initialCapacity = 32, createRawData = true) {
         if (!format) this._format = MeshStyle.VERTEX_FORMAT;
         else if (format instanceof VertexDataFormat) this._format = format;
         else if (typeof (format) === 'string' || format instanceof String) this._format = VertexDataFormat.fromString(format);
@@ -130,19 +134,13 @@ export default class VertexData {
 
         this._attributes = this._format.attributes;
         this._numAttributes = this._attributes.length;
+        this._posOffset = this._format.hasAttribute('position') ? this._format.getOffset('position') : 0;
+        this._colOffset = this._format.hasAttribute('color') ? this._format.getOffset('color') : 0;
         this._vertexSize = this._format.vertexSize;
+        this._numVertices = 0;
         this._premultipliedAlpha = true;
 
-        // Initialize buffers
-        this._format.attributes.forEach(attribute => {
-            const bufferType = VertexData.getBufferTypeForAttribute(attribute);
-            this._rawData[attribute.name] = new bufferType(initialCapacity * attribute.size);
-
-            if (attribute.name === 'color') this._rawData[attribute.name].fill(0xffffff);
-            if (attribute.name === 'alpha') this._rawData[attribute.name].fill(0.0);
-        });
-
-        this.numVertices = 0;
+        if (createRawData) this._rawData = getDataViewOfLength(initialCapacity * this._vertexSize);
     }
 
     /** Explicitly frees up the memory used by the ByteArray. */
@@ -154,18 +152,10 @@ export default class VertexData {
 
     /** Creates a duplicate of the vertex data object. */
     clone() {
-        const { _numVertices, _premultipliedAlpha } = this;
-        const clone = new VertexData(this._format, _numVertices);
+        const { _numVertices, _premultipliedAlpha, _rawData } = this;
+        const clone = new VertexData(this._format, _numVertices, false);
 
-        const newData = {};
-
-        this._attributes
-            .forEach(attribute => {
-                if (attribute)
-                    newData[attribute.name] = this._rawData[attribute.name].slice();
-            });
-
-        clone._rawData = newData;
+        clone._rawData = new DataView(_rawData.buffer.slice(0));
         clone._numVertices = _numVertices;
         clone._premultipliedAlpha = _premultipliedAlpha;
         clone._tinted = this._tinted;
@@ -190,35 +180,118 @@ export default class VertexData {
      *  differ.</p>
      */
     copyTo(target, targetVertexID = 0, matrix = null, vertexID = 0, numVertices = -1) {
-        const { _numVertices, _tinted, _rawData, _attributes } = this;
+        const { _numVertices, _tinted, _rawData, _attributes, _format, _vertexSize, _posOffset, _numAttributes } = this;
+
+        if (numVertices < 0 || vertexID + numVertices > _numVertices)
+            numVertices = _numVertices - vertexID;
+
+        if (_format === target._format) {
+            if (target._numVertices < targetVertexID + numVertices)
+                target._numVertices = targetVertexID + numVertices;
+
+            target._tinted = target._tinted || _tinted;
+
+            // In this case, it's fastest to copy the complete range in one call
+            // and then overwrite only the transformed positions.
+
+            const targetStartPosition = targetVertexID * _vertexSize;
+
+            // Sets new instance if there was a need to extend, uses same otherwise
+            target._rawData = copyFromDataView(
+                _rawData,
+                target._rawData,
+                vertexID * _vertexSize,
+                numVertices * _vertexSize,
+                targetStartPosition
+            );
+
+            if (matrix) {
+                let x, y;
+                let pos = targetVertexID * _vertexSize + _posOffset;
+                const endPos = pos + (numVertices * _vertexSize);
+
+                while (pos < endPos) {
+                    x = target._rawData.getFloat32(pos, true);
+                    y = target._rawData.getFloat32(pos + 4, true);
+
+                    target._rawData.setFloat32(pos, matrix.a * x + matrix.c * y + matrix.tx, true);
+                    target._rawData.setFloat32(pos + 4, matrix.d * y + matrix.b * x + matrix.ty, true);
+
+                    pos += _vertexSize;
+                }
+            }
+        } else {
+            if (target._numVertices < targetVertexID + numVertices)
+                target.numVertices = targetVertexID + numVertices; // ensure correct alphas!
+
+            for (let i = 0; i < _numAttributes; ++i) {
+                const srcAttr = _attributes[i];
+                const tgtAttr = target.getAttribute(srcAttr.name);
+
+                if (tgtAttr) { // only copy attributes that exist in the target, as well
+                    if (srcAttr.offset === _posOffset)
+                        this.copyAttributeToInternal(
+                            target, targetVertexID, matrix,
+                            srcAttr, tgtAttr, vertexID, numVertices
+                        );
+                    else
+                        this.copyAttributeToInternal(
+                            target, targetVertexID, null,
+                            srcAttr, tgtAttr, vertexID, numVertices
+                        );
+                }
+            }
+        }
+    }
+
+    copyAttributeToInternal(target, targetVertexID, matrix,
+                            sourceAttribute, targetAttribute, vertexID, numVertices) {
+        if (sourceAttribute.format !== targetAttribute.format)
+            throw new Error('Attribute formats differ between source and target');
+
+        const { _vertexSize, _numVertices, _rawData } = this;
 
         if (numVertices < 0 || vertexID + numVertices > _numVertices)
             numVertices = _numVertices - vertexID;
 
         if (target._numVertices < targetVertexID + numVertices)
-            target.numVertices = targetVertexID + numVertices;
+            target._numVertices = targetVertexID + numVertices;
 
-        target._tinted = target._tinted || _tinted;
+        let i, j, x, y;
+        const sourceData = _rawData;
+        const targetData = target._rawData;
+        const sourceDelta = _vertexSize - sourceAttribute.size;
+        const targetDelta = target._vertexSize - targetAttribute.size;
+        const attributeSizeIn32Bits = sourceAttribute.size / 4;
 
-        const targetRawData = target._rawData;
+        let sourcePos = vertexID * _vertexSize + sourceAttribute.offset;
+        let targetPos = targetVertexID * target._vertexSize + targetAttribute.offset;
 
-        for (let i = 0; i < target.format.attributes.length; ++i) {
-            const attribute = target.format.attributes[i];
+        if (matrix) {
+            for (i = 0; i < numVertices; ++i) {
+                x = sourceData.getFloat32(sourcePos, true);
+                sourcePos += 4;
+                y = sourceData.getFloat32(sourcePos, true);
+                sourcePos += 4;
 
-            if (!_attributes.find(a => a.name === attribute.name)) continue;
+                targetData.setFloat32(targetPos, matrix.a * x + matrix.c * y + matrix.tx, true);
+                targetPos += 4;
+                targetData.setFloat32(targetPos, matrix.d * y + matrix.b * x + matrix.ty, true);
+                targetPos += 4;
 
-            for (let j = targetVertexID * attribute.size; j < (targetVertexID + numVertices) * attribute.size; ++j) {
-                let value = _rawData[attribute.name][vertexID * attribute.size + j - (targetVertexID * attribute.size)];
-
-                if (matrix && (attribute.name === 'position' || i === 0)) {
-                    const isX = j % 2 === 0;
-                    const x = isX ? value : _rawData[attribute.name][j - (targetVertexID * attribute.size) - 1];
-                    const y = isX ? _rawData[attribute.name][j - (targetVertexID * attribute.size) + 1] : value;
-
-                    value = isX ? matrix.a * x + matrix.c * y + matrix.tx : matrix.d * y + matrix.b * x + matrix.ty;
+                sourcePos += sourceDelta;
+                targetPos += targetDelta;
+            }
+        } else {
+            for (i = 0; i < numVertices; ++i) {
+                for (j = 0; j < attributeSizeIn32Bits; ++j) {
+                    targetData.setUint32(targetPos, sourceData.getUint32(sourcePos, true), true);
+                    sourcePos += 4;
+                    targetPos += 4;
                 }
 
-                targetRawData[attribute.name][j] = value;
+                sourcePos += sourceDelta;
+                targetPos += targetDelta;
             }
         }
     }
@@ -231,47 +304,62 @@ export default class VertexData {
 
     /** Reads a float value from the specified vertex and attribute. */
     getFloat(vertexID, attrName) {
-        return this._rawData[attrName][vertexID];
+        if (vertexID >= this._numVertices) throw new Error('Vertex out of bounds');
+
+        const { _rawData, _vertexSize } = this;
+        const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
+        return _rawData.getFloat32(position, true);
     }
 
     /** Writes a float value to the specified vertex and attribute. */
     setFloat(vertexID, attrName, value) {
+        const { _rawData, _vertexSize } = this;
         if (this._numVertices < vertexID + 1)
             this.numVertices = vertexID + 1;
 
-        this._rawData[attrName][vertexID] = value;
+        const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
+        _rawData.setFloat32(position, value, true);
     }
 
     /** Reads a Point from the specified vertex and attribute. */
     getPoint(vertexID, attrName, out = null) {
+        if (vertexID >= this._numVertices) throw new Error('Vertex out of bounds');
+
         if (!out) out = new Point();
 
-        const attrSize = this.getAttribute(attrName).size;
-        out.x = this._rawData[attrName][vertexID * attrSize];
-        out.y = this._rawData[attrName][vertexID * attrSize + 1];
+        const { _posOffset, _rawData, _vertexSize } = this;
+        const offset = attrName === 'position' ? _posOffset : this.getAttribute(attrName).offset;
+        const position = vertexID * _vertexSize + offset;
+        out.x = _rawData.getFloat32(position, true);
+        out.y = _rawData.getFloat32(position + 4, true);
 
         return out;
     }
 
     /** Writes the given coordinates to the specified vertex and attribute. */
     setPoint(vertexID, attrName, x, y) {
-        if (this._numVertices < vertexID + 1) this.numVertices = vertexID + 1;
+        if (this._numVertices < vertexID + 1)
+            this.numVertices = vertexID + 1;
 
-        const attrSize = this.getAttribute(attrName).size;
-
-        this._rawData[attrName][vertexID * attrSize] = x;
-        this._rawData[attrName][vertexID * attrSize + 1] = y;
+        const { _posOffset, _rawData, _vertexSize } = this;
+        const offset = attrName === 'position' ? _posOffset : this.getAttribute(attrName).offset;
+        const position = vertexID * _vertexSize + offset;
+        _rawData.setFloat32(position, x, true);
+        _rawData.setFloat32(position + 4, y, true);
     }
 
     /** Reads a Vector3D from the specified vertex and attribute.
      *  The 'w' property of the Vector3D is ignored. */
     getPoint3D(vertexID, attrName, out = null) {
+        if (vertexID >= this._numVertices) throw new Error('Vertex out of bounds');
+
         if (!out) out = new Vector3D();
 
-        const attrSize = this.getAttribute(attrName).size;
-        out.x = this._rawData[attrName][vertexID * attrSize];
-        out.y = this._rawData[attrName][vertexID * attrSize + 1];
-        out.z = this._rawData[attrName][vertexID * attrSize + 2];
+        const { _rawData, _vertexSize } = this;
+        const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
+        out.x = _rawData.getFloat32(position, true);
+        out.y = _rawData.getFloat32(position + 4, true);
+        out.z = _rawData.getFloat32(position + 8, true);
 
         return out;
     }
@@ -280,23 +368,26 @@ export default class VertexData {
     setPoint3D(vertexID, attrName, x, y, z) {
         if (this._numVertices < vertexID + 1) this.numVertices = vertexID + 1;
 
-        const attrSize = this.getAttribute(attrName).size;
-
-        this._rawData[attrName][vertexID * attrSize] = x;
-        this._rawData[attrName][vertexID * attrSize + 1] = y;
-        this._rawData[attrName][vertexID * attrSize + 2] = z;
+        const { _rawData, _vertexSize } = this;
+        const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
+        _rawData.setFloat32(position, x, true);
+        _rawData.setFloat32(position + 4, y, true);
+        _rawData.setFloat32(position + 8, z, true);
     }
 
     /** Reads a Vector3D from the specified vertex and attribute, including the fourth
      *  coordinate ('w'). */
     getPoint4D(vertexID, attrName, out = null) {
+        if (vertexID >= this._numVertices) throw new Error('Vertex out of bounds');
+
         if (!out) out = new Vector3D();
 
-        const attrSize = this.getAttribute(attrName).size;
-        out.x = this._rawData[attrName][vertexID * attrSize];
-        out.y = this._rawData[attrName][vertexID * attrSize + 1];
-        out.z = this._rawData[attrName][vertexID * attrSize + 2];
-        out.w = this._rawData[attrName][vertexID * attrSize + 3];
+        const { _rawData, _vertexSize } = this;
+        const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
+        out.x = _rawData.getFloat32(position, true);
+        out.y = _rawData.getFloat32(position + 4, true);
+        out.z = _rawData.getFloat32(position + 8, true);
+        out.w = _rawData.getFloat32(position + 12, true);
 
         return out;
     }
@@ -305,20 +396,28 @@ export default class VertexData {
     setPoint4D(vertexID, attrName, x, y, z, w = 1.0) {
         if (this._numVertices < vertexID + 1) this.numVertices = vertexID + 1;
 
-        const attrSize = this.getAttribute(attrName).size;
-
-        this._rawData[attrName][vertexID * attrSize] = x;
-        this._rawData[attrName][vertexID * attrSize + 1] = y;
-        this._rawData[attrName][vertexID * attrSize + 2] = z;
-        this._rawData[attrName][vertexID * attrSize + 3] = w;
+        const { _rawData, _vertexSize } = this;
+        const position = vertexID * _vertexSize + this.getAttribute(attrName).offset;
+        _rawData.setFloat32(position, x, true);
+        _rawData.setFloat32(position + 4, y, true);
+        _rawData.setFloat32(position + 8, z, true);
+        _rawData.setFloat32(position + 12, w, true);
     }
 
     /** Reads an RGB color from the specified vertex and attribute (no alpha). */
     getColor(vertexID, attrName = 'color') {
-        if (vertexID < 0 || vertexID >= this._numVertices) throw new RangeError('[RangeError] Out of bounds');
+        if (vertexID >= this._numVertices) throw new Error('Vertex out of bounds');
 
-        let rgba = this._rawData[attrName][vertexID];
-        if (this._premultipliedAlpha) rgba = unmultiplyAlpha(rgba);
+        const { _colOffset, _rawData, _vertexSize, _premultipliedAlpha } = this;
+        const offset = attrName === 'color' ? _colOffset : this.getAttribute(attrName).offset;
+        const position = vertexID * _vertexSize + offset;
+
+        let rgba = _rawData.getUint32(position, true);
+
+        if (_premultipliedAlpha) {
+            rgba = unmultiplyAlpha(rgba);
+        }
+
         return (rgba >> 8) & 0xffffff;
     }
 
@@ -333,7 +432,12 @@ export default class VertexData {
 
     /** Reads the alpha value from the specified vertex and attribute. */
     getAlpha(vertexID, attrName = 'color') {
-        const rgba = this._rawData[attrName][vertexID];
+        if (vertexID >= this._numVertices) throw new Error('Vertex out of bounds');
+
+        const { _colOffset, _rawData, _vertexSize } = this;
+        const offset = attrName === 'color' ? _colOffset : this.getAttribute(attrName).offset;
+        const position = vertexID * _vertexSize + offset;
+        const rgba = _rawData.getUint32(position, true);
         return (rgba & 0xff) / 255.0;
     }
 
@@ -354,7 +458,7 @@ export default class VertexData {
      *  instead of creating a new object. To use all vertices for the calculation, set
      *  'numVertices' to '-1'. */
     getBounds(attrName = 'position', matrix = null, vertexID = 0, numVertices = -1, out = null) {
-        const { _numVertices, _rawData } = this;
+        const { _numVertices, _rawData, _vertexSize, _posOffset } = this;
         const { sHelperPoint } = VertexData;
 
         if (!out) out = new Rectangle();
@@ -371,13 +475,15 @@ export default class VertexData {
         } else {
             let minX = Number.MAX_VALUE, maxX = -Number.MAX_VALUE;
             let minY = Number.MAX_VALUE, maxY = -Number.MAX_VALUE;
-            const attribute = this.getAttribute(attrName);
+            const offset = attrName === 'position' ? _posOffset : this.getAttribute(attrName).offset;
+            let position = vertexID * _vertexSize + offset;
             let x, y, i;
 
             if (!matrix) {
                 for (i = 0; i < numVertices; ++i) {
-                    x = _rawData[attribute.name][i * attribute.size];
-                    y = _rawData[attribute.name][i * attribute.size + 1];
+                    x = _rawData.getFloat32(position, true);
+                    y = _rawData.getFloat32(position + 4, true);
+                    position += _vertexSize;
 
                     if (minX > x) minX = x;
                     if (maxX < x) maxX = x;
@@ -386,8 +492,9 @@ export default class VertexData {
                 }
             } else {
                 for (i = 0; i < numVertices; ++i) {
-                    x = _rawData[attribute.name][i * attribute.size];
-                    y = _rawData[attribute.name][i * attribute.size + 1];
+                    x = _rawData.getFloat32(position, true);
+                    y = _rawData.getFloat32(position + 4, true);
+                    position += _vertexSize;
 
                     MatrixUtil.transformCoords(matrix, x, y, sHelperPoint);
 
@@ -413,7 +520,7 @@ export default class VertexData {
      *  instead of creating a new object. To use all vertices for the calculation, set
      *  'numVertices' to '-1'.</p> */
     getBoundsProjected(attrName, matrix, camPos, vertexID = 0, numVertices = -1, out = null) {
-        const { _numVertices, _rawData } = this;
+        const { _numVertices, _rawData, _vertexSize, _posOffset } = this;
         const { sHelperPoint, sHelperPoint3D } = VertexData;
 
         if (!out) out = new Rectangle();
@@ -432,12 +539,15 @@ export default class VertexData {
         } else {
             let minX = Number.MAX_VALUE, maxX = -Number.MAX_VALUE;
             let minY = Number.MAX_VALUE, maxY = -Number.MAX_VALUE;
-            const attributeSize = this.getAttribute(attrName).size;
+            const offset = attrName === 'position' ? _posOffset : this.getAttribute(attrName).offset;
+            let position = vertexID * _vertexSize + offset;
             let x, y, i;
 
             for (i = 0; i < numVertices; ++i) {
-                x = _rawData[attrName][i * attributeSize];
-                y = _rawData[attrName][i * attributeSize + 1];
+                x = _rawData.getFloat32(position, true);
+                y = _rawData.getFloat32(position, true);
+
+                position += _vertexSize;
 
                 if (matrix)
                     MatrixUtil.transformCoords3D(matrix, x, y, 0, sHelperPoint3D);
@@ -473,19 +583,22 @@ export default class VertexData {
     /** Changes the way alpha and color values are stored. Optionally updates all existing
      *  vertices. */
     setPremultipliedAlpha(value, updateData) {
-        const { _attributes, _numAttributes, _numVertices, _rawData, _premultipliedAlpha } = this;
+        const { _attributes, _numAttributes, _numVertices, _rawData, _premultipliedAlpha, _vertexSize } = this;
 
         if (updateData && value !== _premultipliedAlpha) {
             for (let i = 0; i < _numAttributes; ++i) {
                 const attribute = _attributes[i];
                 if (attribute.isColor) {
+                    let pos = attribute.offset;
                     let oldColor;
                     let newColor;
 
                     for (let j = 0; j < _numVertices; ++j) {
-                        oldColor = _rawData[attribute.name][j];
+                        oldColor = _rawData.getUint32(pos, true);
                         newColor = value ? premultiplyAlpha(oldColor) : unmultiplyAlpha(oldColor);
-                        _rawData[attribute.name][j] = newColor;
+                        _rawData.setUint32(pos, newColor, true);
+
+                        pos += _vertexSize;
                     }
                 }
             }
@@ -499,15 +612,18 @@ export default class VertexData {
      *  color value is checked in the process. An instance is tinted if any vertices have a
      *  non-white color or are not fully opaque. */
     updateTinted(attrName = 'color') {
-        const { _rawData, _numVertices } = this;
+        const { _rawData, _numVertices, _colOffset, _vertexSize } = this;
 
+        let pos = attrName === 'color' ? _colOffset : this.getAttribute(attrName).offset;
         this._tinted = false;
 
         for (let i = 0; i < _numVertices; ++i) {
-            if (_rawData[attrName][i] !== 0xffffffff) {
+            if (_rawData.getUint32(pos, true) !== 0xffffffff) {
                 this._tinted = true;
                 break;
             }
+
+            pos += _vertexSize;
         }
 
         return this._tinted;
@@ -518,21 +634,22 @@ export default class VertexData {
     /** Transforms the 2D positions of subsequent vertices by multiplication with a
      *  transformation matrix. */
     transformPoints(attrName, matrix, vertexID = 0, numVertices = -1) {
-        const { _numVertices, _vertexSize, _rawData } = this;
+        const { _numVertices, _vertexSize, _rawData, _posOffset } = this;
 
         if (numVertices < 0 || vertexID + numVertices > _numVertices)
             numVertices = _numVertices - vertexID;
 
         let x, y;
-        const attribute = this.getAttribute(attrName);
-        let pos = vertexID * attribute.size;
-        const endPos = pos + numVertices * attribute.size;
+        const offset = attrName === 'position' ? _posOffset : this.getAttribute(attrName).offset;
+        let pos = vertexID * _vertexSize + offset;
+        const endPos = pos + numVertices * _vertexSize;
 
         while (pos < endPos) {
-            x = _rawData[attribute.name][pos];
-            y = _rawData[attribute.name][pos + 1];
-            _rawData[attribute.name][pos] = matrix.a * x + matrix.c * y + matrix.tx;
-            _rawData[attribute.name][pos + 1] = matrix.d * y + matrix.b * x + matrix.ty;
+            x = _rawData.getFloat32(pos, true);
+            y = _rawData.getFloat32(pos + 4, true);
+
+            _rawData.setFloat32(pos, matrix.a * x + matrix.c * y + matrix.tx, true);
+            _rawData.setFloat32(pos + 4, matrix.d * y + matrix.b * x + matrix.ty, true);
 
             pos += _vertexSize;
         }
@@ -540,50 +657,58 @@ export default class VertexData {
 
     /** Translates the 2D positions of subsequent vertices by a certain offset. */
     translatePoints(attrName, deltaX, deltaY, vertexID = 0, numVertices = -1) {
-        const { _numVertices, _rawData } = this;
+        const { _posOffset, _rawData, _vertexSize, _numVertices } = this;
 
         if (numVertices < 0 || vertexID + numVertices > _numVertices)
             numVertices = _numVertices - vertexID;
 
-        const attributeSize = this.getAttribute(attrName).size;
-        let pos = vertexID;
-        const endPos = pos + numVertices * attributeSize;
+        let x, y;
+        const offset = attrName === 'position' ? _posOffset : this.getAttribute(attrName).offset;
+        let pos = vertexID * _vertexSize + offset;
+        const endPos = pos + numVertices * _vertexSize;
 
         while (pos < endPos) {
-            _rawData[attrName][pos] += deltaX;
-            _rawData[attrName][pos + 1] += deltaY;
+            x = _rawData.getFloat32(pos, true);
+            y = _rawData.getFloat32(pos + 4, true);
 
-            pos += attributeSize;
+            _rawData.setFloat32(pos, x + deltaX, true);
+            _rawData.setFloat32(pos + 4, y + deltaY, true);
+
+            pos += _vertexSize;
         }
     }
 
     /** Multiplies the alpha values of subsequent vertices by a certain factor. */
     scaleAlphas(attrName, factor, vertexID = 0, numVertices = -1) {
-        const { _numVertices, _rawData, _premultipliedAlpha } = this;
+        const { _numVertices, _rawData, _premultipliedAlpha, _vertexSize, _colOffset } = this;
 
         if (factor === 1.0) return;
         if (numVertices < 0 || vertexID + numVertices > _numVertices)
             numVertices = _numVertices - vertexID;
         this._tinted = true; // factor must be != 1, so there's definitely tinting.
 
-        let i;
+        const offset = attrName === 'color' ? _colOffset : this.getAttribute(attrName).offset;
+        let colorPos = vertexID * _vertexSize + offset;
         let alpha, rgba;
-        const attributeSize = this.getAttribute(attrName).size;
 
-        for (i = vertexID * attributeSize; i < vertexID * attributeSize + numVertices * attributeSize; ++i) {
-            alpha = Color.getAlphaRgba(_rawData[attrName][i]) / 255.0 * factor;
+        for (let i = 0; i < numVertices; ++i) {
+            const color = _rawData.getUint32(colorPos, true);
+            alpha = Color.getAlphaRgba(color) / 255.0 * factor;
 
             if (alpha > 1.0) alpha = 1.0;
             else if (alpha < 0.0) alpha = 0.0;
 
             if (alpha === 1.0 || !_premultipliedAlpha) {
-                _rawData[attrName][i] = Color.setAlphaRgba(_rawData[attrName][i], alpha * 255);
+                _rawData.setUint32(colorPos, Color.setAlphaRgba(color, alpha * 255.0), true);
             } else {
-                rgba = unmultiplyAlpha(_rawData[attrName][i]);
-                rgba = Color.setAlphaRgba(rgba, alpha * 255);
+                rgba = unmultiplyAlpha(_rawData.getInt32(colorPos));
+                rgba = (rgba & 0xffffff00) | ((alpha * 255.0) & 0xff);
                 rgba = premultiplyAlpha(rgba);
-                _rawData[attrName][i] = rgba;
+
+                _rawData.setUint32(colorPos, rgba, true);
             }
+
+            colorPos += _vertexSize;
         }
     }
 
@@ -594,22 +719,28 @@ export default class VertexData {
         if (numVertices < 0 || vertexID + numVertices > _numVertices)
             numVertices = _numVertices - vertexID;
 
-        let pos = vertexID;
-        const endPos = pos + numVertices;
+        const { _vertexSize, _colOffset } = this;
+        const offset = attrName === 'color' ? _colOffset : this.getAttribute(attrName).offset;
+        let pos = vertexID * _vertexSize + offset;
+        const endPos = pos + (numVertices * _vertexSize);
 
         if (alpha > 1.0) alpha = 1.0;
         else if (alpha < 0.0) alpha = 0.0;
 
         let rgba = ((color << 8) & 0xffffff00) | (~~(alpha * 255.0) & 0xff);
         rgba >>>= 0; // to unsigned
+
         if (rgba === 0xffffffff && numVertices === this._numVertices) this._tinted = false;
         else if (rgba !== 0xffffffff) this._tinted = true;
 
         if (_premultipliedAlpha && alpha !== 1.0) rgba = premultiplyAlpha(rgba);
 
+        const position = vertexID * _vertexSize + offset;
+        _rawData.setUint32(position, rgba, true);
+
         while (pos < endPos) {
-            _rawData[attrName][pos] = rgba;
-            pos++;
+            _rawData.setUint32(pos, rgba, true);
+            pos += _vertexSize;
         }
     }
 
@@ -626,6 +757,16 @@ export default class VertexData {
         return !!this.getAttribute(attrName);
     }
 
+    /** Returns the offset (in bytes) of an attribute within a vertex. */
+    getOffset(attrName) {
+        return this.getAttribute(attrName).offset;
+    }
+
+    /** Returns the offset (in 32 bit units) of an attribute within a vertex. */
+    getOffsetIn32Bits(attrName) {
+        return this.getAttribute(attrName).offset / 4;
+    }
+
     // VertexBuffer helpers
 
     /** Creates a vertex buffer object with the right size to fit the complete data.
@@ -634,25 +775,29 @@ export default class VertexData {
         if (this._numVertices === 0) return;
         const gl = Starling.context;
         if (!gl) throw new Error('[MissingContextError]');
-        const { _numAttributes, _rawData, _attributes } = this;
+        const { _numAttributes, _rawData, _attributes, _format } = this;
 
-        for (let attributeIndex = 0; attributeIndex < _numAttributes; ++attributeIndex) {
-            const attribute = _attributes[attributeIndex];
-            const buffer = gl.createBuffer();
+        const buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, _rawData.buffer, bufferUsage);
 
-            //console.log(`SET attrib ${attribute.name} at index=${attributeIndex}, size ${attribute.size}`, _rawData[attribute.name]);
+        //console.log(vertexDataToSomethingReadable(this));
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, _rawData[attribute.name], bufferUsage);
-            gl.enableVertexAttribArray(attributeIndex);
+        for (let i = 0; i < _numAttributes; ++i) {
+            const attribute = _attributes[i];
 
-            if (attribute.isColor)
-                gl.vertexAttribPointer(attributeIndex, 4, gl.UNSIGNED_BYTE, true, 4, 0);
-            else
-                gl.vertexAttribPointer(attributeIndex, attribute.size, gl.FLOAT, false, 0, 0);
-
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.enableVertexAttribArray(i);
+            gl.vertexAttribPointer(
+                i,
+                attribute.numComponents,
+                attribute.isColor ? gl.UNSIGNED_BYTE : gl.FLOAT,
+                attribute.normalized,
+                _format.vertexSize,
+                attribute.offset
+            );
         }
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
     getAttribute(attrName) {
@@ -674,41 +819,44 @@ export default class VertexData {
         return this._numVertices;
     }
 
-    set numVertices(newLength) {
-        const { _numAttributes, _attributes, _rawData } = this;
+    set numVertices(value) {
+        const { _vertexSize, _attributes, _numAttributes } = this;
 
-        if (newLength > this._numVertices) {
+        if (value > this._numVertices) {
+            const oldLength = this._numVertices * this.vertexSize;
+            const newLength = value * _vertexSize;
+
+            if (this._rawData.byteLength > oldLength) {
+                let position = oldLength;
+
+                while (position < this._rawData.byteLength) {
+                    this._rawData.setUint32(position, 0, true);
+                    position += 4;
+                }
+            }
+
+            if (this._rawData.byteLength < newLength) {
+                //_rawData.length = newLength;
+                const oldData = this._rawData;
+                this._rawData = getDataViewOfLength(newLength);
+                copyFromDataView(oldData, this._rawData);
+            }
+
             for (let i = 0; i < _numAttributes; ++i) {
                 const attribute = _attributes[i];
-                const bufferType = VertexData.getBufferTypeForAttribute(attribute);
-
-                if (!_rawData[attribute.name]) {
-                    _rawData[attribute.name] = new bufferType(newLength * attribute.size);
-                }
-
-                if (_rawData[attribute.name] && _rawData[attribute.name].length > (newLength * attribute.size)) {
-                    _rawData[attribute.name] = _rawData[attribute.name].slice(0, newLength * attribute.size);
-                }
-
-                if (_rawData[attribute.name] && _rawData[attribute.name].length < (newLength * attribute.size)) {
-                    const oldData = _rawData[attribute.name];
-                    _rawData[attribute.name] = new bufferType(newLength * attribute.size);
-
-                    for (let j = 0; j < this._numVertices * attribute.size; ++j) {
-                        _rawData[attribute.name][j] = oldData[j];
-                    }
-                }
 
                 if (attribute.isColor) { // initialize color values with "white" and full alpha
-                    for (let j = this._numVertices; j < newLength; ++j) {
-                        _rawData[attribute.name][j] = 0xffffffff;
+                    let pos = this._numVertices * _vertexSize + attribute.offset;
+                    for (let j = this._numVertices; j < value; ++j) {
+                        this._rawData.setUint32(pos, 0xffffffff, true);
+                        pos += _vertexSize;
                     }
                 }
             }
         }
 
-        if (newLength === 0) this._tinted = false;
-        this._numVertices = newLength;
+        if (value === 0) this._tinted = false;
+        this._numVertices = value;
     }
 
     /** The raw vertex data; not a copy! */
@@ -728,43 +876,54 @@ export default class VertexData {
 
     set format(value) {
         const { _numVertices } = this;
+
         if (this._format === value) return;
 
-        let a, i;
-        const newRawData = {};
+        let a, i, pos;
+        const srcVertexSize = this._format.vertexSize;
+        const tgtVertexSize = value.vertexSize;
         const numAttributes = value.numAttributes;
 
-        // todo: could reuse old buffers if they are big enough
+        const newData = getDataViewOfLength(value.vertexSize * _numVertices);
+
         for (a = 0; a < numAttributes; ++a) {
             const tgtAttr = value.attributes[a];
             const srcAttr = this.getAttribute(tgtAttr.name);
-            const bufferType = VertexData.getBufferTypeForAttribute(tgtAttr);
-            const bufferSize = _numVertices * tgtAttr.size;
 
             if (srcAttr) { // copy attributes that exist in both targets
-                const oldData = this._rawData[srcAttr.name];
-                const newData = new bufferType(bufferSize);
+                pos = tgtAttr.offset;
 
                 for (i = 0; i < _numVertices; ++i) {
-                    for (let j = 0; j < tgtAttr.size; ++j) {
-                        newData[i * tgtAttr.size + j] = oldData[i * tgtAttr.size + j];
-                    }
+                    //newData.position = pos;
+                    //newData.writeBytes(newData, srcVertexSize * i + srcAttr.offset, srcAttr.size);
+
+                    copyFromDataView(
+                        this._rawData,
+                        newData,
+                        srcVertexSize * i + srcAttr.offset,
+                        srcAttr.size,
+                        pos
+                    );
+
+                    pos += tgtVertexSize;
                 }
+            } else if (tgtAttr.isColor) { // initialize color values with "white" and full alpha
+                pos = tgtAttr.offset;
 
-                newRawData[srcAttr.name] = newData;
-            } else {
-                newRawData[tgtAttr.name] = new bufferType(bufferSize);
-
-                if (tgtAttr.isColor) { // initialize color values with "white" and full alpha
-                    newRawData[tgtAttr.name].fill(0xffffffff);
+                for (i = 0; i < _numVertices; ++i) {
+                    newData.setUint32(pos, 0xffffffff, true);
+                    pos += tgtVertexSize;
                 }
             }
         }
 
-        this._rawData = newRawData;
+        this._rawData = newData;
         this._format = value;
         this._attributes = this._format.attributes;
         this._numAttributes = this._attributes.length;
+        this._vertexSize = this._format.vertexSize;
+        this._posOffset = this._format.hasAttribute('position') ? this._format.getOffset('position') : 0;
+        this._colOffset = this._format.hasAttribute('color') ? this._format.getOffset('color') : 0;
     }
 
     /** Indicates if the mesh contains any vertices that are not white or not fully opaque.
@@ -790,7 +949,7 @@ export default class VertexData {
         return this._vertexSize;
     }
 
-    static getBufferTypeForAttribute(attribute) {
-        return attribute.isColor ? Uint32Array : Float32Array;
+    get vertexSizeIn32Bits() {
+        return this._vertexSize / 4;
     }
 }

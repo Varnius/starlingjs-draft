@@ -102,6 +102,20 @@ export default class VertexDataFormat {
         return this.getAttribute(attrName).size;
     }
 
+    getSizeIn32Bits(attrName) {
+        return this.getAttribute(attrName).size / 4;
+    }
+
+    /** Returns the offset (in bytes) of an attribute within a vertex. */
+    getOffset(attrName) {
+        return this.getAttribute(attrName).offset;
+    }
+
+    /** Returns the offset (in 32 bit units) of an attribute within a vertex. */
+    getOffsetIn32Bits(attrName) {
+        return this.getAttribute(attrName).offset / 4;
+    }
+
     /** Returns the format of a certain vertex attribute, identified by its name.
      *  Typical values: <code>float1, float2, float3, float4, bytes4</code>. */
     getFormat(attrName) {

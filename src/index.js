@@ -10,6 +10,7 @@ export { default as DisplayObjectContainer } from './display/display-object-cont
 export { default as Mesh } from './display/mesh';
 export { default as Quad } from './display/quad';
 export { default as Sprite } from './display/sprite';
+export { default as Sprite3D } from './display/sprite3d';
 export { default as Stage } from './display/stage';
 export { default as Image } from './display/image';
 export { default as Button } from './display/button';

@@ -101,18 +101,21 @@ export default class Painter {
     /** Creates a new Painter object. Normally, it's not necessary to create any custom
      *  painters; instead, use the global painter found on the Starling instance. */
     constructor(canvas) {
-        this._context = canvas.getContext('webgl2');
+        const gl = canvas.getContext('webgl2');
 
-        if (!this._context) {
+        if (!gl) {
             console.log('Dafuq, WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>');
             return;
         }
 
         //this._context.depthFunc(this._context.ALWAYS);
         //this._context.depthMask(false);
-        this._context.frontFace(this._context.CW);
-        this._context.viewport(0, 0, canvas.width, canvas.height);
-        this._context.enable(this._context.DEPTH_TEST);
+        gl.frontFace(gl.CW);
+        gl.viewport(0, 0, canvas.width, canvas.height);
+        gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.CULL_FACE);
+        this._context = gl;
+
         this._actualBlendMode = null;
         this._actualCulling = null;
         this._backBufferWidth = canvas.width;
@@ -578,7 +581,7 @@ export default class Painter {
     present() {
         this._state.renderTarget = null;
         this._actualRenderTarget = null;
-        //this._context.present(); todo: no need for this with gl...
+        //this._context.present(); todo: no need for this with gl, consider removing this method
     }
 
     applyBlendMode() {
@@ -595,7 +598,6 @@ export default class Painter {
 
         if (culling !== this._actualCulling) {
             const gl = this._context;
-            gl.enable(gl.CULL_FACE);
             gl.cullFace(culling);
 
             this._actualCulling = culling;

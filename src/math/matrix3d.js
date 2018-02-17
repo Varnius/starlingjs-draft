@@ -13,17 +13,14 @@ export default class Matrix3D {
 
     _data = new Float32Array(16);
 
-    constructor(v = Matrix3D.identity)
-    {
+    constructor(v = Matrix3D.identity) {
         const le = v.length;
-        for (let i = 0; i < le; ++i)
-        {
+        for (let i = 0; i < le; ++i) {
             this._data[i] = v[i];
         }
     }
 
-    get rawData()
-    {
+    get rawData() {
         const d = this._data;
         return new Float32Array([
             d[0], d[4], d[8], d[12],
@@ -33,8 +30,7 @@ export default class Matrix3D {
         ]); // todo: optimize
     }
 
-    toString()
-    {
+    toString() {
         const d = this._data;
         return `
         ${d[0].toFixed(2)} ${d[1].toFixed(2)} ${d[2].toFixed(2)} ${d[3].toFixed(2)}
@@ -44,116 +40,94 @@ export default class Matrix3D {
         `;
     }
 
-    identity()
-    {
+    identity() {
         const identity = Matrix3D.identity;
         const le = identity.length;
-        for (let i = 0; i < le; ++i)
-        {
+        for (let i = 0; i < le; ++i) {
             this._data[i] = identity[i];
         }
     }
 
-    clone()
-    {
+    clone() {
         const data = [];
         const le = this._data.length;
 
-        for (let i = 0; i < le; ++i)
-        {
+        for (let i = 0; i < le; ++i) {
             data[i] = this._data[i];
         }
 
         return new Matrix3D(data);
     }
 
-    get data()
-    {
+    get data() {
         return this._data;
     }
 
-    get m00()
-    {
+    get m00() {
         return this._data[0];
     }
 
-    get m10()
-    {
+    get m10() {
         return this._data[1];
     }
 
-    get m20()
-    {
+    get m20() {
         return this._data[2];
     }
 
-    get m30()
-    {
+    get m30() {
         return this._data[3];
     }
 
-    get m01()
-    {
+    get m01() {
         return this._data[4];
     }
 
-    get m11()
-    {
+    get m11() {
         return this._data[5];
     }
 
-    get m21()
-    {
+    get m21() {
         return this._data[6];
     }
 
-    get m31()
-    {
+    get m31() {
         return this._data[7];
     }
 
-    get m02()
-    {
+    get m02() {
         return this._data[8];
     }
 
-    get m12()
-    {
+    get m12() {
         return this._data[9];
     }
 
-    get m22()
-    {
+    get m22() {
         return this._data[10];
     }
 
-    get m32()
-    {
+    get m32() {
         return this._data[11];
     }
 
-    get m03()
-    {
+    get m03() {
         return this._data[12];
     }
 
-    get m13()
-    {
+    get m13() {
         return this._data[13];
     }
 
-    get m23()
-    {
+    get m23() {
         return this._data[14];
     }
 
-    get m33()
-    {
+    get m33() {
         return this._data[15];
     }
 
-    transformPoint(point, returnPoint = null)
-    {
+    transformPoint(point, returnPoint = null) {
         const { m00, m01, m03, m10, m11, m13, m30, m31, m33 } = this;
         const px = point.x;
         const py = point.y;
@@ -162,8 +136,7 @@ export default class Matrix3D {
         const tx = m00 * px + m10 * py + m30;
         const ty = m01 * px + m11 * py + m31;
 
-        if (returnPoint)
-        {
+        if (returnPoint) {
             returnPoint.setTo(tx / td, ty / td);
             return returnPoint;
         }
@@ -171,10 +144,8 @@ export default class Matrix3D {
         return new Point(tx / td, ty / td);
     }
 
-    transformVector3D(point, result = null)
-    {
-        if (!result)
-        {
+    transformVector3D(point, result = null) {
+        if (!result) {
             result = new Vector3D();
         }
 
@@ -195,8 +166,7 @@ export default class Matrix3D {
         return result;
     }
 
-    transformPointInverse(point, returnPoint = null)
-    {
+    transformPointInverse(point, returnPoint = null) {
         const { m00, m01, m03, m10, m11, m13, m30, m31, m33 } = this;
         const px = point.x;
         const py = point.y;
@@ -205,8 +175,7 @@ export default class Matrix3D {
         const tx = px * (m11 * m33 - m13 * m31) + py * (m30 * m13 - m10 * m33) + m10 * m31 - m30 * m11;
         const ty = px * (m03 * m31 - m01 * m33) + py * (m00 * m33 - m30 * m03) + m30 * m01 - m00 * m31;
 
-        if (returnPoint)
-        {
+        if (returnPoint) {
             returnPoint.setTo(tx / td, ty / td);
             return returnPoint;
         }
@@ -214,8 +183,7 @@ export default class Matrix3D {
         return new Point(tx / td, ty / td);
     }
 
-    transformRectangle(rectangle, returnRectangle = null)
-    {
+    transformRectangle(rectangle, returnRectangle = null) {
 
         const { m00, m01, m03, m10, m11, m13, m30, m31, m33 } = this;
         const rl = rectangle.left;
@@ -263,8 +231,7 @@ export default class Matrix3D {
         const width = right - left;
         const heigth = bottom - top;
 
-        if (returnRectangle)
-        {
+        if (returnRectangle) {
             returnRectangle.setTo(left, top, width, heigth);
             return returnRectangle;
         }
@@ -272,8 +239,7 @@ export default class Matrix3D {
         return new Rectangle(left, top, width, heigth);
     }
 
-    setIdentity()
-    {
+    setIdentity() {
         const { _data } = this;
         _data[0] = 1.0;
         _data[1] = 0.0;
@@ -293,8 +259,7 @@ export default class Matrix3D {
         _data[15] = 1.0;
     }
 
-    setZero()
-    {
+    setZero() {
         const { _data } = this;
         _data[0] = 0.0;
         _data[1] = 0.0;
@@ -314,8 +279,7 @@ export default class Matrix3D {
         _data[15] = 0.0;
     }
 
-    scale(scaleX, scaleY, scaleZ)
-    {
+    scale(scaleX, scaleY, scaleZ) {
         const { _data } = this;
         _data[0] *= scaleX;
         _data[1] *= scaleX;
@@ -333,16 +297,13 @@ export default class Matrix3D {
         _data[11] *= scaleZ;
     }
 
-
-    appendTranslation(translationX, translationY, translationZ)
-    {
+    appendTranslation(translationX, translationY, translationZ) {
         this._data[3] += translationX;
         this._data[7] += translationY;
         this._data[11] += translationZ;
     }
 
-    prependTranslation(translationX, translationY, translationZ)
-    {
+    prependTranslation(translationX, translationY, translationZ) {
 
         const { m00, m01, m02, m03, m10, m11, m12, m20, m21, m22, m23, m13 } = this;
 
@@ -352,8 +313,7 @@ export default class Matrix3D {
         this._data[15] += m03 * translationX + m13 * translationY + m23 * translationZ;
     }
 
-    rotateX(angle)
-    {
+    rotateX(angle) {
 
         const { _data } = this;
 
@@ -378,8 +338,7 @@ export default class Matrix3D {
         _data[11] = m32 * cos - m31 * sin;
     }
 
-    rotateY(angle)
-    {
+    rotateY(angle) {
         const { _data } = this;
         const cos = Math.cos(angle);
         const sin = Math.sin(angle);
@@ -402,8 +361,7 @@ export default class Matrix3D {
         _data[11] = m32 * cos - m30 * sin;
     }
 
-    rotateZ(angle)
-    {
+    rotateZ(angle) {
         const { _data } = this;
         const cos = Math.cos(angle);
         const sin = Math.sin(angle);
@@ -426,8 +384,7 @@ export default class Matrix3D {
         _data[7] = m31 * cos - m30 * sin;
     }
 
-    copyFrom2D(matrix)
-    {
+    copyFrom2D(matrix) {
         const { _data } = this;
         _data[0] = matrix.a;
         _data[1] = matrix.c;
@@ -447,8 +404,7 @@ export default class Matrix3D {
         _data[15] = 1.0;
     }
 
-    copyFrom(matrix)
-    {
+    copyFrom(matrix) {
         const { _data } = this;
         _data[0] = matrix.m00;
         _data[1] = matrix.m10;
@@ -468,8 +424,7 @@ export default class Matrix3D {
         _data[15] = matrix.m33;
     }
 
-    invert()
-    {
+    invert() {
         const { _data } = this;
         const a00 = _data[0];
         const a10 = _data[1];
@@ -503,8 +458,7 @@ export default class Matrix3D {
 
         const det = (b00 * b11 - b01 * b10 + b02 * b09 + b03 * b08 - b04 * b07 + b05 * b06);
 
-        if (det !== 0.0)
-        {
+        if (det !== 0.0) {
             const invDet = 1.0 / det;
             _data[0] = (a11 * b11 - a12 * b10 + a13 * b09) * invDet;
             _data[1] = (-a10 * b11 + a12 * b08 - a13 * b07) * invDet;
@@ -525,18 +479,15 @@ export default class Matrix3D {
         }
     }
 
-    concat(matrix)
-    {
+    concat(matrix) {
         this.copyFromAndConcat(this, matrix);
     }
 
-    prepend(matrix)
-    {
+    prepend(matrix) {
         this.copyFromAndConcat(matrix, this);
     }
 
-    concat2D(matrix)
-    {
+    concat2D(matrix) {
         const { _data } = this;
         const m00 = this.m00;
         const m10 = this.m10;
@@ -568,8 +519,7 @@ export default class Matrix3D {
         _data[7] = m30 * n01 + m31 * n11 + m33 * n31;
     }
 
-    concatInverse2D(matrix)
-    {
+    concatInverse2D(matrix) {
         const { _data } = this;
         const m00 = this.m00;
         const m10 = this.m10;
@@ -601,8 +551,7 @@ export default class Matrix3D {
         _data[7] = m30 * n01 + m31 * n11 + m33 * n31;
     }
 
-    prepend2D(matrix)
-    {
+    prepend2D(matrix) {
         const { _data } = this;
         const m00 = matrix.a;
         const m10 = matrix.c;
@@ -638,8 +587,7 @@ export default class Matrix3D {
         _data[15] = m30 * n03 + m31 * n13 + n33;
     }
 
-    prependInverse2D(matrix)
-    {
+    prependInverse2D(matrix) {
         const { _data } = this;
         const m00 = matrix.d / matrix.det;
         const m10 = 0.0 - matrix.c / matrix.det;
@@ -675,8 +623,7 @@ export default class Matrix3D {
         _data[15] = m30 * n03 + m31 * n13 + n33;
     }
 
-    copyFromAndConcat2D(copyMatrix, concatMatrix)
-    {
+    copyFromAndConcat2D(copyMatrix, concatMatrix) {
         const { _data } = this;
         const m00 = copyMatrix.m00;
         const m10 = copyMatrix.m10;
@@ -720,8 +667,7 @@ export default class Matrix3D {
         _data[15] = m33;
     }
 
-    copyFrom2DAndConcat(copyMatrix, concatMatrix)
-    {
+    copyFrom2DAndConcat(copyMatrix, concatMatrix) {
         const { _data } = this;
         const m00 = copyMatrix.a;
         const m10 = copyMatrix.c;
@@ -765,8 +711,7 @@ export default class Matrix3D {
         _data[15] = m30 * n03 + m31 * n13 + n33;
     }
 
-    copyFromAndConcat(copyMatrix, concatMatrix)
-    {
+    copyFromAndConcat(copyMatrix, concatMatrix) {
         const { _data } = this;
         const m00 = copyMatrix.m00;
         const m10 = copyMatrix.m10;
@@ -820,8 +765,7 @@ export default class Matrix3D {
         _data[15] = m30 * n03 + m31 * n13 + m32 * n23 + m33 * n33;
     }
 
-    copyRawDataTo(target)
-    {
+    copyRawDataTo(target) {
         target[0] = this.m00;
         target[1] = this.m01;
         target[2] = this.m02;
@@ -840,8 +784,7 @@ export default class Matrix3D {
         target[15] = this.m33;
     }
 
-    copyRawDataFrom(target)
-    {
+    copyRawDataFrom(target) {
         const { _data } = this;
 
         _data[0] = target[0];

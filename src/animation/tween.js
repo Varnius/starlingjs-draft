@@ -125,7 +125,7 @@ export default class Tween extends EventDispatcher {
         const pos = _properties.length;
         const updateFunc = this.getUpdateFuncFromProperty(property);
 
-        _properties[pos] = this.getPropertyName(property);
+        _properties[pos] = Tween.getPropertyName(property);
         _startValues[pos] = Number.NaN;
         _endValues[pos] = endValue;
         _updateFuncs[pos] = updateFunc;
@@ -258,7 +258,7 @@ export default class Tween extends EventDispatcher {
     }
 
     /** @private */
-    getPropertyName(property) {
+    static getPropertyName(property) {
         const hintMarkerIndex = property.indexOf(Tween.HINT_MARKER);
         if (hintMarkerIndex !== -1) return property.substring(0, hintMarkerIndex);
         else return property;

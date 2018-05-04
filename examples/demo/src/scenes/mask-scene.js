@@ -72,9 +72,5 @@ export default class MaskScene extends Scene {
         circle.drawCircle(0, 0, 100);
         circle.endFill();
         return circle;
-        //const q =  new Quad(100, 100);
-        //q.pivotX = 50;
-        //q.pivotY = 50;
-        //return q;
     }
 }

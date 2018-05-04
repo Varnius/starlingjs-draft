@@ -420,7 +420,7 @@ export default class Painter {
         const quad = mask instanceof Quad ? mask : null;
         const is3D = mask.is3D || (maskee && maskee.is3D && !mask.stage);
 
-        if (quad && !is3D && !quad.texture) {
+        if (quad && !is3D && !quad.texture && !maskee.maskInverted) {
             if (mask.stage) mask.getTransformationMatrix(null, out);
             else {
                 out.copyFrom(mask.transformationMatrix);

@@ -99,8 +99,7 @@ export default class Texture {
     static sPoint = new Point();
 
     /** @private */
-    constructor()
-    {
+    constructor() {
         //if (Capabilities.isDebugger &&
         //    getQualifiedClassName(this) == "starling.textures:")
         //{
@@ -112,8 +111,7 @@ export default class Texture {
      *  SubTextures (created with 'Texture.fromTexture') just reference other textures and
      *  and do not take up resources themselves; this is also true for textures from an
      *  atlas. */
-    dispose()
-    {
+    dispose() {
         // override in subclasses
     }
 
@@ -128,8 +126,7 @@ export default class Texture {
      *                     vertices at the correct position within the given bounds,
      *                     distorted appropriately.
      */
-    setupVertexPositions(vertexData, vertexID = 0, attrName = 'position', bounds = null)
-    {
+    setupVertexPositions(vertexData, vertexID = 0, attrName = 'position', bounds = null) {
         const { sRectangle, sMatrix } = Texture;
         const frame = this.frame;
         const width = this.width;
@@ -145,13 +142,11 @@ export default class Texture {
         vertexData.setPoint(vertexID + 2, attrName, sRectangle.left, sRectangle.bottom);
         vertexData.setPoint(vertexID + 3, attrName, sRectangle.right, sRectangle.bottom);
 
-        if (bounds)
-        {
+        if (bounds) {
             const scaleX = bounds.width / this.frameWidth;
             const scaleY = bounds.height / this.frameHeight;
 
-            if (scaleX !== 1.0 || scaleY !== 1.0 || bounds.x !== 0 || bounds.y !== 0)
-            {
+            if (scaleX !== 1.0 || scaleY !== 1.0 || bounds.x !== 0 || bounds.y !== 0) {
                 sMatrix.identity();
                 sMatrix.scale(scaleX, scaleY);
                 sMatrix.translate(bounds.x, bounds.y);
@@ -167,8 +162,7 @@ export default class Texture {
      *  @param vertexID    the start position within the VertexData instance.
      *  @param attrName    the attribute name referencing the vertex positions.
      */
-    setupTextureCoordinates(vertexData, vertexID = 0, attrName = 'texCoords')
-    {
+    setupTextureCoordinates(vertexData, vertexID = 0, attrName = 'texCoords') {
         this.setTexCoords(vertexData, vertexID, attrName, 0.0, 0.0);
         this.setTexCoords(vertexData, vertexID + 1, attrName, 1.0, 0.0);
         this.setTexCoords(vertexData, vertexID + 2, attrName, 0.0, 1.0);
@@ -177,8 +171,7 @@ export default class Texture {
 
     /** Transforms the given texture coordinates from the local coordinate system
      *  into the root texture's coordinate system. */
-    localToGlobal(u, v, out = null)
-    {
+    localToGlobal(u, v, out = null) {
         if (!out) out = new Point();
         if (this === this.root) out.setTo(u, v);
         else MatrixUtil.transformCoords(this.transformationMatrixToRoot, u, v, out);
@@ -187,12 +180,10 @@ export default class Texture {
 
     /** Transforms the given texture coordinates from the root texture's coordinate system
      *  to the local coordinate system. */
-    globalToLocal(u, v, out = null)
-    {
+    globalToLocal(u, v, out = null) {
         if (!out) out = new Point();
         if (this === this.root) out.setTo(u, v);
-        else
-        {
+        else {
             Texture.sMatrix.identity();
             Texture.sMatrix.copyFrom(this.transformationMatrixToRoot);
             Texture.sMatrix.invert();
@@ -204,8 +195,7 @@ export default class Texture {
     /** Writes the given texture coordinates to a VertexData instance after transforming
      *  them into the root texture's coordinate system. That way, the texture coordinates
      *  can be used directly to sample the texture in the fragment shader. */
-    setTexCoords(vertexData, vertexID, attrName, u, v)
-    {
+    setTexCoords(vertexData, vertexID, attrName, u, v) {
         const { sPoint } = Texture;
         this.localToGlobal(u, v, sPoint);
         vertexData.setPoint(vertexID, attrName, sPoint.x, sPoint.y);
@@ -214,8 +204,7 @@ export default class Texture {
     /** Reads a pair of texture coordinates from the given VertexData instance and transforms
      *  them into the current texture's coordinate system. (Remember, the VertexData instance
      *  will always contain the coordinates in the root texture's coordinate system!) */
-    getTexCoords(vertexData, vertexID, attrName = 'texCoords', out = null)
-    {
+    getTexCoords(vertexData, vertexID, attrName = 'texCoords', out = null) {
         if (!out) out = new Point();
         vertexData.getPoint(vertexID, attrName, out);
         return this.globalToLocal(out.x, out.y, out);
@@ -225,64 +214,54 @@ export default class Texture {
 
     /** The texture frame if it has one (see class description), otherwise <code>null</code>.
      *  <p>CAUTION: not a copy, but the actual object! Do not modify!</p> */
-    get frame()
-    {
+    get frame() {
         return null;
     }
 
     /** The height of the texture in points, taking into account the frame rectangle
      *  (if there is one). */
-    get frameWidth()
-    {
+    get frameWidth() {
         return this.frame ? this.frame.width : this.width;
     }
 
     /** The width of the texture in points, taking into account the frame rectangle
      *  (if there is one). */
-    get frameHeight()
-    {
+    get frameHeight() {
         return this.frame ? this.frame.height : this.height;
     }
 
     /** The width of the texture in points. */
-    get width()
-    {
+    get width() {
         return 0;
     }
 
     /** The height of the texture in points. */
-    get height()
-    {
+    get height() {
         return 0;
     }
 
     /** The width of the texture in pixels (without scale adjustment). */
-    get nativeWidth()
-    {
+    get nativeWidth() {
         return 0;
     }
 
     /** The height of the texture in pixels (without scale adjustment). */
-    get nativeHeight()
-    {
+    get nativeHeight() {
         return 0;
     }
 
     /** The scale factor, which influences width and height properties. */
-    get scale()
-    {
+    get scale() {
         return 1.0;
     }
 
     /** The Stage3D texture object the texture is based on. */
-    get base()
-    {
+    get base() {
         return null;
     }
 
     /** The concrete texture the texture is based on. */
-    get root()
-    {
+    get root() {
         return null;
     }
 
@@ -290,14 +269,12 @@ export default class Texture {
     //get format() { return Context3DTextureFormat.BGRA; }
 
     /** Indicates if the texture contains mip maps. */
-    get mipMapping()
-    {
+    get mipMapping() {
         return false;
     }
 
     /** Indicates if the alpha values are premultiplied into the RGB values. */
-    get premultipliedAlpha()
-    {
+    get premultipliedAlpha() {
         return false;
     }
 
@@ -305,8 +282,7 @@ export default class Texture {
      *  space of the parent texture, if there is one. @default null
      *
      *  <p>CAUTION: not a copy, but the actual object! Never modify this matrix!</p> */
-    get transformationMatrix()
-    {
+    get transformationMatrix() {
         return null;
     }
 
@@ -314,8 +290,7 @@ export default class Texture {
      *  space of the root texture, if this instance is not the root. @default null
      *
      *  <p>CAUTION: not a copy, but the actual object! Never modify this matrix!</p> */
-    get transformationMatrixToRoot()
-    {
+    get transformationMatrixToRoot() {
         return null;
     }
 

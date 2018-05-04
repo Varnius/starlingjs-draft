@@ -1,16 +1,14 @@
 import IndexData from '../../src/rendering/index-data';
+import R from 'ramda';
 
-describe('IndexData', () =>
-{
-    it('should work', () =>
-    {
+describe('IndexData', () => {
+    it('should work', () => {
         const indexData = new IndexData();
         expect(indexData.numIndices).to.equal(0);
         expect(indexData.useQuadLayout).to.be.true;
     });
 
-    it('should be clearable', () =>
-    {
+    it('should be clearable', () => {
         const indexData = new IndexData();
         indexData.addTriangle(1, 2, 4);
         indexData.clear();
@@ -19,8 +17,7 @@ describe('IndexData', () =>
         expect(indexData.useQuadLayout).to.be.true;
     });
 
-    it('should allow to set indices', () =>
-    {
+    it('should allow to set indices', () => {
         const indexData = new IndexData();
 
         // basic quad data
@@ -61,8 +58,7 @@ describe('IndexData', () =>
         expect(indexData.getIndex(9)).to.equal(1);
     });
 
-    it('should allow to append triangle', () =>
-    {
+    it('should allow to append triangle', () => {
         const indexData = new IndexData();
 
         // basic quad data
@@ -98,8 +94,22 @@ describe('IndexData', () =>
         expect(indexData.getIndex(2)).to.equal(2);
     });
 
-    it('should allow to append quad', () =>
-    {
+    it('should expand internal buffer after adding additional data', () => {
+        let indexData = new IndexData();
+
+        R.times(() => indexData.addTriangle(1, 4, 5), 20);
+
+        expect(indexData.numIndices).to.equal(60);
+        expect(indexData._rawData.length).to.equal(60);
+
+        indexData = new IndexData();
+        R.times(() => indexData.addQuad(1, 4, 5, 3), 10);
+
+        expect(indexData.numIndices).to.equal(60);
+        expect(indexData._rawData.length).to.equal(60);
+    });
+
+    it('should allow to append quad', () => {
         const indexData = new IndexData();
 
         // basic quad data
@@ -145,8 +155,7 @@ describe('IndexData', () =>
         expect(indexData.getIndex(5)).to.equal(3);
     });
 
-    it('should allow to clone', () =>
-    {
+    it('should allow to clone', () => {
         let indexData;
         let clone;
 
@@ -175,8 +184,7 @@ describe('IndexData', () =>
         expect(clone.getIndex(4)).to.equal(3);
     });
 
-    it('should allow to set number of indices', () =>
-    {
+    it('should allow to set number of indices', () => {
         const indexData = new IndexData();
         indexData.numIndices = 6;
 
@@ -203,8 +211,7 @@ describe('IndexData', () =>
         expect(indexData.useQuadLayout).to.be.true;
     });
 
-    it('should have working copyTo', () =>
-    {
+    it('should have working copyTo', () => {
         // arbitrary data -> arbitrary data
         const source = new IndexData();
 
@@ -274,8 +281,7 @@ describe('IndexData', () =>
         expect(target.getIndex(8)).to.equal(7);
     });
 
-    it('should have working copyTo - edge cases', () =>
-    {
+    it('should have working copyTo - edge cases', () => {
         const source = new IndexData();
         source.numIndices = 6;
 
@@ -303,8 +309,7 @@ describe('IndexData', () =>
         expect(target.getIndex(10)).to.equal(6);
     });
 
-    it('should allow to use offset with copyTo', () =>
-    {
+    it('should allow to use offset with copyTo', () => {
         const source = new IndexData();
         source.addTriangle(1, 2, 3);
         source.addTriangle(4, 5, 6);
@@ -320,18 +325,17 @@ describe('IndexData', () =>
         expect(target.getIndex(3)).to.equal(16);
     });
 
-    it('should allow to offset indices', () =>
-    {
+    it('should allow to offset indices', () => {
         const indexData = new IndexData();
         indexData.addTriangle(1, 2, 3);
         indexData.addTriangle(4, 5, 6);
 
         indexData.offsetIndices(10, 1, 3);
-        expect(indexData.getIndex(0)).to.equal( 1);
+        expect(indexData.getIndex(0)).to.equal(1);
         expect(indexData.getIndex(1)).to.equal(12);
         expect(indexData.getIndex(2)).to.equal(13);
         expect(indexData.getIndex(3)).to.equal(14);
-        expect(indexData.getIndex(4)).to.equal( 5);
+        expect(indexData.getIndex(4)).to.equal(5);
     });
 
     // todo: is this needed?
@@ -345,8 +349,7 @@ describe('IndexData', () =>
     //    Helpers.compareVectorsOfUints(source.toVector(), expected);
     //});
 
-    it('should allow to set layout', () =>
-    {
+    it('should allow to set layout', () => {
         const indexData = new IndexData();
         indexData.numIndices = 6;
         expect(indexData.useQuadLayout).to.be.true;

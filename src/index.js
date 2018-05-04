@@ -15,6 +15,7 @@ export { default as Stage } from './display/stage';
 export { default as Image } from './display/image';
 export { default as Button } from './display/button';
 export { default as MovieClip } from './display/movie-clip';
+export { default as Canvas } from './display/canvas';
 
 export { default as Texture } from './textures/texture';
 

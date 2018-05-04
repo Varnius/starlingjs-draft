@@ -991,6 +991,15 @@ export default class DisplayObject extends EventDispatcher {
         }
     }
 
+    /** Indicates if the masked region of this object is set to be inverted.*/
+    get maskInverted() {
+        return this._maskInverted;
+    }
+
+    set maskInverted(value) {
+        this._maskInverted = value;
+    }
+
     /** The display object container that contains this display object. */
     get parent() {
         return this._parent;

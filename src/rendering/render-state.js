@@ -1,4 +1,4 @@
-import { FRONT, BACK, FRONT_AND_BACK } from 'gl-constants';
+import { FRONT, BACK, FRONT_AND_BACK, NEVER, LESS, EQUAL, LEQUAL, GREATER, NOTEQUAL, GEQUAL, ALWAYS } from 'gl-constants';
 
 import Matrix3D from '../math/matrix3d';
 import Matrix from '../math/matrix';
@@ -53,6 +53,13 @@ export default class RenderState {
     /** @private */ _blendMode;
     /** @private */ _modelviewMatrix;
 
+    static COMPARE_VALUES = [
+        ALWAYS, NEVER,
+        LESS, LEQUAL,
+        EQUAL, GEQUAL,
+        GREATER, NOTEQUAL,
+    ];
+
     _culling = BACK;
     _miscOptions;
     _clipRect;
@@ -80,11 +87,13 @@ export default class RenderState {
             const currentTarget = this._renderTarget ? this._renderTarget.base : null;
             const nextTarget = renderState._renderTarget ? renderState._renderTarget.base : null;
             const cullingChanges = (this._miscOptions & 0xf00) !== (renderState._miscOptions & 0xf00);
+            const depthMaskChanges = (this._miscOptions & 0xf000) !== (renderState._miscOptions & 0xf000);
+            const depthTestChanges = (this._miscOptions & 0xf0000) !== (renderState._miscOptions & 0xf0000);
             const clipRectChanges = _clipRect || renderState._clipRect ?
                 !RectangleUtil.compare(_clipRect, renderState._clipRect) : false;
 
             if (this._blendMode !== renderState._blendMode ||
-                currentTarget !== nextTarget || clipRectChanges || cullingChanges) {
+                currentTarget !== nextTarget || clipRectChanges || cullingChanges || depthMaskChanges || depthTestChanges) {
                 this._onDrawRequired();
             }
         }
@@ -93,7 +102,6 @@ export default class RenderState {
         this._blendMode = renderState._blendMode;
         this._renderTarget = renderState._renderTarget;
         this._miscOptions = renderState._miscOptions;
-
         this._modelviewMatrix.copyFrom(renderState._modelviewMatrix);
 
         if (this._projectionMatrix3DRev !== renderState._projectionMatrix3DRev) {
@@ -114,6 +122,8 @@ export default class RenderState {
         this.alpha = 1.0;
         this.blendMode = BlendMode.NORMAL;
         //this.culling = Context3DTriangleFace.NONE;
+        this.depthMask = false;
+        this.depthTest = ALWAYS;
         this.modelviewMatrix3D = null;
         this.renderTarget = null;
         this.clipRect = null;
@@ -323,6 +333,36 @@ export default class RenderState {
         if (this.culling !== value) {
             if (this._onDrawRequired) this._onDrawRequired();
             this._culling = value;
+        }
+    }
+
+    /** Enables or disables depth buffer writes.
+     *  @default false
+     */
+    get depthMask() {
+        return (this._miscOptions & 0x0000f000) !== 0;
+    }
+
+    set depthMask(value) {
+        if (this.depthMask !== value) {
+            if (this._onDrawRequired !== null) this._onDrawRequired();
+            this._miscOptions = (this._miscOptions & 0xffff0fff) | (value << 12);  // todo: was cast to uint
+        }
+    }
+
+    get depthTest() {
+        const index = (this._miscOptions & 0x000f0000) >> 16;
+        return RenderState.COMPARE_VALUES[index];
+    }
+
+    set depthTest(value) {
+        if (this.depthTest !== value) {
+            if (this._onDrawRequired !== null) this._onDrawRequired();
+
+            const index = RenderState.COMPARE_VALUES.indexOf(value);
+            if (index === -1) throw new Error('[ArgumentError] Invalid compare mode');
+
+            this._miscOptions = (this._miscOptions & 0xfff0ffff) | (index << 16);
         }
     }
 

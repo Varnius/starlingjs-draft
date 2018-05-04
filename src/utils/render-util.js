@@ -5,7 +5,7 @@ import Color from './color';
 export default class RenderUtil {
 
     /** Clears the render context with a certain color and alpha value. */
-    static clear(rgb = 0, alpha = 0.0) {
+    static clear(rgb = 0, alpha = 0.0, depth = 1.0, stencil = 0) {
         const gl = Starling.context;
         gl.clearColor(
             Color.getRed(rgb) / 255.0,
@@ -13,31 +13,10 @@ export default class RenderUtil {
             Color.getBlue(rgb) / 255.0,
             alpha
         );
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clearStencil(stencil);
+        gl.clearDepth(depth);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
     }
-
-    /** Returns the flags that are required for AGAL texture lookup,
-     *  including the '&lt;' and '&gt;' delimiters. */
-    //getTextureLookupFlags(format, mipMapping, repeat = false, smoothing = 'bilinear')
-    //{
-    //    // TODO this method can probably be removed
-    //
-    //    const options = ['2d', repeat ? 'repeat' : 'clamp'];
-    //
-    //    if (format === Context3DTextureFormat.COMPRESSED)
-    //        options.push('dxt1');
-    //    else if (format === 'compressedAlpha')
-    //        options.push('dxt5');
-    //
-    //    if (smoothing === TextureSmoothing.NONE)
-    //        options.push('nearest', mipMapping ? 'mipnearest' : 'mipnone');
-    //    else if (smoothing === TextureSmoothing.BILINEAR)
-    //        options.push('linear', mipMapping ? 'mipnearest' : 'mipnone');
-    //    else
-    //        options.push('linear', mipMapping ? 'miplinear' : 'mipnone');
-    //
-    //    return '<' + options.join() + '>';
-    //}
 
     /** Returns a bit field uniquely describing texture format and premultiplied alpha,
      *  so that each required AGAL variant will get its unique ID. This method is most

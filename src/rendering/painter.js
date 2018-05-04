@@ -1,3 +1,5 @@
+import { NEVER } from 'gl-constants';
+
 import BatchProcessor from './batch-processor';
 import RenderState from './render-state';
 
@@ -7,13 +9,13 @@ import Rectangle from '../math/rectangle';
 import Vector3D from '../math/vector3d';
 
 import BlendMode from '../display/blend-mode';
-//import Quad from '../display/quad';
+import Quad from '../display/quad';
 
-//import MathUtil from '../utils/math-util';
+import MathUtil from '../utils/math-util';
 import MatrixUtil from '../utils/matrix-util';
 import MeshSubset from '../utils/mesh-subset';
-//import Pool from '../utils/pool';
-//import RectangleUtil from '../utils/rectangle-util';
+import Pool from '../utils/pool';
+import RectangleUtil from '../utils/rectangle-util';
 import RenderUtil from '../utils/render-util';
 //import SystemUtil from '../utils/system-util';
 
@@ -51,6 +53,10 @@ import RenderUtil from '../utils/render-util';
 export default class Painter {
     // the key for the programs stored in 'sharedData'
     static PROGRAM_DATA_NAME = 'starling.rendering.Painter.Programs';
+
+    /** The value with which the stencil buffer will be cleared,
+     *  and the default reference value used for stencil tests. */
+    static DEFAULT_STENCIL_VALUE = 127;
 
     // members
 
@@ -101,18 +107,17 @@ export default class Painter {
     /** Creates a new Painter object. Normally, it's not necessary to create any custom
      *  painters; instead, use the global painter found on the Starling instance. */
     constructor(canvas) {
-        const gl = canvas.getContext('webgl2');
+        const gl = canvas.getContext('webgl2', { stencil: true, depth: true });
 
         if (!gl) {
             console.log('Dafuq, WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>');
             return;
         }
 
-        //this._context.depthFunc(this._context.ALWAYS);
-        //this._context.depthMask(false);
         gl.frontFace(gl.CW);
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.enable(gl.DEPTH_TEST);
+        gl.enable(gl.STENCIL_TEST);
         gl.enable(gl.CULL_FACE);
         this._context = gl;
 
@@ -214,7 +219,6 @@ export default class Painter {
      */
     setStateTo(transformationMatrix, alphaFactor = 1.0, blendMode = 'auto') {
         if (transformationMatrix) MatrixUtil.prependMatrix(this._state._modelviewMatrix, transformationMatrix);
-
         if (alphaFactor !== 1.0) this._state._alpha *= alphaFactor;
         if (blendMode !== BlendMode.AUTO) this._state.blendMode = blendMode;
     }
@@ -270,41 +274,43 @@ export default class Painter {
      *  in the next frame. If you pass <code>maskee</code>, the method will automatically
      *  call <code>excludeFromCache(maskee)</code> for you.</p>
      */
-    //drawMask(mask, maskee = null)
-    //{
-    //    const { _context } = this;
-    //    const { sMatrix, sClipRect } = Painter;
-    //
-    //    if (_context === null) return;
-    //
-    //    this.finishMeshBatch();
-    //
-    //    if (this.isRectangularMask(mask, maskee, sMatrix))
-    //    {
-    //        mask.getBounds(mask, sClipRect);
-    //        RectangleUtil.getBounds(sClipRect, sMatrix, sClipRect);
-    //        this.pushClipRect(sClipRect);
-    //    }
-    //    else
-    //    {
-    //        _context.setStencilActions(
-    //            Context3DTriangleFace.FRONT_AND_BACK,
-    //            Context3DCompareMode.EQUAL,
-    //            Context3DStencilAction.INCREMENT_SATURATE
-    //        );
-    //
-    //        this.renderMask(mask);
-    //        this.stencilReferenceValue++;
-    //
-    //        _context.setStencilActions(
-    //            Context3DTriangleFace.FRONT_AND_BACK,
-    //            Context3DCompareMode.EQUAL,
-    //            Context3DStencilAction.KEEP
-    //        );
-    //    }
-    //
-    //    this.excludeFromCache(maskee);
-    //}
+    drawMask(mask, maskee = null) {
+        const gl = this._context;
+        const { sMatrix, sClipRect } = Painter;
+
+        if (!gl) return;
+
+        this.finishMeshBatch();
+
+        if (this.isRectangularMask(mask, maskee, sMatrix)) {
+            mask.getBounds(mask, sClipRect);
+            RectangleUtil.getBounds(sClipRect, sMatrix, sClipRect);
+            this.pushClipRect(sClipRect);
+        } else {
+
+            // In 'renderMask', we'll make sure the depth test always fails. Thus, the 3rd
+            // parameter of 'setStencilActions' will always be ignored; the 4th is the one
+            // that counts!
+
+            if (maskee && maskee.maskInverted) {
+                gl.stencilFunc(gl.ALWAYS, this.stencilReferenceValue, 0xff);
+                gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP);
+
+                this.renderMask(mask);
+            } else {
+                gl.stencilFunc(gl.EQUAL, this.stencilReferenceValue, 0xff);
+                gl.stencilOp(gl.KEEP, gl.INCR, gl.KEEP); // sfail zfail bothpass
+
+                this.renderMask(mask);
+                this.stencilReferenceValue++;
+            }
+
+            gl.stencilFunc(gl.EQUAL, this.stencilReferenceValue, 0xff);
+            gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+        }
+
+        this.excludeFromCache(maskee);
+    }
 
     /** Draws a display object into the stencil buffer, decrementing the
      *  buffer on each used pixel. This effectively erases the object from the stencil buffer,
@@ -314,120 +320,118 @@ export default class Painter {
      *  it will be assumed that this erase operation undoes the clipping rectangle change
      *  caused by the corresponding <code>drawMask()</code> call.</p>
      */
-    //eraseMask(mask, maskee = null)
-    //{
-    //    const { _context } = this;
-    //    if (_context === null) return;
-    //
-    //    this.finishMeshBatch();
-    //
-    //    if (this.isRectangularMask(mask, maskee, Painter.sMatrix))
-    //    {
-    //        this.popClipRect();
-    //    }
-    //    else
-    //    {
-    //        _context.setStencilActions(
-    //            Context3DTriangleFace.FRONT_AND_BACK,
-    //            Context3DCompareMode.EQUAL,
-    //            Context3DStencilAction.DECREMENT_SATURATE
-    //        );
-    //
-    //        this.renderMask(mask);
-    //        this.stencilReferenceValue--;
-    //
-    //        _context.setStencilActions(
-    //            Context3DTriangleFace.FRONT_AND_BACK,
-    //            Context3DCompareMode.EQUAL,
-    //            Context3DStencilAction.KEEP
-    //        );
-    //    }
-    //}
+    eraseMask(mask, maskee = null) {
+        const gl = this._context;
+        if (!gl) return;
 
-    //renderMask(mask)
-    //{
-    //    const { _state } = this;
-    //    const { sMatrix3D, sMatrix } = Painter;
-    //    const wasCacheEnabled = this.cacheEnabled;
-    //
-    //    this.pushState();
-    //    this.cacheEnabled = false;
-    //    _state.alpha = 0.0;
-    //
-    //    let matrix = null;
-    //    let matrix3D = null;
-    //
-    //    if (mask.stage)
-    //    {
-    //        _state.setModelviewMatricesToIdentity();
-    //
-    //        if (mask.is3D) matrix3D = mask.getTransformationMatrix3D(null, sMatrix3D);
-    //        else matrix = mask.getTransformationMatrix(null, sMatrix);
-    //    }
-    //    else if (mask.is3D) matrix3D = mask.transformationMatrix3D;
-    //    else matrix = mask.transformationMatrix;
-    //
-    //    if (matrix3D) _state.transformModelviewMatrix3D(matrix3D);
-    //    else _state.transformModelviewMatrix(matrix);
-    //
-    //    mask.render(this);
-    //    this.finishMeshBatch();
-    //
-    //    this.cacheEnabled = wasCacheEnabled;
-    //    this.popState();
-    //}
-    //
-    //pushClipRect(clipRect)
-    //{
-    //    const stack = this._clipRectStack;
-    //    const stackLength = stack.length;
-    //    const intersection = Pool.getRectangle();
-    //
-    //    if (stackLength)
-    //        RectangleUtil.intersect(stack[stackLength - 1], clipRect, intersection);
-    //    else
-    //        intersection.copyFrom(clipRect);
-    //
-    //    stack[stackLength] = intersection;
-    //    this._state.clipRect = intersection;
-    //}
-    //
-    //popClipRect()
-    //{
-    //    const stack = this._clipRectStack;
-    //    const stackLength = stack.length;
-    //
-    //    if (stackLength === 0)
-    //        throw new Error('Trying to pop from empty clip rectangle stack');
-    //
-    //    this.stackLength--;
-    //    Pool.putRectangle(stack.pop());
-    //    this._state.clipRect = stackLength ? stack[stackLength - 1] : null;
-    //}
+        this.finishMeshBatch();
+
+        if (this.isRectangularMask(mask, maskee, Painter.sMatrix)) {
+            this.popClipRect();
+        } else {
+            // In 'renderMask', we'll make sure the depth test always fails. Thus, the 3rd
+            // parameter of 'setStencilActions' will always be ignored; the 4th is the one
+            // that counts!
+
+            if (maskee && maskee.maskInverted) {
+                gl.stencilFunc(gl.ALWAYS, this.stencilReferenceValue, 0xff);
+                gl.stencilOp(gl.KEEP, gl.INCR, gl.KEEP);
+
+                this.renderMask(mask);
+            } else {
+                gl.stencilFunc(gl.EQUAL, this.stencilReferenceValue, 0xff);
+                gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP);
+
+                this.renderMask(mask);
+                this.stencilReferenceValue--;
+            }
+
+            // restore default stencil action ("keep")
+
+            gl.stencilFunc(gl.EQUAL, this.stencilReferenceValue, 0xff);
+            gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+        }
+    }
+
+    renderMask(mask) {
+        const { _state } = this;
+        const { sMatrix3D, sMatrix } = Painter;
+        const wasCacheEnabled = this.cacheEnabled;
+        const gl = this._context;
+
+        this.pushState();
+        this.cacheEnabled = false;
+        _state.depthTest = NEVER;  // depth test always fails ->
+                                   // color buffer won't be modified
+        let matrix = null;
+        let matrix3D = null;
+
+        if (mask.stage) {
+            _state.setModelviewMatricesToIdentity();
+
+            if (mask.is3D) matrix3D = mask.getTransformationMatrix3D(null, sMatrix3D);
+            else matrix = mask.getTransformationMatrix(null, sMatrix);
+        } else if (mask.is3D) matrix3D = mask.transformationMatrix3D;
+        else matrix = mask.transformationMatrix;
+
+        if (matrix3D) _state.transformModelviewMatrix3D(matrix3D);
+        else _state.transformModelviewMatrix(matrix);
+
+        gl.colorMask(false, false, false, false);
+        mask.render(this);
+        this.finishMeshBatch();
+        gl.colorMask(true, true, true, true);
+
+        this.cacheEnabled = wasCacheEnabled;
+        this.popState();
+    }
+
+    pushClipRect(clipRect) {
+        const stack = this._clipRectStack;
+        const stackLength = stack.length;
+        const intersection = Pool.getRectangle();
+
+        if (stackLength)
+            RectangleUtil.intersect(stack[stackLength - 1], clipRect, intersection);
+        else
+            intersection.copyFrom(clipRect);
+
+        stack[stackLength] = intersection;
+        this._state.clipRect = intersection;
+    }
+
+    popClipRect() {
+        const stack = this._clipRectStack;
+        let stackLength = stack.length;
+
+        if (stackLength === 0)
+            throw new Error('Trying to pop from empty clip rectangle stack');
+
+        stackLength--;
+        Pool.putRectangle(stack.pop());
+        this._state.clipRect = stackLength ? stack[stackLength - 1] : null;
+    }
 
     /** Figures out if the mask can be represented by a scissor rectangle; this is possible
      *  if it's just a simple (untextured) quad that is parallel to the stage axes. The 'out'
      *  parameter will be filled with the transformation matrix required to move the mask into
      *  stage coordinates. */
-    //isRectangularMask(mask, maskee, out)
-    //{
-    //    const quad = mask instanceof Quad ? mask : null;
-    //    const is3D = mask.is3D || (maskee && maskee.is3D && mask.stage == null);
-    //
-    //    if (quad && !is3D && quad.texture == null)
-    //    {
-    //        if (mask.stage) mask.getTransformationMatrix(null, out);
-    //        else
-    //        {
-    //            out.copyFrom(mask.transformationMatrix);
-    //            out.concat(this._state.modelviewMatrix);
-    //        }
-    //
-    //        return (MathUtil.isEquivalent(out.a, 0) && MathUtil.isEquivalent(out.d, 0)) ||
-    //            (MathUtil.isEquivalent(out.b, 0) && MathUtil.isEquivalent(out.c, 0));
-    //    }
-    //    return false;
-    //}
+    isRectangularMask(mask, maskee, out) {
+        const quad = mask instanceof Quad ? mask : null;
+        const is3D = mask.is3D || (maskee && maskee.is3D && !mask.stage);
+
+        if (quad && !is3D && !quad.texture) {
+            if (mask.stage) mask.getTransformationMatrix(null, out);
+            else {
+                out.copyFrom(mask.transformationMatrix);
+                out.concat(this._state.modelviewMatrix);
+            }
+
+            return (MathUtil.isEquivalent(out.a, 0) && MathUtil.isEquivalent(out.d, 0)) ||
+                (MathUtil.isEquivalent(out.b, 0) && MathUtil.isEquivalent(out.c, 0));
+        }
+        return false;
+    }
 
     // mesh rendering
 
@@ -466,22 +470,27 @@ export default class Painter {
         this._batchCacheExclusions.length = 0;
     }
 
+    /** Makes sure that the default context settings Starling relies on will be refreshed
+     *  before the next 'draw' operation. This includes blend mode, culling, and depth test. */
+    setupContextDefaults() {
+        this._actualBlendMode = null;
+        this._actualCulling = null;
+        this._actualDepthMask = false;
+        this._actualDepthTest = null;
+    }
+
     /** Resets the current state, state stack, batch processor, stencil reference value,
      *  clipping rectangle, and draw count. Furthermore, depth testing is disabled. */
     nextFrame() {
         // update batch processors
         this._batchProcessor = this.swapBatchProcessors();
-
         this._batchProcessor.clear();
         this._batchProcessorSpec.clear();
 
-        // enforce reset of basic context settings
-        this._actualBlendMode = null;
-        this._actualCulling = null;
-        this._context.depthFunc(this._context.ALWAYS);
+        this.setupContextDefaults();
 
         // reset everything else
-        this.stencilReferenceValue = 0;
+        this.stencilReferenceValue = Painter.DEFAULT_STENCIL_VALUE;
         this._clipRectStack.length = 0;
         this._drawCount = 0;
         this._stateStackPos = -1;
@@ -554,7 +563,7 @@ export default class Painter {
         meshBatch.render(this);
 
         this.popState();
-    }
+    };
 
     // helper methods
 
@@ -565,16 +574,17 @@ export default class Painter {
     prepareToDraw() {
         this.applyBlendMode();
         this.applyRenderTarget();
-        //this.applyClipRect(); // todo: implement
+        this.applyClipRect();
         this.applyCulling();
+        this.applyDepthTest();
     }
 
     /** Clears the render context with a certain color and alpha value. Since this also
      *  clears the stencil buffer, the stencil reference value is also reset to '0'. */
     clear(rgb = 0, alpha = 0.0) {
         this.applyRenderTarget();
-        this.stencilReferenceValue = 0;
-        RenderUtil.clear(rgb, alpha);
+        this.stencilReferenceValue = Painter.DEFAULT_STENCIL_VALUE;
+        RenderUtil.clear(rgb, alpha, 1.0, Painter.DEFAULT_STENCIL_VALUE);
     }
 
     /** Resets the render target to the back buffer and displays its contents. */
@@ -604,6 +614,19 @@ export default class Painter {
         }
     }
 
+    applyDepthTest() {
+        const depthMask = this._state.depthMask;
+        const depthTest = this._state.depthTest;
+
+        if (depthMask !== this._actualDepthMask || depthTest !== this._actualDepthTest) {
+            const gl = this._context;
+            gl.depthMask(depthMask);
+            gl.depthFunc(depthTest);
+            this._actualDepthMask = depthMask;
+            this._actualDepthTest = depthTest;
+        }
+    }
+
     applyRenderTarget() {
         const gl = this._context;
         const { _state } = this;
@@ -620,67 +643,61 @@ export default class Painter {
                 const fb = gl.createFramebuffer();
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target, 0);
-            }
-            else {
+            } else {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
                 console.log('implemented: setRenderToBackBuffer');
             }
 
-            //_context.setStencilReferenceValue(this.stencilReferenceValue);
-            console.log('todo: setStencilReferenceValue');
+            gl.stencilFunc(gl.ALWAYS, this.stencilReferenceValue, 0xff);
+
             this._actualRenderTargetOptions = options;
             this._actualRenderTarget = target;
         }
     }
 
-    //applyClipRect()
-    //{
-    //    const clipRect = this._state.clipRect;
-    //
-    //    if (clipRect)
-    //    {
-    //        let width, height;
-    //        const projMatrix = this._state.projectionMatrix3D;
-    //        const renderTarget = this._state.renderTarget;
-    //
-    //        if (renderTarget)
-    //        {
-    //            width = renderTarget.root.nativeWidth;
-    //            height = renderTarget.root.nativeHeight;
-    //        }
-    //        else
-    //        {
-    //            width = this._backBufferWidth;
-    //            height = this._backBufferHeight;
-    //        }
-    //
-    //        const { sPoint3D, sClipRect, sBufferRect, sScissorRect } = Painter;
-    //
-    //        // convert to pixel coordinates (matrix transformation ends up in range [-1, 1])
-    //        MatrixUtil.transformCoords3D(projMatrix, clipRect.x, clipRect.y, 0.0, sPoint3D);
-    //        sPoint3D.project(); // eliminate w-coordinate
-    //        sClipRect.x = (sPoint3D.x * 0.5 + 0.5) * width;
-    //        sClipRect.y = (0.5 - sPoint3D.y * 0.5) * height;
-    //
-    //        MatrixUtil.transformCoords3D(projMatrix, clipRect.right, clipRect.bottom, 0.0, sPoint3D);
-    //        sPoint3D.project(); // eliminate w-coordinate
-    //        sClipRect.right = (sPoint3D.x * 0.5 + 0.5) * width;
-    //        sClipRect.bottom = (0.5 - sPoint3D.y * 0.5) * height;
-    //
-    //        sBufferRect.setTo(0, 0, width, height);
-    //        RectangleUtil.intersect(sClipRect, sBufferRect, sScissorRect);
-    //
-    //        // an empty rectangle is not allowed, so we set it to the smallest possible size
-    //        if (sScissorRect.width < 1 || sScissorRect.height < 1)
-    //            sScissorRect.setTo(0, 0, 1, 1);
-    //
-    //        this._context.setScissorRectangle(sScissorRect);
-    //    }
-    //    else
-    //    {
-    //        this._context.setScissorRectangle(null);
-    //    }
-    //}
+    applyClipRect() {
+        const clipRect = this._state.clipRect;
+        const gl = this._context;
+
+        if (clipRect) {
+            let width, height;
+            const projMatrix = this._state.projectionMatrix3D;
+            const renderTarget = this._state.renderTarget;
+
+            if (renderTarget) {
+                width = renderTarget.root.nativeWidth;
+                height = renderTarget.root.nativeHeight;
+            } else {
+                width = this._backBufferWidth;
+                height = this._backBufferHeight;
+            }
+
+            const { sPoint3D, sClipRect, sBufferRect, sScissorRect } = Painter;
+
+            // convert to pixel coordinates (matrix transformation ends up in range [-1, 1])
+            MatrixUtil.transformCoords3D(projMatrix, clipRect.x, clipRect.y, 0.0, sPoint3D);
+            sPoint3D.project(); // eliminate w-coordinate
+            sClipRect.x = (sPoint3D.x * 0.5 + 0.5) * width;
+            sClipRect.y = (0.5 - sPoint3D.y * 0.5) * height;
+
+            MatrixUtil.transformCoords3D(projMatrix, clipRect.right, clipRect.bottom, 0.0, sPoint3D);
+            sPoint3D.project(); // eliminate w-coordinate
+            sClipRect.right = (sPoint3D.x * 0.5 + 0.5) * width;
+            sClipRect.bottom = (0.5 - sPoint3D.y * 0.5) * height;
+
+            sBufferRect.setTo(0, 0, width, height);
+            RectangleUtil.intersect(sClipRect, sBufferRect, sScissorRect);
+
+            // an empty rectangle is not allowed, so we set it to the smallest possible size
+            if (sScissorRect.width < 1 || sScissorRect.height < 1)
+                sScissorRect.setTo(0, 0, 1, 1);
+
+            gl.enable(gl.SCISSOR_TEST);
+            gl.scissor(sScissorRect.x, height - sScissorRect.y - sScissorRect.height, sScissorRect.width, sScissorRect.height);
+        } else {
+            gl.disable(gl.SCISSOR_TEST);
+        }
+    }
 
     // properties
 
@@ -698,21 +715,20 @@ export default class Painter {
      *  The painter keeps track of one stencil reference value per render target.
      *  Only change this value if you know what you're doing!
      */
-    //get stencilReferenceValue()
-    //{
-    //    const key = this._state.renderTarget ? this._state.renderTargetBase : this;
-    //    if (key in this._stencilReferenceValues) return this._stencilReferenceValues[key];
-    //    else return 0;
-    //}
-    //
-    //set stencilReferenceValue(value)
-    //{
-    //    const key = this._state.renderTarget ? this._state.renderTargetBase : this;
-    //    this._stencilReferenceValues[key] = value;
-    //
-    //    if (this.contextValid)
-    //        this._context.setStencilReferenceValue(value);
-    //}
+    get stencilReferenceValue() {
+        const key = this._state.renderTarget ? this._state.renderTargetBase : this;
+        if (key in this._stencilReferenceValues) return this._stencilReferenceValues[key];
+        else return Painter.DEFAULT_STENCIL_VALUE;
+    }
+
+    set stencilReferenceValue(value) {
+        const key = this._state.renderTarget ? this._state.renderTargetBase : this;
+        const gl = this._context;
+        this._stencilReferenceValues[key] = value;
+
+        if (this.contextValid)
+            gl.stencilFunc(gl.ALWAYS, this.stencilReferenceValue, 0xff);
+    }
 
     /** Indicates if the render cache is enabled. Normally, this should be left at the default;
      *  however, some custom rendering logic might require to change this property temporarily.

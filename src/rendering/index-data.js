@@ -210,8 +210,6 @@ export default class IndexData {
     /** Appends three indices representing a triangle. Reference the vertices clockwise,
      *  as this defines the front side of the triangle. */
     addTriangle(a, b, c) {
-        const { _rawData } = this;
-
         if (this._useQuadLayout) {
             if (a === IndexData.getBasicQuadIndexAt(this._numIndices)) {
                 const oddTriangleID = (this._numIndices & 1) !== 0;
@@ -228,9 +226,11 @@ export default class IndexData {
             this.switchToGenericData();
         }
 
-        _rawData[this._numIndices] = a;
-        _rawData[this._numIndices + 1] = b;
-        _rawData[this._numIndices + 2] = c;
+        this.ensureDataCapacity(this._numIndices + 3);
+
+        this._rawData[this._numIndices] = a;
+        this._rawData[this._numIndices + 1] = b;
+        this._rawData[this._numIndices + 2] = c;
 
         this._numIndices += 3;
     }
@@ -248,27 +248,27 @@ export default class IndexData {
      *  parameter increments the one before it (e.g. <code>0, 1, 2, 3</code>).</p>
      */
     addQuad(a, b, c, d) {
-        const { _rawData, _numIndices } = this;
-
         if (this._useQuadLayout) {
-            if (a === IndexData.getBasicQuadIndexAt(_numIndices)
+            if (a === IndexData.getBasicQuadIndexAt(this._numIndices)
                 && b === a + 1
                 && c === b + 1
                 && d === c + 1) {
                 this._numIndices += 6;
-                IndexData.ensureQuadDataCapacity(_numIndices);
+                IndexData.ensureQuadDataCapacity(this._numIndices);
                 return;
             } else this.switchToGenericData();
         }
 
-        const position = _numIndices;
+        this.ensureDataCapacity(this._numIndices + 6);
 
-        _rawData[position] = a;
-        _rawData[position + 1] = b;
-        _rawData[position + 2] = c;
-        _rawData[position + 3] = b;
-        _rawData[position + 4] = d;
-        _rawData[position + 5] = c;
+        const position = this._numIndices;
+
+        this._rawData[position] = a;
+        this._rawData[position + 1] = b;
+        this._rawData[position + 2] = c;
+        this._rawData[position + 3] = b;
+        this._rawData[position + 4] = d;
+        this._rawData[position + 5] = c;
 
         this._numIndices += 6;
     }
@@ -300,7 +300,6 @@ export default class IndexData {
 //    return string;
 //}
 
-    // private helpers
 
     switchToGenericData() {
         if (this._useQuadLayout) {
@@ -311,13 +310,27 @@ export default class IndexData {
             }
 
             if (this._numIndices) {
-                this._rawData = new Uint16Array(this._numIndices);
+                this._rawData = new Uint16Array(this._numIndices + 4); // todo
 
                 for (let i = 0; i < this._numIndices; ++i) {
                     this._rawData[i] = IndexData.sQuadData[i];
                 }
             }
         }
+    }
+
+    ensureDataCapacity(capacity) {
+        if (this._rawData.length >= capacity) return;
+
+        this._rawData = this.copyItemsOver(this._rawData, new Uint16Array(capacity));
+    }
+
+    copyItemsOver(from, to) {
+        for (let i = 0; i < from.length; ++i) {
+            to[i] = from[i];
+        }
+
+        return to;
     }
 
     /** Makes sure that the ByteArray containing the normalized, basic quad data contains at
@@ -367,8 +380,6 @@ export default class IndexData {
         const gl = Starling.context;
 
         const indexBuffer = gl.createBuffer();
-
-        //console.log('indices', this.rawData)
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.rawData, bufferUsage);

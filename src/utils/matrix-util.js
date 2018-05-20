@@ -13,8 +13,7 @@ export default class MatrixUtil {
 
     /** Converts a 2D matrix to a 3D matrix. If you pass an <code>out</code>-matrix,
      *  the result will be stored in this matrix instead of creating a new object. */
-    static convertTo3D(matrix, out = null)
-    {
+    static convertTo3D(matrix, out = null) {
         if (!out) out = new Matrix3D();
         const { sRawData } = MatrixUtil;
 
@@ -31,8 +30,7 @@ export default class MatrixUtil {
 
     /** Converts a 3D matrix to a 2D matrix. Beware that this will work only for a 3D matrix
      *  describing a pure 2D transformation. */
-    static convertTo2D(matrix3D, out = null)
-    {
+    static convertTo2D(matrix3D, out = null) {
         if (!out) out = new Matrix();
         const { sRawData2 } = MatrixUtil;
 
@@ -48,15 +46,13 @@ export default class MatrixUtil {
     }
 
     /** Determines if the matrix is an identity matrix. */
-    static isIdentity(matrix)
-    {
+    static isIdentity(matrix) {
         return matrix.a === 1.0 && matrix.b === 0.0 && matrix.c === 0.0 && matrix.d === 1.0 &&
             matrix.tx === 0.0 && matrix.ty === 0.0;
     }
 
     /** Determines if the 3D matrix is an identity matrix. */
-    static isIdentity3D(matrix)
-    {
+    static isIdentity3D(matrix) {
         const data = MatrixUtil.sRawData2;
         matrix.copyRawDataTo(data);
 
@@ -68,23 +64,20 @@ export default class MatrixUtil {
 
     /** Transform a point with the given matrix. */
     static transformPoint(matrix, point,
-                          out = null)
-    {
+                          out = null) {
         return MatrixUtil.transformCoords(matrix, point.x, point.y, out);
     }
 
     /** Transforms a 3D point with the given matrix. */
     static transformPoint3D(matrix, point,
-                            out = null)
-    {
+                            out = null) {
         return MatrixUtil.transformCoords3D(matrix, point.x, point.y, point.z, out);
     }
 
     /** Uses a matrix to transform 2D coordinates into a different space. If you pass an
      *  <code>out</code>-point, the result will be stored in this point instead of creating
      *  a new object. */
-    static transformCoords(matrix, x, y, out = null)
-    {
+    static transformCoords(matrix, x, y, out = null) {
         if (!out) out = new Point();
 
         out.x = matrix.a * x + matrix.c * y + matrix.tx;
@@ -96,8 +89,7 @@ export default class MatrixUtil {
     /** Uses a matrix to transform 3D coordinates into a different space. If you pass a
      *  'resultVector', the result will be stored in this vector3D instead of creating a
      *  new object. */
-    static transformCoords3D(matrix, x, y, z, out = null)
-    {
+    static transformCoords3D(matrix, x, y, z, out = null) {
         if (!out) out = new Vector3D();
         const { sRawData2 } = MatrixUtil;
 
@@ -119,8 +111,7 @@ export default class MatrixUtil {
      *  |     0            0       1 |
      *  </pre>
      */
-    static skew(matrix, skewX, skewY)
-    {
+    static skew(matrix, skewX, skewY) {
         const sinX = Math.sin(skewX);
         const cosX = Math.cos(skewX);
         const sinY = Math.sin(skewY);
@@ -135,8 +126,7 @@ export default class MatrixUtil {
     }
 
     /** Prepends a matrix to 'base' by multiplying it with another matrix. */
-    static prependMatrix(base, prep)
-    {
+    static prependMatrix(base, prep) {
         base.setTo(
             base.a * prep.a + base.c * prep.b,
             base.b * prep.a + base.d * prep.b,
@@ -148,23 +138,20 @@ export default class MatrixUtil {
     }
 
     /** Prepends an incremental translation to a Matrix object. */
-    static prependTranslation(matrix, tx, ty)
-    {
+    static prependTranslation(matrix, tx, ty) {
         matrix.tx += matrix.a * tx + matrix.c * ty;
         matrix.ty += matrix.b * tx + matrix.d * ty;
     }
 
     /** Prepends an incremental scale change to a Matrix object. */
-    static prependScale(matrix, sx, sy)
-    {
+    static prependScale(matrix, sx, sy) {
         matrix.setTo(matrix.a * sx, matrix.b * sx,
             matrix.c * sy, matrix.d * sy,
             matrix.tx, matrix.ty);
     }
 
     /** Prepends an incremental rotation to a Matrix object (angle in radians). */
-    static prependRotation(matrix, angle)
-    {
+    static prependRotation(matrix, angle) {
         const sin = Math.sin(angle);
         const cos = Math.cos(angle);
 
@@ -181,8 +168,7 @@ export default class MatrixUtil {
      *  |     0            0       1 |
      *  </pre>
      */
-    static prependSkew(matrix, skewX, skewY)
-    {
+    static prependSkew(matrix, skewX, skewY) {
         const sinX = Math.sin(skewX);
         const cosX = Math.cos(skewX);
         const sinY = Math.sin(skewY);
@@ -197,8 +183,7 @@ export default class MatrixUtil {
 
     /** Converts a Matrix3D instance to a String, which is useful when debugging. Per default,
      *  the raw data is displayed transposed, so that the columns are displayed vertically. */
-    static toString3D(matrix, transpose = true, precision = 3)
-    {
+    static toString3D(matrix, transpose = true, precision = 3) {
         if (transpose) matrix.transpose();
         matrix.copyRawDataTo(MatrixUtil.sRawData2);
         if (transpose) matrix.transpose();
@@ -207,8 +192,7 @@ export default class MatrixUtil {
     }
 
     /** Converts a Matrix instance to a String, which is useful when debugging. */
-    static toString(matrix, precision = 3)
-    {
+    static toString(matrix, precision = 3) {
         const { sRawData2 } = MatrixUtil;
         sRawData2[0] = matrix.a;
         sRawData2[1] = matrix.c;
@@ -220,26 +204,22 @@ export default class MatrixUtil {
         return '[Matrix rawData=\n' + this.formatRawData(sRawData2, 3, 2, precision) + '\n]';
     }
 
-    static formatRawData(data, numCols, numRows, precision, indent = '  ')
-    {
+    static formatRawData(data, numCols, numRows, precision, indent = '  ') {
         let result = indent;
         const numValues = numCols * numRows;
         let highestValue = 0.0;
         let valueString;
         let value;
 
-        for (let i = 0; i < numValues; ++i)
-        {
+        for (let i = 0; i < numValues; ++i) {
             value = Math.abs(data[i]);
             if (value > highestValue) highestValue = value;
         }
 
         const numChars = highestValue.toFixed(precision).length + 1;
 
-        for (let y = 0; y < numRows; ++y)
-        {
-            for (let x = 0; x < numCols; ++x)
-            {
+        for (let y = 0; y < numRows; ++y) {
+            for (let x = 0; x < numCols; ++x) {
                 value = data[numCols * y + x];
                 valueString = value.toFixed(precision);
 
@@ -261,8 +241,7 @@ export default class MatrixUtil {
      *  @param matrix    The matrix to manipulate in place (normally the modelview matrix).
      *  @param pixelSize The size (in points) that represents one pixel in the back buffer.
      */
-    static snapToPixels(matrix, pixelSize)
-    {
+    static snapToPixels(matrix, pixelSize) {
         // Snapping only makes sense if the object is unscaled and rotated only by
         // multiples of 90 degrees. If that's the case can be found out by looking
         // at the modelview matrix.
@@ -272,8 +251,7 @@ export default class MatrixUtil {
         let doSnap = false;
         let aSq, bSq, cSq, dSq;
 
-        if (matrix.b + E > 0 && matrix.b - E < 0 && matrix.c + E > 0 && matrix.c - E < 0)
-        {
+        if (matrix.b + E > 0 && matrix.b - E < 0 && matrix.c + E > 0 && matrix.c - E < 0) {
             // what we actually want is 'Math.abs(matrix.a)', but squaring
             // the value works just as well for our needs & is faster.
 
@@ -281,15 +259,13 @@ export default class MatrixUtil {
             dSq = matrix.d * matrix.d;
             doSnap = aSq + E > 1 && aSq - E < 1 && dSq + E > 1 && dSq - E < 1;
         }
-        else if (matrix.a + E > 0 && matrix.a - E < 0 && matrix.d + E > 0 && matrix.d - E < 0)
-        {
+        else if (matrix.a + E > 0 && matrix.a - E < 0 && matrix.d + E > 0 && matrix.d - E < 0) {
             bSq = matrix.b * matrix.b;
             cSq = matrix.c * matrix.c;
             doSnap = bSq + E > 1 && bSq - E < 1 && cSq + E > 1 && cSq - E < 1;
         }
 
-        if (doSnap)
-        {
+        if (doSnap) {
             matrix.tx = Math.round(matrix.tx / pixelSize) * pixelSize;
             matrix.ty = Math.round(matrix.ty / pixelSize) * pixelSize;
         }
@@ -308,18 +284,17 @@ export default class MatrixUtil {
      *  <p>If you pass only the first 4 parameters, the camera will be set up above the center
      *  of the stage, with a field of view of 1.0 rad.</p>
      */
-    static createPerspectiveProjectionMatrix(x, y, width, height, stageWidth = 0, stageHeight = 0, cameraPos = null, out = null)
-    {
+    static createPerspectiveProjectionMatrix(x, y, width, height, stageWidth = 0, stageHeight = 0, cameraPos = null, out = null) {
         const { sPoint3D, sMatrixData } = MatrixUtil;
         if (!out) out = new Matrix3D();
         if (stageWidth <= 0) stageWidth = width;
         if (stageHeight <= 0) stageHeight = height;
 
-        if (!cameraPos)
-        {
+        if (!cameraPos) {
             cameraPos = sPoint3D;
             cameraPos.setTo(
-                stageWidth / 2, stageHeight / 2,   // -> center of stage
+                stageWidth / 2,
+                stageHeight / 2,   // -> center of stage
                 stageWidth / Math.tan(0.5) * 0.5); // -> fieldOfView = 1.0 rad
         }
 
@@ -328,36 +303,39 @@ export default class MatrixUtil {
         const offsetY = cameraPos.y - stageHeight / 2;
         const far = focalLength * 20;
         const near = 1;
-        const scaleX = stageWidth / width;
-        const scaleY = stageHeight / height;
+
+        // todo ???
+        //const scaleX = stageWidth / width;
+        //const scaleY = stageHeight / height;
 
         const f = 1 / Math.tan(0.5);
         const aspect = width / height;
+        const r = (x + width) / stageWidth * 2 - 1;
+        const l = x / stageWidth * 2 - 1;
+        const t = -(y / stageHeight * 2 - 1);
+        const b = -((y + height) / stageHeight * 2 - 1);
 
         sMatrixData[0] = f / aspect;
         sMatrixData[5] = -f;
-        sMatrixData[10] = (far + near) / (near - far);
-        sMatrixData[14] = 2 * far * near / (near - far);
+        sMatrixData[10] = -(far + near) / (near - far);
+
+        sMatrixData[14] = -2 * far * near / (near - far);
         sMatrixData[11] = -1;
 
-        // now zoom in to visible area
-        sMatrixData[0] *= scaleX;
-        sMatrixData[5] *= scaleY;
-        sMatrixData[8] = scaleX - 1 - 2 * scaleX * (x - offsetX) / stageWidth;
-        sMatrixData[9] = -scaleY + 1 + 2 * scaleY * (y - offsetY) / stageHeight;
+        sMatrixData[8] = (r + l) / (r - l);
+        sMatrixData[9] = (t + b) / (t - b);
 
         out.copyRawDataFrom(sMatrixData);
         out.prependTranslation(
             -stageWidth / 2.0 - offsetX,
             -stageHeight / 2.0 - offsetY,
-            -focalLength); // Stage3D z = [0, 1], WebGL z = [-1, 1]
+            -focalLength * (width / stageWidth)); // Stage3D z = [0, 1], WebGL z = [-1, 1] todo - added * (width / stageWidth)
 
         return out;
     }
 
     /** Creates a orthographic projection matrix suitable for 2D rendering. */
-    static createOrthographicProjectionMatrix(x, y, width, height, out = null)
-    {
+    static createOrthographicProjectionMatrix(x, y, width, height, out = null) {
         if (!out) out = new Matrix();
 
         out.setTo(2.0 / width, 0, 0, -2.0 / height, -(2 * x + width) / width, (2 * y + height) / height);

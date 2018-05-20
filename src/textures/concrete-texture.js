@@ -37,14 +37,13 @@ export default class ConcreteTexture extends Texture {
      *  i.e. they do not take the scale factor into account.</p>
      */
     constructor(base, format, width, height,
-                mipMapping, premultipliedAlpha, scale = 1)
-    {
+                mipMapping, premultipliedAlpha, scale = 1) {
         //if (Capabilities.isDebugger &&
         //    getQualifiedClassName(this) == "starling.textures::ConcreteTexture")
         //{
         //    throw new AbstractClassError();
         //}
-        
+
         super();
 
         this._scale = scale <= 0 ? 1.0 : scale;
@@ -59,9 +58,9 @@ export default class ConcreteTexture extends Texture {
     }
 
     /** Disposes the TextureBase object. */
-    dispose()
-    {
-        if (this._base) this._base.dispose();
+    dispose() {
+        const gl = Starling.current.context;
+        if (this._base) gl.deleteTexture(this._base);
 
         this.onRestore = null; // removes event listener
         super.dispose();
@@ -81,8 +80,7 @@ export default class ConcreteTexture extends Texture {
      *  <code>function(texture, error:ErrorEvent);</code>
      *  The second parameter is optional and typically <code>null</code>.</p>
      */
-    uploadBitmapData(data)
-    {
+    uploadBitmapData(data) {
         this.upload(data);
         this.setDataUploaded();
     }
@@ -121,35 +119,31 @@ export default class ConcreteTexture extends Texture {
      *  as the one that was passed to the constructor. You have to upload new data before the
      *  texture becomes usable again. Beware: this method does <strong>not</strong> dispose
      *  the current base. */
-    createBase()
-    {
+    createBase() {
         //return Starling.context.createRectangleTexture(
         //    nativeWidth, nativeHeight, format, optimizedForRenderTexture);
     }
 
-    upload(source)
-    {
+    upload(source) {
         this.base.uploadFromBitmapData(source);
     }
 
     /** Recreates the underlying Stage3D texture. May be used to manually restore a texture.
      *  Beware that new data needs to be uploaded to the texture before it can be used. */
-    recreateBase()
-    {
+    recreateBase() {
         this._base = this.createBase();
     }
 
     /** Clears the texture with a certain color and alpha value. The previous contents of the
      *  texture is wiped out. */
-    clear(color = 0x0, alpha = 0.0)
-    {
+    clear(color = 0x0, alpha = 0.0) {
         if (this._premultipliedAlpha && alpha < 1.0)
             color = Color.rgb(Color.getRed(color) * alpha,
                 Color.getGreen(color) * alpha,
                 Color.getBlue(color) * alpha);
 
         const painter = Starling.painter;
-        
+
         painter.pushState();
         painter.state.renderTarget = this;
         painter.clear(color, alpha);
@@ -159,70 +153,59 @@ export default class ConcreteTexture extends Texture {
     }
 
     /** Notifies the instance that the base texture may now be used for rendering. */
-    setDataUploaded()
-    {
+    setDataUploaded() {
         this._dataUploaded = true;
     }
 
     // properties
 
     /** @inheritDoc */
-    get base()
-    {
+    get base() {
         return this._base;
     }
 
     /** @inheritDoc */
-    get root()
-    {
+    get root() {
         return this;
     }
 
     /** @inheritDoc */
-    get format()
-    {
+    get format() {
         return this._format;
     }
 
     /** @inheritDoc */
-    get width()
-    {
+    get width() {
         return this._width / this._scale;
     }
 
     /** @inheritDoc */
-    get height()
-    {
+    get height() {
         return this._height / this._scale;
     }
 
     /** @inheritDoc */
-    get nativeWidth()
-    {
+    get nativeWidth() {
         return this._width;
     }
 
     /** @inheritDoc */
-    get nativeHeight()
-    {
+    get nativeHeight() {
         return this._height;
     }
 
     /** @inheritDoc */
-    get scale()
-    {
+    get scale() {
         return this._scale;
     }
 
     /** @inheritDoc */
-    get mipMapping()
-    {
+    get mipMapping() {
         return this._mipMapping;
     }
 
     /** @inheritDoc */
-    get premultipliedAlpha()
-    {
+    get premultipliedAlpha() {
         return this._premultipliedAlpha;
     }
 }

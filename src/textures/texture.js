@@ -3,7 +3,6 @@ import Matrix from '../math/matrix';
 import Rectangle from '../math/rectangle';
 import MatrixUtil from '../utils/matrix-util';
 import TextureOptions from './texture-options';
-import Starling from '../core/starling';
 
 /** <p>A texture stores the information that represents an image. It cannot be added to the
  *  display list directly; instead it has to be mapped onto a display object. In Starling,
@@ -162,11 +161,11 @@ export default class Texture {
      *  @param vertexID    the start position within the VertexData instance.
      *  @param attrName    the attribute name referencing the vertex positions.
      */
-    setupTextureCoordinates(vertexData, vertexID = 0, attrName = 'texCoords') {
-        this.setTexCoords(vertexData, vertexID, attrName, 0.0, 0.0);
-        this.setTexCoords(vertexData, vertexID + 1, attrName, 1.0, 0.0);
-        this.setTexCoords(vertexData, vertexID + 2, attrName, 0.0, 1.0);
-        this.setTexCoords(vertexData, vertexID + 3, attrName, 1.0, 1.0);
+    setupTextureCoordinates(vertexData, vertexID = 0, attrName = 'texCoords', fbo = false) {
+        this.setTexCoords(vertexData, vertexID, attrName, 0.0, 0.0, fbo);
+        this.setTexCoords(vertexData, vertexID + 1, attrName, 1.0, 0.0, fbo);
+        this.setTexCoords(vertexData, vertexID + 2, attrName, 0.0, 1.0, fbo);
+        this.setTexCoords(vertexData, vertexID + 3, attrName, 1.0, 1.0, fbo);
     }
 
     /** Transforms the given texture coordinates from the local coordinate system
@@ -195,10 +194,10 @@ export default class Texture {
     /** Writes the given texture coordinates to a VertexData instance after transforming
      *  them into the root texture's coordinate system. That way, the texture coordinates
      *  can be used directly to sample the texture in the fragment shader. */
-    setTexCoords(vertexData, vertexID, attrName, u, v) {
+    setTexCoords(vertexData, vertexID, attrName, u, v, fbo = false) {
         const { sPoint } = Texture;
         this.localToGlobal(u, v, sPoint);
-        vertexData.setPoint(vertexID, attrName, sPoint.x, sPoint.y);
+        vertexData.setPoint(vertexID, attrName, sPoint.x, fbo ? 1 - sPoint.y : sPoint.y);
     }
 
     /** Reads a pair of texture coordinates from the given VertexData instance and transforms

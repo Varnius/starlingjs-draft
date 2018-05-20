@@ -781,8 +781,6 @@ export default class VertexData {
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(gl.ARRAY_BUFFER, _rawData.buffer, bufferUsage);
 
-        //console.log(vertexDataToSomethingReadable(this));
-
         for (let i = 0; i < _numAttributes; ++i) {
             const attribute = _attributes[i];
 
@@ -796,7 +794,7 @@ export default class VertexData {
                 attribute.offset
             );
         }
-
+        //console.log('vdUPL',vertexDataToSomethingReadable(this));
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
@@ -836,7 +834,6 @@ export default class VertexData {
             }
 
             if (this._rawData.byteLength < newLength) {
-                //_rawData.length = newLength;
                 const oldData = this._rawData;
                 this._rawData = getDataViewOfLength(newLength);
                 copyFromDataView(oldData, this._rawData);
@@ -894,9 +891,6 @@ export default class VertexData {
                 pos = tgtAttr.offset;
 
                 for (i = 0; i < _numVertices; ++i) {
-                    //newData.position = pos;
-                    //newData.writeBytes(newData, srcVertexSize * i + srcAttr.offset, srcAttr.size);
-
                     copyFromDataView(
                         this._rawData,
                         newData,

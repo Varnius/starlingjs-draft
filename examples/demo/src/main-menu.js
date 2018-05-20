@@ -11,6 +11,7 @@ import BenchmarkScene from './scenes/benchmark-scene';
 import Sprite3DScene from './scenes/sprite3d-scene';
 import CustomHitTestScene from './scenes/custom-hit-test-scene';
 import MaskScene from './scenes/mask-scene';
+import FilterScene from './scenes/filter-scene';
 
 export default class MainMenu extends Sprite {
     constructor() {
@@ -29,7 +30,7 @@ export default class MainMenu extends Sprite {
             ['Animations', AnimationScene],
             ['Custom hit-test', CustomHitTestScene],
             ['Movie Clip', MovieScene],
-            //['Filters', FilterScene],
+            ['Filters', FilterScene],
             ['Blend Modes', BlendModeScene],
             //['Render Texture', RenderTextureScene],
             ['Benchmark', BenchmarkScene],

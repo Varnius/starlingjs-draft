@@ -19,6 +19,22 @@ export default class FilterEffect extends Effect {
      *  <code>'position:float2, texCoords:float2'</code> */
     static VERTEX_FORMAT = Effect.VERTEX_FORMAT.extend('texCoords:float2');
 
+    static STD_VERTEX_SHADER = `#version 300 es
+                layout(location = 0) in vec2 aPosition;
+                layout(location = 1) in vec2 aTexCoords;
+
+                uniform mat4 uMVPMatrix;
+
+                out vec2 vTexCoords;
+
+                void main() {
+                    // Transform to clipspace
+                    gl_Position = uMVPMatrix * vec4(aPosition, 0.0, 1.0);
+
+                    vTexCoords = aTexCoords;
+                }
+            `;
+
     _texture;
     _textureSmoothing;
     _textureRepeat;
@@ -42,21 +58,7 @@ export default class FilterEffect extends Effect {
     /** @private */
     createProgram() {
         if (this._texture) {
-            const vertexShader = `#version 300 es
-                layout(location = 0) in vec2 aPosition;
-                layout(location = 1) in vec2 aTexCoords;
-
-                uniform mat4 uMVPMatrix;
-
-                out vec2 vTexCoords;
-
-                void main() {
-                    // Transform to clipspace
-                    gl_Position = uMVPMatrix * vec4(aPosition, 0.0, 1.0);
-
-                    vTexCoords = aTexCoords;
-                }
-            `;
+            const vertexShader = FilterEffect.STD_VERTEX_SHADER;
 
             const fragmentShader = `#version 300 es
                 precision highp float;

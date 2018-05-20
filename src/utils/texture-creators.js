@@ -15,12 +15,10 @@ import Rectangle from '../math/rectangle';
  *  @param format  the context3D texture format to use. Pass one of the packed or
  *                 compressed formats to save memory.
  */
-export function createTextureFromColor({ width, height, color = 0xffffff, alpha = 1.0, scale = -1, format = RGBA })
-{
+export function createTextureFromColor({ width, height, color = 0xffffff, alpha = 1.0, scale = -1, format = RGBA }) {
     const texture = createEmptyTexture({ width, height, premultipliedAlpha: true, scale, format });
     texture.root.clear(color, alpha);
-    texture.root.onRestore = function ()
-    {
+    texture.root.onRestore = function () {
         texture.root.clear(color, alpha);
     };
 
@@ -39,13 +37,11 @@ export function createTextureFromColor({ width, height, color = 0xffffff, alpha 
  *  @param format  the context3D texture format to use. Pass one of the packed or
  *                 compressed formats to save memory (at the price of reduced image quality).
  */
-export function createEmptyTexture(params)
-{
+export function createEmptyTexture(params) {
     return createWithData({ ...params, data: null });
 }
 
-export function createTextureFromData(params)
-{
+export function createTextureFromData(params) {
     return createWithData({ ...params });
 }
 
@@ -57,8 +53,7 @@ const createWithData = ({
     generateMipMaps = false,
     scale = -1,
     format = RGBA,
-    }) =>
-{
+    }) => {
     if (scale <= 0) scale = Starling.contentScaleFactor;
 
     const gl = Starling.context;
@@ -81,8 +76,7 @@ const createWithData = ({
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, LINEAR);
 
-    if (generateMipMaps)
-    {
+    if (generateMipMaps) {
         gl.generateMipmap(gl.TEXTURE_2D);
     }
 

@@ -641,11 +641,12 @@ export default class Painter {
                 // todo: implement depth, stencil
 
                 const fb = gl.createFramebuffer();
-                gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fb); // todo: could be DRAW_FRAMEBUFFER with WGL2
+                gl.viewport(0, 0, _state.renderTarget.width, _state.renderTarget.height);
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target, 0);
             } else {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-                console.log('implemented: setRenderToBackBuffer');
+                gl.viewport(0, 0, this._backBufferWidth, this._backBufferHeight);
             }
 
             gl.stencilFunc(gl.ALWAYS, this.stencilReferenceValue, 0xff);

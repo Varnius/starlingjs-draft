@@ -2,7 +2,7 @@ import Starling from '../core/starling';
 import { STATIC_DRAW } from 'gl-constants';
 import VertexDataFormat from './vertex-data-format';
 import Matrix3D from '../math/matrix3d';
-import Program from '../rendering/program'
+import Program from '../rendering/program';
 
 /** An effect encapsulates all steps of a Stage3D draw operation. It configures the
  *  render context and sets up shader programs as well as index- and vertex-buffers, thus
@@ -101,7 +101,7 @@ export default class Effect {
 
     /** Purges the index- and vertex-buffers. */
     dispose() {
-        Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, this.onContextCreated);
+        //Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, this.onContextCreated); // todo: removed
         this.purgeBuffers();
     }
 
@@ -172,7 +172,6 @@ export default class Effect {
 
         this.beforeDraw(gl);
 
-        //console.log(`Effect: drawElements, ${numTriangles} triangles <<<<<<<<<<<<<<<<<<<<`);
         gl.drawElements(gl.TRIANGLES, numTriangles * 3, gl.UNSIGNED_SHORT, firstIndex);
 
         this.afterDraw(gl);
@@ -251,8 +250,7 @@ export default class Effect {
      *
      *  @default 0
      */
-    get programVariantName() //eslint-disable-line
-    {
+    get programVariantName() { //eslint-disable-line
         return 0;
     }
 
@@ -327,8 +325,7 @@ export default class Effect {
 
     /** The data format that this effect requires from the VertexData that it renders:
      *  <code>'position:float2'</code> */
-    get vertexFormat() // eslint-disable-line
-    {
+    get vertexFormat() { // eslint-disable-line
         return Effect.VERTEX_FORMAT;
     }
 

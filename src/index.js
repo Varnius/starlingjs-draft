@@ -19,6 +19,9 @@ export { default as Canvas } from './display/canvas';
 
 export { default as Texture } from './textures/texture';
 
+export { default as FragmentFilter } from './filters/fragment-filter';
+export { default as ColorMatrixFilter } from './filters/color-matrix-filter';
+
 export { default as Event } from './events/event';
 export { default as KeyboardEvent } from './events/keyboard-event';
 export { default as EventDispatcher } from './events/event-dispatcher';

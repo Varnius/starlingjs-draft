@@ -33,8 +33,7 @@ export default class SubTexture extends Texture {
      *  @param scaleModifier  The scale factor of the SubTexture will be calculated by
      *                    multiplying the parent texture's scale factor with this value.
      */
-    constructor(parent, region = null, ownsParent = false, frame = null, rotated = false, scaleModifier = 1)
-    {
+    constructor(parent, region = null, ownsParent = false, frame = null, rotated = false, scaleModifier = 1) {
         super();
         this.setTo(parent, region, ownsParent, frame, rotated, scaleModifier);
     }
@@ -46,18 +45,15 @@ export default class SubTexture extends Texture {
      *  the texture is not accessible to the outside, this can be overruled in order to avoid
      *  allocations.</p>
      */
-    setTo(parent, region = null, ownsParent = false, frame = null, rotated = false, scaleModifier = 1)
-    {
+    setTo(parent, region = null, ownsParent = false, frame = null, rotated = false, scaleModifier = 1) {
         if (!this._region) this._region = new Rectangle();
         if (region) this._region.copyFrom(region);
         else this._region.setTo(0, 0, parent.width, parent.height);
 
-        if (frame)
-        {
+        if (frame) {
             if (this._frame) this._frame.copyFrom(frame);
             else this._frame = frame.clone();
-        }
-        else this._frame = null;
+        } else this._frame = null;
 
         this._parent = parent;
         this._ownsParent = ownsParent;
@@ -67,24 +63,21 @@ export default class SubTexture extends Texture {
         this._scale = this._parent.scale * scaleModifier;
 
         if (this._frame && (this._frame.x > 0 || this._frame.y > 0 ||
-            this._frame.right < this._width || this._frame.bottom < this._height))
-        {
+            this._frame.right < this._width || this._frame.bottom < this._height)) {
             console.warning("[Starling] Warning: frames inside the texture's region are unsupported.");
         }
 
         this.updateMatrices();
     }
 
-    updateMatrices()
-    {
+    updateMatrices() {
         if (this._transformationMatrix) this._transformationMatrix.identity();
         else this._transformationMatrix = new Matrix();
 
         if (this._transformationMatrixToRoot) this._transformationMatrixToRoot.identity();
         else this._transformationMatrixToRoot = new Matrix();
 
-        if (this._rotated)
-        {
+        if (this._rotated) {
             this._transformationMatrix.translate(0, -1);
             this._transformationMatrix.rotate(Math.PI / 2.0);
         }
@@ -95,121 +88,102 @@ export default class SubTexture extends Texture {
             this._region.y / this._parent.height);
 
         let texture = this;
-        while (texture)
-        {
+        while (texture) {
             this._transformationMatrixToRoot.concat(texture._transformationMatrix);
             texture = texture.parent instanceof SubTexture ? texture.parent : null;
         }
     }
 
     /** Disposes the parent texture if this texture owns it. */
-    dispose()
-    {
+    dispose() {
         if (this._ownsParent) this._parent.dispose();
         super.dispose();
     }
 
     /** The texture which the SubTexture is based on. */
-    get parent()
-    {
+    get parent() {
         return this._parent;
     }
 
     /** Indicates if the parent texture is disposed when this object is disposed. */
-    get ownsParent()
-    {
+    get ownsParent() {
         return this._ownsParent;
     }
 
     /** If true, the SubTexture will show the parent region rotated by 90 degrees (CCW). */
-    get rotated()
-    {
+    get rotated() {
         return this._rotated;
     }
 
     /** The region of the parent texture that the SubTexture is showing (in points).
      *
      *  <p>CAUTION: not a copy, but the actual object! Do not modify!</p> */
-    get region()
-    {
+    get region() {
         return this._region;
     }
 
     /** @inheritDoc */
-    get transformationMatrix()
-    {
+    get transformationMatrix() {
         return this._transformationMatrix;
     }
 
     /** @inheritDoc */
-    get transformationMatrixToRoot()
-    {
+    get transformationMatrixToRoot() {
         return this._transformationMatrixToRoot;
     }
 
     /** @inheritDoc */
-    get base()
-    {
+    get base() {
         return this._parent.base;
     }
 
     /** @inheritDoc */
-    get root()
-    {
+    get root() {
         return this._parent.root;
     }
 
     /** @inheritDoc */
-    get format()
-    {
+    get format() {
         return this._parent.format;
     }
 
     /** @inheritDoc */
-    get width()
-    {
+    get width() {
         return this._width;
     }
 
     /** @inheritDoc */
-    get height()
-    {
+    get height() {
         return this._height;
     }
 
     /** @inheritDoc */
-    get nativeWidth()
-    {
+    get nativeWidth() {
         return this._width * this._scale;
     }
 
     /** @inheritDoc */
-    get nativeHeight()
-    {
+    get nativeHeight() {
         return this._height * this._scale;
     }
 
     /** @inheritDoc */
-    get mipMapping()
-    {
+    get mipMapping() {
         return this._parent.mipMapping;
     }
 
     /** @inheritDoc */
-    get premultipliedAlpha()
-    {
+    get premultipliedAlpha() {
         return this._parent.premultipliedAlpha;
     }
 
     /** @inheritDoc */
-    get scale()
-    {
+    get scale() {
         return this._scale;
     }
 
     /** @inheritDoc */
-    get frame()
-    {
+    get frame() {
         return this._frame;
     }
 }

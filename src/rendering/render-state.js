@@ -173,7 +173,6 @@ export default class RenderState {
      */
     setProjectionMatrix(x, y, width, height, stageWidth = 0, stageHeight = 0, cameraPos = null) {
         this._projectionMatrix3DRev = ++RenderState.sProjectionMatrix3DRev;
-
         MatrixUtil.createPerspectiveProjectionMatrix(x, y, width, height, stageWidth, stageHeight, cameraPos, this._projectionMatrix3D);
     }
 

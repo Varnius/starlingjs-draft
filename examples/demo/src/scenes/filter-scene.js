@@ -1,4 +1,4 @@
-import { Starling, Image, Event, FragmentFilter, ColorMatrixFilter, BlurFilter, DropShadowFilter } from '../../../../src/index';
+import { Starling, Image, Event, FragmentFilter, ColorMatrixFilter, BlurFilter, DropShadowFilter, GlowFilter } from '../../../../src/index';
 
 import Scene from './scene';
 import Game from '../game';
@@ -54,7 +54,7 @@ export default class FilterScene extends Scene {
             ['Identity', new FragmentFilter()],
             ['Blur', new BlurFilter()],
             ['Drop Shadow', new DropShadowFilter()],
-            //['Glow', new GlowFilter()],
+            ['Glow', new GlowFilter()],
         ];
 
         //this._displacementMap = this.createDisplacementMap(this._image.width, this._image.height);

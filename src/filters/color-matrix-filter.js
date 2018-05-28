@@ -217,7 +217,6 @@ class ColorMatrixEffect extends FilterEffect {
                     textureColor = max(textureColor, uMinColor);
                     textureColor.xyz = textureColor.xyz / textureColor.www;
                     textureColor = (uShaderMatrix * textureColor) + uOffset;
-                    //textureColor = (m * textureColor) + o;
                     textureColor.xyz = textureColor.xyz * textureColor.w;
                     color = textureColor;
                 }

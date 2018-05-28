@@ -113,52 +113,6 @@ class CompositeEffect extends FilterEffect {
         return out;
     }
 
-    //    var vertexShader = ['m44 op, va0, vc0']; // transform position to clip-space
-    //    var layer = this._layers[0];
-    //
-    //    for (i = 0; i < numLayers; ++i) // v0-4 -> texture coords
-    //        vertexShader.push(
-    //            StringUtil.format('add v{0}, va{1}, vc{2}', i, i + 1, i + 4) // add offset
-    //        );
-    //
-    //    var fragmentShader = [
-    //        'sge ft5, v0, v0' // ft5 -> 1, 1, 1, 1
-    //    ];
-    //
-    //    for (i = 0; i < numLayers; ++i) {
-    //        var fti = 'ft' + i;
-    //        var fci = 'fc' + i;
-    //        var vi = 'v' + i;
-    //
-    //        layer = this._layers[i];
-    //
-    //        fragmentShader.push(
-    //            tex(fti, vi, i, layers[i].texture)  // fti => texture i color
-    //        );
-    //
-    //        if (layer.replaceColor)
-    //            fragmentShader.push(
-    //                'mul ' + fti + '.w,   ' + fti + '.w,   ' + fci + '.w',
-    //                'sat ' + fti + '.w,   ' + fti + '.w    ', // make sure alpha <= 1.0
-    //                'mul ' + fti + '.xyz, ' + fci + '.xyz, ' + fti + '.www'
-    //            );
-    //        else
-    //            fragmentShader.push(
-    //                'mul ' + fti + ', ' + fti + ', ' + fci // fti *= color
-    //            );
-    //
-    //        if (i !== 0) {
-    //            // 'normal' blending: src × ONE + dst × ONE_MINUS_SOURCE_ALPHA
-    //            fragmentShader.push(
-    //                'sub ft4, ft5, ' + fti + '.wwww', // ft4 => 1 - src.alpha
-    //                'mul ft0, ft0, ft4',              // ft0 => dst * (1 - src.alpha)
-    //                'add ft0, ft0, ' + fti            // ft0 => src + (dst * 1 - src.alpha)
-    //            );
-    //        }
-    //    }
-    //
-    //    fragmentShader.push('mov oc, ft0'); // done! :)
-
     createProgram() {
         const layers = this.getUsedLayers(CompositeEffect.sLayers);
 

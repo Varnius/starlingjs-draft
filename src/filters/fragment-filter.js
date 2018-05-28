@@ -16,7 +16,6 @@ import Padding from '../utils/padding';
 import FilterEffect from '../rendering/filter-effect';
 import Event from '../events/event';
 import TextureSmoothing from '../textures/texture-smoothing';
-import { vertexDataToSomethingReadable } from '../utils/debug';
 
 /** The FragmentFilter class is the base class for all filter effects in Starling.
  *  All filters must extend this class. You can attach them to any display object through the
@@ -155,7 +154,7 @@ export default class FragmentFilter extends EventDispatcher {
         let drawLastPassToBackBuffer = false;
         const origResolution = this._resolution;
         const renderSpace = this._target.stage || this._target.parent;
-        const isOnStage = renderSpace instanceof Stage; // todo: was renderSpace is stage
+        const isOnStage = renderSpace instanceof Stage;
         const stage = Starling.current.stage;
         let stageBounds;
 
@@ -214,7 +213,7 @@ export default class FragmentFilter extends EventDispatcher {
         // only 'child'-filters use resolution directly (in 'process')
 
         const wasCacheEnabled = painter.cacheEnabled;
-        const input = this._helper.getTexture(); // todo <-- subtexture
+        const input = this._helper.getTexture();
 
         painter.cacheEnabled = false; // -> what follows should not be cached
         painter.pushState();
@@ -274,7 +273,6 @@ export default class FragmentFilter extends EventDispatcher {
     process(painter, helper, input0 = null) {
         const effect = this.effect;
         const output = helper.getTexture(this._resolution);
-
         let projectionMatrix;
         let bounds = null;
         let renderTarget;
@@ -393,11 +391,11 @@ export default class FragmentFilter extends EventDispatcher {
 
     /** Call this method when any of the filter's properties changes.
      *  This will make sure the filter is redrawn in the next frame. */
-    setRequiresRedraw() {
+    setRequiresRedraw = () => {
         this.dispatchEventWith(Event.CHANGE);
         if (this._target) this._target.setRequiresRedraw();
         if (this._cached) this._cacheRequested = true;
-    }
+    };
 
     /** Indicates the number of rendering passes required for this filter.
      *  Subclasses must override this method if the number of passes is not <code>1</code>. */

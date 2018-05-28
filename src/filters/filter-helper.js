@@ -102,7 +102,7 @@ export default class FilterHelper {
     putTexture(texture) {
         if (texture) {
             if (texture.root.nativeWidth === this._nativeWidth && texture.root.nativeHeight === this._nativeHeight)
-                this._pool.splice(this._pool.length, 0, texture); // todo: test
+                this._pool.splice(this._pool.length, 0, texture);
             else
                 texture.dispose();
         }

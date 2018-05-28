@@ -21,6 +21,8 @@ export { default as Texture } from './textures/texture';
 
 export { default as FragmentFilter } from './filters/fragment-filter';
 export { default as ColorMatrixFilter } from './filters/color-matrix-filter';
+export { default as BlurFilter } from './filters/blur-filter';
+export { default as DropShadowFilter } from './filters/drop-shadow-filter';
 
 export { default as Event } from './events/event';
 export { default as KeyboardEvent } from './events/keyboard-event';

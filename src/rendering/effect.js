@@ -112,7 +112,10 @@ export default class Effect {
 
     /** Purges one or both of the vertex- and index-buffers. */
     purgeBuffers() {
-        console.log('purge buffers?');
+        //const gl = Starling.context;
+        //console.log(this._vertexArray)
+        //gl.deleteVertexArray(this._vertexArray);
+        console.log('todo: implement purge buffers')
     }
 
     /** Uploads the given index data to the internal index buffer. If the buffer is too

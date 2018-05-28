@@ -43,7 +43,7 @@ export default class ColorMatrixFilter extends FragmentFilter {
     }
 
     /** @private */
-    createEffect() {
+    createEffect() {2
         return new ColorMatrixEffect();
     }
 
@@ -51,10 +51,12 @@ export default class ColorMatrixFilter extends FragmentFilter {
 
     /** Inverts the colors of the filtered object. */
     invert() {
-        this.concatValues(-1, 0, 0, 0, 255,
+        this.concatValues(
+            -1, 0, 0, 0, 255,
             0, -1, 0, 0, 255,
             0, 0, -1, 0, 255,
-            0, 0, 0, 1, 0);
+            0, 0, 0, 1, 0
+        );
     }
 
     /** Changes the saturation. Typical values are in the range (-1, 1).
@@ -173,7 +175,7 @@ export default class ColorMatrixFilter extends FragmentFilter {
     }
 
     get colorEffect() {
-        return this.effect;
+        return this.effect instanceof ColorMatrixEffect ? this.effect : null;
     }
 }
 
@@ -196,22 +198,6 @@ class ColorMatrixEffect extends FilterEffect {
         this.matrix = null;
     }
 
-    //createProgram() {
-        //var vertexShader = FilterEffect.STD_VERTEX_SHADER;
-        //var fragmentShader = [
-        //    tex("ft0", "v0", 0, texture),      // read texture color
-        //    "max ft0, ft0, fc5              ", // avoid division through zero in next step
-        //    "div ft0.xyz, ft0.xyz, ft0.www  ", // restore original (non-PMA) RGB values
-        //    "m44 ft0, ft0, fc0              ", // multiply color with 4x4 matrix
-        //    "add ft0, ft0, fc4              ", // add offset
-        //    "mul ft0.xyz, ft0.xyz, ft0.www  ", // multiply with alpha again (PMA)
-        //    "mov oc, ft0                    "  // copy to output
-        //].join("\n");
-        //
-        //return Program.fromSource(vertexShader, fragmentShader);
-        // todo
-    //}
-
     createProgram() {
         const vertexShader = FilterEffect.STD_VERTEX_SHADER;
         const fragmentShader = `#version 300 es
@@ -219,14 +205,21 @@ class ColorMatrixEffect extends FilterEffect {
 
                 uniform sampler2D sTexture;
                 uniform mat4 uShaderMatrix;
-                uniform float4 uMinColor;
+                uniform vec4 uMinColor;
+                uniform vec4 uOffset;
 
                 in vec2 vTexCoords;
 
                 out vec4 color;
 
                 void main() {
-                    color = vec4(1,0,0,1);
+                    vec4 textureColor = texture(sTexture, vTexCoords);
+                    textureColor = max(textureColor, uMinColor);
+                    textureColor.xyz = textureColor.xyz / textureColor.www;
+                    textureColor = (uShaderMatrix * textureColor) + uOffset;
+                    //textureColor = (m * textureColor) + o;
+                    textureColor.xyz = textureColor.xyz * textureColor.w;
+                    color = textureColor;
                 }
             `;
 
@@ -236,15 +229,15 @@ class ColorMatrixEffect extends FilterEffect {
     beforeDraw(context) {
         super.beforeDraw(context);
 
-        //context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 0, this._shaderMatrix);
-        //context.setProgramConstantsFromVector(Context3DProgramType.FRAGMENT, 5, this.MIN_COLOR);
-
         const nativeProgram = this.program.nativeProgram;
         const shaderMatrixLoc = context.getUniformLocation(nativeProgram, 'uShaderMatrix');
-        context.uniformMatrix4fv(shaderMatrixLoc, false, this.mvpMatrix3D.rawData);
+        context.uniformMatrix4fv(shaderMatrixLoc, true, this._shaderMatrix);
 
         const minColorLoc = context.getUniformLocation(nativeProgram, 'uMinColor');
         context.uniform4f(minColorLoc, ...this.MIN_COLOR);
+
+        const offsetLoc = context.getUniformLocation(nativeProgram, 'uOffset');
+        context.uniform4f(offsetLoc, ...this._offset);
     }
 
     // matrix manipulation
@@ -287,10 +280,11 @@ class ColorMatrixEffect extends FilterEffect {
             this._userMatrix[0], this._userMatrix[1], this._userMatrix[2], this._userMatrix[3],
             this._userMatrix[5], this._userMatrix[6], this._userMatrix[7], this._userMatrix[8],
             this._userMatrix[10], this._userMatrix[11], this._userMatrix[12], this._userMatrix[13],
-            this._userMatrix[15], this._userMatrix[16], this._userMatrix[17], this._userMatrix[18],
-            this._userMatrix[4] / 255.0, this._userMatrix[9] / 255.0, this._userMatrix[14] / 255.0,
-            this._userMatrix[19] / 255.0
+            this._userMatrix[15], this._userMatrix[16], this._userMatrix[17], this._userMatrix[18]
         );
+        this._offset = [
+            this._userMatrix[4] / 255.0, this._userMatrix[9] / 255.0, this._userMatrix[14] / 255.0, this._userMatrix[19] / 255.0,
+        ];
     }
 
     // properties

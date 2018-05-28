@@ -1,4 +1,4 @@
-import { Starling, Image, Event, FragmentFilter, ColorMatrixFilter } from '../../../../src/index';
+import { Starling, Image, Event, FragmentFilter, ColorMatrixFilter, BlurFilter, DropShadowFilter } from '../../../../src/index';
 
 import Scene from './scene';
 import Game from '../game';
@@ -52,8 +52,8 @@ export default class FilterScene extends Scene {
     initFilters() {
         this._filterInfos = [
             ['Identity', new FragmentFilter()],
-            //['Blur', new BlurFilter()],
-            //['Drop Shadow', new DropShadowFilter()],
+            ['Blur', new BlurFilter()],
+            ['Drop Shadow', new DropShadowFilter()],
             //['Glow', new GlowFilter()],
         ];
 
@@ -67,25 +67,25 @@ export default class FilterScene extends Scene {
         invertFilter.invert();
         this._filterInfos.push(['Invert', invertFilter]);
 
-        //const grayscaleFilter = new ColorMatrixFilter();
-        //grayscaleFilter.adjustSaturation(-1);
-        //this._filterInfos.push(['Grayscale', grayscaleFilter]);
-        //
-        //const saturationFilter = new ColorMatrixFilter();
-        //saturationFilter.adjustSaturation(1);
-        //this._filterInfos.push(['Saturation', saturationFilter]);
-        //
-        //const contrastFilter = new ColorMatrixFilter();
-        //contrastFilter.adjustContrast(0.75);
-        //this._filterInfos.push(['Contrast', contrastFilter]);
-        //
-        //const brightnessFilter = new ColorMatrixFilter();
-        //brightnessFilter.adjustBrightness(-0.25);
-        //this._filterInfos.push(['Brightness', brightnessFilter]);
-        //
-        //const hueFilter = new ColorMatrixFilter();
-        //hueFilter.adjustHue(1);
-        //this._filterInfos.push(['Hue', hueFilter]);
+        const grayscaleFilter = new ColorMatrixFilter();
+        grayscaleFilter.adjustSaturation(-1);
+        this._filterInfos.push(['Grayscale', grayscaleFilter]);
+
+        const saturationFilter = new ColorMatrixFilter();
+        saturationFilter.adjustSaturation(1);
+        this._filterInfos.push(['Saturation', saturationFilter]);
+
+        const contrastFilter = new ColorMatrixFilter();
+        contrastFilter.adjustContrast(0.75);
+        this._filterInfos.push(['Contrast', contrastFilter]);
+
+        const brightnessFilter = new ColorMatrixFilter();
+        brightnessFilter.adjustBrightness(-0.25);
+        this._filterInfos.push(['Brightness', brightnessFilter]);
+
+        const hueFilter = new ColorMatrixFilter();
+        hueFilter.adjustHue(1);
+        this._filterInfos.push(['Hue', hueFilter]);
         //
         //const chain = new FilterChain(hueFilter, new DropShadowFilter());
         //this._filterInfos.push(['Hue + Shadow', chain]);

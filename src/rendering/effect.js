@@ -105,17 +105,16 @@ export default class Effect {
         this.purgeBuffers();
     }
 
-    onContextCreated() {
-        this.purgeBuffers();
-        this.execute(this._onRestore, this);
-    }
+    //onContextCreated() {
+    //    this.purgeBuffers();
+    //    this.execute(this._onRestore, this);
+    //}
 
     /** Purges one or both of the vertex- and index-buffers. */
     purgeBuffers() {
-        //const gl = Starling.context;
-        //console.log(this._vertexArray)
-        //gl.deleteVertexArray(this._vertexArray);
-        console.log('todo: implement purge buffers')
+        const gl = Starling.context;
+        gl.deleteVertexArray(this._vertexArray);
+        this._vertexArray = null;
     }
 
     /** Uploads the given index data to the internal index buffer. If the buffer is too

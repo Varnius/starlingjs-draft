@@ -1,4 +1,4 @@
-import { Sprite, Quad, Starling, TouchEvent, Image, TouchPhase, Canvas } from '../../../../src/index';
+import { Sprite, Quad, Starling, TouchEvent, Image, TouchPhase, Canvas, TextField } from '../../../../src/index';
 
 import Scene from './scene';
 import Game from '../game';
@@ -33,12 +33,11 @@ export default class MaskScene extends Scene {
         //cm.adjustHue(-0.5);
         //image.filter = cm;
 
-        //const maskText:TextField = new TextField(256, 128,
-        //    "Move the mouse (or a finger) over the screen to move the mask.");
-        //maskText.x = (stageWidth - maskText.width) / 2;
-        //maskText.y = 260;
-        //maskText.format.size = 20;
-        //_contents.addChild(maskText);
+        const maskText = new TextField(256, 128, 'Move the mouse (or a finger) over the screen to move the mask.');
+        maskText.x = (stageWidth - maskText.width) / 2;
+        maskText.y = 260;
+        maskText.format.size = 20;
+        this._contents.addChild(maskText);
 
         this._maskDisplay = this.createCircle();
         this._maskDisplay.alpha = 0.1;

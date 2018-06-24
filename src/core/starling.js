@@ -78,6 +78,10 @@ export default class Starling extends EventDispatcher {
         this._frameTimestamp = new Date().getTime() / 1000.0;
         this._frameID = 1;
 
+        // todo:
+        this.textCanvas = window.document.getElementById('text-canvas');
+        this.textContext = this.textCanvas.getContext('2d');
+
         // register touch/mouse event handlers            
         for (const touchEventType of this.touchEventTypes)
             canvas.addEventListener(touchEventType, this.onTouch, false); // todo: removed last two params

@@ -6,6 +6,7 @@ import Image from './image';
 import Event from '../events/event';
 import TouchPhase from '../events/touch-phase';
 import TouchEvent from '../events/touch-event';
+import TextField from '../text/text-field';
 
 /** A simple button composed of an image and, optionally, text.
  *
@@ -108,22 +109,20 @@ export default class Button extends DisplayObjectContainer {
     }
 
     createTextField() {
-        console.log('implement: textfield')
-        //const { _textBounds, _body } = this;
+        const { _textBounds, _body } = this;
 
-        //if (!this._textField)
-        //{
-        //    this._textField = new TextField(_textBounds.width, _textBounds.height);
-        //    this._textField.pixelSnapping = _body.pixelSnapping;
-        //    this._textField.touchable = false;
-        //    this._textField.autoScale = true;
-        //    this._textField.batchable = true;
-        //}
-        //
-        //this._textField.width = _textBounds.width;
-        //this._textField.height = _textBounds.height;
-        //this._textField.x = _textBounds.x;
-        //this._textField.y = _textBounds.y;
+        if (!this._textField) {
+            this._textField = new TextField(_textBounds.width, _textBounds.height);
+            this._textField.pixelSnapping = _body.pixelSnapping;
+            this._textField.touchable = false;
+            this._textField.autoScale = true;
+            this._textField.batchable = true;
+        }
+
+        this._textField.width = _textBounds.width;
+        this._textField.height = _textBounds.height;
+        this._textField.x = _textBounds.x;
+        this._textField.y = _textBounds.y;
     }
 
     onTouch = event => {
@@ -264,22 +263,19 @@ export default class Button extends DisplayObjectContainer {
     }
 
     set text(value) {
-        console.log('todo: implement');
-        //const { _textField, _contents } = this;
-        //
-        //if (value.length === 0) {
-        //    if (_textField) {
-        //        _textField.text = value;
-        //        _textField.removeFromParent();
-        //    }
-        //}
-        //else {
-        //    this.createTextField();
-        //    _textField.text = value;
-        //
-        //    if (!_textField.parent)
-        //        _contents.addChild(_textField);
-        //}
+        if (value.length === 0) {
+            if (this._textField) {
+                this._textField.text = value;
+                this._textField.removeFromParent();
+            }
+        }
+        else {
+            this.createTextField();
+            this._textField.text = value;
+
+            if (!this._textField.parent)
+                this._contents.addChild(this._textField);
+        }
     }
 
     /** The format of the button's TextField. */

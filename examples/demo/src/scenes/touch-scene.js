@@ -1,4 +1,4 @@
-import { Image, Utils } from '../../../../src/index';
+import { Image, Utils, TextField } from '../../../../src/index';
 
 import Scene from './scene';
 import Game from '../game';
@@ -9,11 +9,11 @@ export default class TouchScene extends Scene {
     constructor() {
         super();
 
-        //var description:String = "[use "z" to simulate multi-touch]";
-        //
-        //var infoText:TextField = new TextField(300, 25, description);
-        //infoText.x = infoText.y = 10;
-        //addChild(infoText);
+        const description = '[use "z" to simulate multi-touch]';
+
+        const infoText = new TextField(300, 25, description);
+        infoText.x = infoText.y = 10;
+        this.addChild(infoText);
 
         // to find out how to react to touch events have a look at the TouchSheet class!
         // It's part of the demo.

@@ -4,6 +4,7 @@ import MenuButton from './utils/menu-button';
 import Game from './game';
 import TextureScene from './scenes/texture-scene';
 import TouchScene from './scenes/touch-scene';
+import TextScene from './scenes/text-scene';
 import AnimationScene from './scenes/animation-scene';
 import MovieScene from './scenes/movie-scene';
 import BlendModeScene from './scenes/blend-mode-scene';
@@ -26,7 +27,7 @@ export default class MainMenu extends Sprite {
         const scenesToCreate = [
             ['Textures', TextureScene],
             ['Multitouch', TouchScene],
-            //['TextFields', TextScene],
+            ['TextFields', TextScene],
             ['Animations', AnimationScene],
             ['Custom hit-test', CustomHitTestScene],
             ['Movie Clip', MovieScene],

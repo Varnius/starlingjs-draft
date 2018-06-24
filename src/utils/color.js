@@ -33,6 +33,9 @@ export function unmultiplyAlpha(rgba) {
     }
 }
 
+export const toCssRgbString = color =>
+    `rgb(${Color.getRed(color)}, ${Color.getGreen(color)}, ${Color.getBlue(color)})`;
+
 export default class Color {
     static WHITE = 0xffffff;
     static SILVER = 0xc0c0c0;

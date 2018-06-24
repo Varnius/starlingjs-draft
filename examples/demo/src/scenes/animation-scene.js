@@ -1,4 +1,4 @@
-import { Image, Starling, Color, Utils, Transitions, Tween, Event } from '../../../../src/index';
+import { Image, Starling, Color, Utils, Transitions, Tween, Event, TextField } from '../../../../src/index';
 
 import Scene from './scene';
 import Game from '../game';
@@ -38,12 +38,12 @@ export default class AnimationScene extends Scene {
         this.addChild(this._egg);
         this.resetEgg();
 
-        //this._transitionLabel = new TextField(320, 30);
-        //this._transitionLabel.format.size = 20;
-        //this._transitionLabel.format.bold = true;
-        //this._transitionLabel.y = this._delayButton.y + 40;
-        //this._transitionLabel.alpha = 0.0; // invisible, will be shown later
-        //addChild(this._transitionLabel);
+        this._transitionLabel = new TextField(320, 30);
+        this._transitionLabel.format.size = 20;
+        this._transitionLabel.format.bold = true;
+        this._transitionLabel.y = this._delayButton.y + 40;
+        this._transitionLabel.alpha = 0.0; // invisible, will be shown later
+        this.addChild(this._transitionLabel);
     }
 
     resetEgg() {

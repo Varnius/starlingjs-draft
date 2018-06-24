@@ -116,4 +116,43 @@ describe('AssetManager', () => {
         expect(assetManager.getTextures('subtex__')).to.have.lengthOf(0);
         expect(assetManager.getTextures('other')).to.have.lengthOf(1);
     });
+
+    it('should load bitmap fonts', async () => {
+        const imageBlob = { width: 50, height: 40 };
+        const font = `
+            <font>
+                <info face="Desyrel" size="35" bold="0" italic="0" chasrset="" unicode="0" stretchH="100" smooth="1" aa="1" padding="0,0,0,0" spacing="1,1"/>
+                <common lineHeight="43" base="31" scaleW="256" scaleH="256" pages="1" packed="0"/>
+                <pages>
+                    <page id="0" file="desyrel.png"/>
+                </pages>
+                <chars count="1">
+                    <char id="83" x="1" y="1" width="19" height="39" xoffset="3" yoffset="2" xadvance="16" page="0" chnl="0" letter="S"/>
+                    <char id="83" x="1" y="1" width="19" height="39" xoffset="3" yoffset="2" xadvance="16" page="0" chnl="0" letter="A"/>
+                </chars>
+                <kernings count="1">
+                    <kerning first="83" second="83" amount="-4"/>
+                    <kerning first="84" second="84" amount="-3"/>
+                </kernings>
+            </font>
+        `;
+
+        nock(basePath)
+            .get('/bitmapFont.png')
+            .reply(() => ({ blob: () => Promise.resolve(imageBlob) }))
+            .get('/bitmapFont.fnt')
+            .reply(201, font, { 'Content-Type': 'application/xml' });
+
+        assetManager.enqueue([
+            { path: `${basePath}bitmapFont.png` },
+            { path: `${basePath}bitmapFont.fnt` },
+        ]);
+
+        expect(assetManager.getBitmapFont('bitmapFont')).to.be.undefined;
+
+        await assetManager.loadQueue();
+
+        expect(assetManager.getBitmapFont('bitmapFont')).to.be.ok;
+        expect(assetManager.getBitmapFont('bitmapFont').name).to.equal('Desyrel');
+    });
 });

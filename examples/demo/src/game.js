@@ -2,10 +2,6 @@ import { Starling, Sprite, Image, Event, KeyboardEvent } from '../../../src/inde
 import MainMenu from './main-menu';
 
 export default class Game extends Sprite {
-    // Embed the Ubuntu Font. Beware: the 'embedAsCFF'-part IS REQUIRED!!!
-    //[Embed(source="../../demo/assets/fonts/Ubuntu-R.ttf", embedAsCFF="false", fontFamily="Ubuntu")]
-    //private static const UbuntuRegular:Class;
-
     _mainMenu;
     _currentScene;
 

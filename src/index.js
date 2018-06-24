@@ -24,6 +24,10 @@ export { default as ColorMatrixFilter } from './filters/color-matrix-filter';
 export { default as BlurFilter } from './filters/blur-filter';
 export { default as DropShadowFilter } from './filters/drop-shadow-filter';
 export { default as GlowFilter } from './filters/glow-filter';
+export { default as FilterChain } from './filters/filter-chain';
+
+export { default as TextField } from './text/text-field';
+export { default as BitmapFont } from './text/bitmap-font';
 
 export { default as Event } from './events/event';
 export { default as KeyboardEvent } from './events/keyboard-event';
@@ -40,5 +44,6 @@ import deg2rad from './utils/deg2rad';
 
 export const Utils = { deg2rad };
 export { default as Color } from './utils/color';
+export { default as Align } from './utils/align';
 
 export * from './utils/texture-creators';

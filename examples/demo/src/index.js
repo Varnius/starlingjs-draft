@@ -14,6 +14,8 @@ import Constants from './constants';
             { path: `/demo/assets/textures/${scaleFactor}x/background.jpg` },
             { path: `/demo/assets/textures/${scaleFactor}x/atlas.png` },
             { path: `/demo/assets/textures/${scaleFactor}x/atlas.xml` },
+            { path: '/demo/assets/fonts/desyrel/desyrel.fnt' },
+            { path: '/demo/assets/fonts/desyrel/desyrel.png' },
 
         ]);
         await assetManager.loadQueue();

@@ -98,6 +98,7 @@ export default class FilterEffect extends Effect {
         if (_texture) {
             gl.bindTexture(gl.TEXTURE_2D, _texture.base);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, _textureSmoothing);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, _textureSmoothing);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, _textureRepeat ? gl.REPEAT : gl.CLAMP_TO_EDGE);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, _textureRepeat ? gl.REPEAT : gl.CLAMP_TO_EDGE);
         }

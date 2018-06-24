@@ -8,7 +8,8 @@
     "compile": "NODE_ENV=production rimraf dist && NODE_ENV=production webpack --progress --config webpack.config.prod.js",
     "start": "node server.js",
     "build": "npm run compile",
-    "test": "eslint src && NODE_ENV=production mocha  -r babel-register './tests/tests.js' './tests/**/*.spec.js' --timeout 1000",
+    "test": "NODE_ENV=production mocha  -r babel-register './tests/tests.js' './tests/**/*.spec.js' --timeout 1000",
+    "lint": "eslint src",
     "test:watch": "NODE_ENV=production mocha  -r babel-register './tests/tests.js' './tests/**/*.spec.js' --reporter nyan --watch --timeout 1000"
   },
   "author": "Simonas Pauliukevičius",

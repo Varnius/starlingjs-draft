@@ -9,8 +9,7 @@ export default class TextureSmoothing {
     static BILINEAR = LINEAR;
 
     /** Determines whether a smoothing value is valid. */
-    static isValid(smoothing)
-    {
+    static isValid(smoothing) {
         return smoothing === TextureSmoothing.NONE || smoothing === TextureSmoothing.BILINEAR;
     }
 }

@@ -298,7 +298,7 @@ describe('MovieClip', () => {
         }
     });
 
-    it.only('should reverse frames', () => {
+    it('should reverse frames', () => {
         let i;
         const numFrames = 4;
         const frames = createFrames(numFrames);

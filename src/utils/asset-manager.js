@@ -4,10 +4,13 @@ import { xml2json } from 'xml-js';
 import { createTextureFromData } from './texture-creators';
 import TextureOptions from '../textures/texture-options';
 import TextureAtlas from '../textures/texture-atlas';
+import TextField from '../text/text-field';
+import BitmapFont from '../text/bitmap-font';
 
 const DataType = {
     TEXTURE: { id: 'texture', extensions: ['png', 'jpg', 'jpeg'] },
     XML_ATLAS: { id: 'xml', extensions: ['xml'] },
+    BITMAP_FONT: { id: 'bitmapFont', extensions: ['fnt'] },
 };
 
 export default class AssetManager {
@@ -17,6 +20,7 @@ export default class AssetManager {
         this._defaultTextureOptions = new TextureOptions(scaleFactor, useMipmaps);
         this._textures = new Map();
         this._atlases = new Map();
+        this._bitmapFonts = new Map();
         this._queue = [];
     }
 
@@ -65,7 +69,7 @@ export default class AssetManager {
 
             if (type === DataType.TEXTURE) {
                 return data.blob().then(blobData => window.createImageBitmap(blobData));
-            } else if (type === DataType.XML_ATLAS) {
+            } else if (type === DataType.XML_ATLAS || type === DataType.BITMAP_FONT) {
                 return data.text();
             }
 
@@ -76,6 +80,7 @@ export default class AssetManager {
 
         const parsedQueue = await Promise.all(preparsedQueue);
         const parsedAtlases = [];
+        const parsedBitmapFonts = [];
 
         parsedQueue.forEach((item, index) => {
             const descriptor = _queue[index];
@@ -92,18 +97,37 @@ export default class AssetManager {
                     data: JSON.parse(xml2json(item, { compact: true })),
                     descriptor,
                 });
+            } else if (type === DataType.BITMAP_FONT) {
+                parsedBitmapFonts.push({
+                    data: JSON.parse(xml2json(item, { compact: true })),
+                    descriptor,
+                });
             }
 
             // other...
         });
 
-        // 4. Create atlas textures, if any
+        // 4. Create atlas textures/bitmap fonts, if any
 
         parsedAtlases
             .forEach(({ descriptor, data }) => {
                 if (data.TextureAtlas) {
                     const texture = this.getTexture(descriptor.name);
                     this.addTextureAtlas(descriptor.name, new TextureAtlas(texture, data));
+                }
+            });
+
+        parsedBitmapFonts
+            .forEach(({ descriptor: { name }, data }) => {
+                if (data.font) {
+                    const texture = this.getTexture(name);
+
+                    if (texture) {
+                        const font = new BitmapFont(texture, data);
+                        this._bitmapFonts.set(name, font);
+                        TextField.registerCompositor(font, name);
+                        this.removeTexture(name, false);
+                    } else throw new Error(`Cannot create bitmap font: texture "${name}" is missing.`);
                 }
             });
     }
@@ -115,7 +139,7 @@ export default class AssetManager {
     getTexture(name) {
         const { _textures, _atlases } = this;
 
-        if (_textures.get(name)) return _textures.get(name);
+        if (_textures.has(name)) return _textures.get(name);
         else {
             for (const atlas of _atlases.values()) {
                 const texture = atlas.getTexture(name);
@@ -123,6 +147,13 @@ export default class AssetManager {
             }
             return null;
         }
+    }
+
+    removeTexture(name, dispose) {
+        if (dispose && this._textures.has(name))
+            this._textures.get(name).dispose();
+
+        this._textures.delete(name);
     }
 
     getTextures(prefix, out = null) {
@@ -166,5 +197,9 @@ export default class AssetManager {
         }
 
         this._atlases.set(name, atlas);
+    }
+
+    getBitmapFont(name) {
+        return this._bitmapFonts.get(name);
     }
 }

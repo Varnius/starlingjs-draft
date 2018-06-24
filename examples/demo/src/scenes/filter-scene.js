@@ -1,4 +1,5 @@
-import { Starling, Image, Event, FragmentFilter, ColorMatrixFilter, BlurFilter, DropShadowFilter, GlowFilter } from '../../../../src/index';
+import { Starling, Image, Event, FragmentFilter,
+    ColorMatrixFilter, BlurFilter, DropShadowFilter, GlowFilter, FilterChain, TextField } from '../../../../src/index';
 
 import Scene from './scene';
 import Game from '../game';
@@ -26,11 +27,11 @@ export default class FilterScene extends Scene {
         this._image.y = 170;
         this.addChild(this._image);
 
-        //this._infoText = new TextField(300, 32);
-        //this._infoText.format.size = 19;
-        //this._infoText.x = 10;
-        //this._infoText.y = 330;
-        //this.addChild(this._infoText);
+        this._infoText = new TextField(300, 32);
+        this._infoText.format.size = 19;
+        this._infoText.x = 10;
+        this._infoText.y = 330;
+        this.addChild(this._infoText);
 
         this.initFilters();
         this.onButtonTriggered();
@@ -86,11 +87,12 @@ export default class FilterScene extends Scene {
         const hueFilter = new ColorMatrixFilter();
         hueFilter.adjustHue(1);
         this._filterInfos.push(['Hue', hueFilter]);
-        //
-        //const chain = new FilterChain(hueFilter, new DropShadowFilter());
-        //this._filterInfos.push(['Hue + Shadow', chain]);
+
+        const chain = new FilterChain(hueFilter, new DropShadowFilter());
+        this._filterInfos.push(['Hue + Shadow', chain]);
     }
 
+    // todo: implement
     //createDisplacementMap(width, height) {
     //    const scale = Starling.contentScaleFactor;
     //    const map = new BitmapData(width * scale, height * scale, false);

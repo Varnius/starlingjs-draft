@@ -15,7 +15,7 @@ import Rectangle from '../math/rectangle';
  *  @param format  the context3D texture format to use. Pass one of the packed or
  *                 compressed formats to save memory.
  */
-export function createTextureFromColor({ width, height, color = 0xffffff, alpha = 1.0, scale = -1, format = RGBA }) {
+export const createTextureFromColor = ({ width, height, color = 0xffffff, alpha = 1.0, scale = -1, format = RGBA }) => {
     const texture = createEmptyTexture({ width, height, premultipliedAlpha: true, scale, format });
     texture.root.clear(color, alpha);
     texture.root.onRestore = function () {
@@ -23,7 +23,7 @@ export function createTextureFromColor({ width, height, color = 0xffffff, alpha 
     };
 
     return texture;
-}
+};
 
 /** Creates an empty texture of a certain size.
  *  Beware that the texture can only be used after you either upload some color data
@@ -37,13 +37,9 @@ export function createTextureFromColor({ width, height, color = 0xffffff, alpha 
  *  @param format  the context3D texture format to use. Pass one of the packed or
  *                 compressed formats to save memory (at the price of reduced image quality).
  */
-export function createEmptyTexture(params) {
-    return createWithData({ ...params, data: null });
-}
+export const createEmptyTexture = params => createWithData({ ...params, data: null });
 
-export function createTextureFromData(params) {
-    return createWithData({ ...params });
-}
+export const createTextureFromData = params => createWithData({ ...params });
 
 const createWithData = ({
     data,
@@ -53,6 +49,8 @@ const createWithData = ({
     generateMipMaps = false,
     scale = -1,
     format = RGBA,
+    minFilter = LINEAR_MIPMAP_LINEAR,
+    magFilter = LINEAR,
     }) => {
     if (scale <= 0) scale = Starling.contentScaleFactor;
 
@@ -71,10 +69,8 @@ const createWithData = ({
 
     const border = 0;
     gl.texImage2D(gl.TEXTURE_2D, 0, format, width, height, border, format, gl.UNSIGNED_BYTE, data);
-
-    // todo: parameterize this?
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, LINEAR_MIPMAP_LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
 
     if (generateMipMaps) {
         gl.generateMipmap(gl.TEXTURE_2D);
@@ -88,111 +84,6 @@ const createWithData = ({
     else
         return new SubTexture(concreteTexture, new Rectangle(0, 0, width, height), true);
 };
-
-/** Creates a texture from a <code>TextureBase</code> object.
- *
- *  @param base     a Stage3D texture object created through the current context.
- *  @param width    the width of the texture in pixels (not points!).
- *  @param height   the height of the texture in pixels (not points!).
- *  @param options  specifies options about the texture settings, e.g. the scale factor.
- *                  If left empty, the default options will be used. Note that not all
- *                  options are supported by all texture types.
- */
-//static fromTextureBase(base, width, height, optionsOptions = null)
-//{
-//        if (options == null) options = sDefaultOptions;
-//
-//        if (base is flash.display3D.textures.Texture)
-//        {
-//            return new ConcretePotTexture(base as flash.display3D.textures.Texture,
-//                options.format, width, height, options.mipMapping,
-//                options.premultipliedAlpha, options.optimizeForRenderToTexture,
-//                options.scale);
-//        }
-//    else if (base is RectangleTexture)
-//        {
-//            return new ConcreteRectangleTexture(base as RectangleTexture,
-//                options.format, width, height, options.premultipliedAlpha,
-//                options.optimizeForRenderToTexture, options.scale);
-//        }
-//    else if (base is VideoTexture)
-//        {
-//            return new ConcreteVideoTexture(base as VideoTexture, options.scale);
-//        }
-//    else
-//    throw new ArgumentError("Unsupported 'base' type: " + getQualifiedClassName(base));
-//}
-
-/** Creates a texture object from a bitmap.
- *  Beware: you must not dispose the bitmap's data if Starling should handle a lost device
- *  context (except if you handle restoration yourself via "texture.root.onRestore").
- *
- *  @param bitmap   the texture will be created with the bitmap data of this object.
- *  @param generateMipMaps  indicates if mipMaps will be created.
- *  @param optimizeForRenderToTexture  indicates if this texture will be used as
- *                  render target
- *  @param scale    the scale factor of the created texture. This affects the reported
- *                  width and height of the texture object.
- *  @param format   the context3D texture format to use. Pass one of the packed or
- *                  compressed formats to save memory (at the price of reduced image
- *                  quality).
- *  @param forcePotTexture  indicates if the underlying Stage3D texture should be created
- *                  as the power-of-two based "Texture" class instead of the more memory
- *                  efficient "RectangleTexture".
- *  @param async    If you pass a callback function, the texture will be uploaded
- *                  asynchronously, which allows smooth rendering even during the
- *                  loading process. However, don't use the texture before the callback
- *                  has been executed. This is the expected function definition:
- *                  <code>function(texture, error:ErrorEvent);</code>
- *                  The second parameter is optional and typically <code>null</code>.
- */
-//static fromBitmap(bitmap:Bitmap, generateMipMaps = false,
-//                                  optimizeForRenderToTexture = false,
-//                                  scale = 1, format = "bgra",
-//                                  forcePotTexture = false,
-//                                  async = null)
-//{
-//    return Texture.fromBitmapData(bitmap.bitmapData, generateMipMaps, optimizeForRenderToTexture,
-//        scale, format, forcePotTexture, async);
-//}
-
-/** Creates a texture object from bitmap data.
- *  Beware: you must not dispose 'data' if Starling should handle a lost device context
- *  (except if you handle restoration yourself via "texture.root.onRestore").
- *
- *  @param data     the bitmap data to upload to the texture.
- *  @param generateMipMaps  indicates if mipMaps will be created.
- *  @param optimizeForRenderToTexture  indicates if this texture will be used as
- *                  render target
- *  @param scale    the scale factor of the created texture. This affects the reported
- *                  width and height of the texture object.
- *  @param format   the context3D texture format to use. Pass one of the packed or
- *                  compressed formats to save memory (at the price of reduced image
- *                  quality).
- *  @param forcePotTexture  indicates if the underlying Stage3D texture should be created
- *                  as the power-of-two based "Texture" class instead of the more memory
- *                  efficient "RectangleTexture".
- *  @param async    If you pass a callback function, the texture will be uploaded
- *                  asynchronously, which allows smooth rendering even during the
- *                  loading process. However, don't use the texture before the callback
- *                  has been executed. This is the expected function definition:
- *                  <code>function(texture, error:ErrorEvent);</code>
- *                  The second parameter is optional and typically <code>null</code>.
- */
-//static fromBitmapData(data:BitmapData, generateMipMaps=false,
-//                                      optimizeForRenderToTexture=false,
-//                                      scale=1, format="bgra",
-//                                      forcePotTexture=false,
-//                                      async=null)
-//{
-//    var texture = Texture.empty(data.width / scale, data.height / scale, true,
-//        generateMipMaps, optimizeForRenderToTexture, scale,
-//        format, forcePotTexture);
-//    texture.root.uploadBitmapData(data,
-//        async != null ? function() { execute(async, texture); } : null);
-//    texture.root.onRestore = function() { texture.root.uploadBitmapData(data); };
-//    return texture;
-//}
 
 /** Creates a video texture from a NetStream.
  *
@@ -289,7 +180,5 @@ const createWithData = ({
  *  @param scaleModifier  The scale factor of the new texture will be calculated by
  *                  multiplying the parent texture's scale factor with this value.
  */
-//static fromTexture(texture, region = null, frame = null, rotated = false, scaleModifier = 1.0)
-//{
-//    return new SubTexture(texture, region, false, frame, rotated, scaleModifier);
-//}
+export const createSubtexture = ({ texture, region, frame, rotated, scaleModifier = 1.0 }) =>
+    new SubTexture(texture, region, false, frame, rotated, scaleModifier);

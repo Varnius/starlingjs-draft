@@ -5,8 +5,7 @@ export default class Matrix {
 
     _data = [];
 
-    constructor(a = 1.0, b = 0.0, c = 0.0, d = 1.0, tx = 0.0, ty = 0.0)
-    {
+    constructor(a = 1.0, b = 0.0, c = 0.0, d = 1.0, tx = 0.0, ty = 0.0) {
         const { _data } = this;
         _data[0] = a;
         _data[1] = b;
@@ -16,8 +15,7 @@ export default class Matrix {
         _data[5] = ty;
     }
 
-    toString()
-    {
+    toString() {
         const { a, b, c, d, tx, ty } = this;
         return `
         ${a.toFixed(2)} ${c.toFixed(2)} ${tx.toFixed(2)}
@@ -26,14 +24,12 @@ export default class Matrix {
         `;
     }
 
-    clone()
-    {
+    clone() {
         const { a, b, c, d, tx, ty } = this;
         return new Matrix(a, b, c, d, tx, ty);
     }
 
-    cloneInvert()
-    {
+    cloneInvert() {
         const det = this.det;
         const a = this.d / det;
         const b = -this.b / det;
@@ -45,80 +41,65 @@ export default class Matrix {
         return new Matrix(a, b, c, d, tx, ty);
     }
 
-    get a()
-    {
+    get a() {
         return this._data[0];
     }
 
-    set a(n)
-    {
+    set a(n) {
         this._data[0] = n;
     }
 
-    get b()
-    {
+    get b() {
         return this._data[1];
     }
 
-    set b(n)
-    {
+    set b(n) {
         this._data[1] = n;
     }
 
-    get c()
-    {
+    get c() {
         return this._data[2];
     }
 
-    set c(n)
-    {
+    set c(n) {
         this._data[2] = n;
     }
 
-    get d()
-    {
+    get d() {
         return this._data[3];
     }
 
-    set d(n)
-    {
+    set d(n) {
         this._data[3] = n;
     }
 
-    get tx()
-    {
+    get tx() {
         return this._data[4];
     }
 
-    set tx(n)
-    {
+    set tx(n) {
         this._data[4] = n;
     }
 
-    get ty()
-    {
+    get ty() {
         return this._data[5];
     }
 
-    set ty(n)
-    {
+    set ty(n) {
         this._data[5] = n;
     }
 
-    get det()
-    {
+    get det() {
         return this.a * this.d - this.b * this.c;
     }
 
-    deltaTransformPoint(point, returnPoint = null)
-    {
+    deltaTransformPoint(point, returnPoint = null) {
         const px = point.x;
         const py = point.y;
         const tx = px * this.a + py * this.c;
         const ty = px * this.b + py * this.d;
 
-        if (returnPoint)
-        {
+        if (returnPoint) {
             returnPoint.setTo(tx, ty);
             return returnPoint;
         }
@@ -126,15 +107,13 @@ export default class Matrix {
         return new Point(tx, ty);
     }
 
-    transformPoint(point, returnPoint = null)
-    {
+    transformPoint(point, returnPoint = null) {
         const px = point.x;
         const py = point.y;
         const tx = px * this.a + py * this.c + this.tx;
         const ty = px * this.b + py * this.d + this.ty;
 
-        if (returnPoint)
-        {
+        if (returnPoint) {
             returnPoint.setTo(tx, ty);
             return returnPoint;
         }
@@ -142,16 +121,14 @@ export default class Matrix {
         return new Point(tx, ty);
     }
 
-    transformPointInverse(point, returnPoint = null)
-    {
+    transformPointInverse(point, returnPoint = null) {
 
         const px = point.x;
         const py = point.y;
         const tx = (this.d * (px - this.tx) - this.c * (py - this.ty)) / this.det;
         const ty = (this.a * (py - this.ty) - this.b * (px - this.tx)) / this.det;
 
-        if (returnPoint)
-        {
+        if (returnPoint) {
             returnPoint.setTo(tx, ty);
             return returnPoint;
         }
@@ -159,8 +136,7 @@ export default class Matrix {
         return new Point(tx, ty);
     }
 
-    transformRectangle(rectangle, returnRectangle = null)
-    {
+    transformRectangle(rectangle, returnRectangle = null) {
         const rl = rectangle.left;
         const rr = rectangle.right;
         const rt = rectangle.top;
@@ -203,8 +179,7 @@ export default class Matrix {
         const width = right - left;
         const heigth = bottom - top;
 
-        if (returnRectangle)
-        {
+        if (returnRectangle) {
             returnRectangle.setTo(tx + left, ty + top, width, heigth);
             return returnRectangle;
         }
@@ -213,16 +188,14 @@ export default class Matrix {
     }
 
 
-    createBox(scaleX, scaleY, rotation = 0.0, translationX = 0.0, translationY = 0.0)
-    {
+    createBox(scaleX, scaleY, rotation = 0.0, translationX = 0.0, translationY = 0.0) {
         this.identity();
         this.scale(scaleX, scaleY);
         this.rotate(rotation);
         this.translate(translationX, translationY);
     }
 
-    identity()
-    {
+    identity() {
         this._data[0] = 1.0;
         this._data[1] = 0.0;
         this._data[2] = 0.0;
@@ -231,8 +204,7 @@ export default class Matrix {
         this._data[5] = 0.0;
     }
 
-    invert()
-    {
+    invert() {
         const a = this.a;
         const b = this.b;
         const c = this.c;
@@ -249,8 +221,7 @@ export default class Matrix {
         this._data[5] = -tx * this._data[1] - ty * this._data[3];
     }
 
-    rotate(rotation)
-    {
+    rotate(rotation) {
         const { _data, a, b, c, d, tx, ty } = this;
         const cosR = Math.cos(rotation);
         const sinR = Math.sin(rotation);
@@ -263,8 +234,7 @@ export default class Matrix {
         _data[5] = tx * sinR + ty * cosR;
     }
 
-    skew(skewX, skewY)
-    {
+    skew(skewX, skewY) {
         const { _data } = this;
         const sinX = Math.sin(skewX);
         const cosX = Math.cos(skewX);
@@ -286,8 +256,7 @@ export default class Matrix {
         _data[5] = tx * sinY + ty * cosX;
     }
 
-    scale(scaleX, scaleY)
-    {
+    scale(scaleX, scaleY) {
         const { _data } = this;
 
         _data[0] = this.a * scaleX;
@@ -298,20 +267,17 @@ export default class Matrix {
         _data[5] = this.ty * scaleY;
     }
 
-    translate(translationX, translationY)
-    {
+    translate(translationX, translationY) {
         this._data[4] = this.tx + translationX;
         this._data[5] = this.ty + translationY;
     }
 
-    prependTranslation(translationX, translationY)
-    {
+    prependTranslation(translationX, translationY) {
         this._data[4] = translationX * this.a + translationY * this.c + this.tx;
         this._data[5] = translationX * this.b + translationY * this.d + this.ty;
     }
 
-    setTo(a, b, c, d, tx, ty)
-    {
+    setTo(a, b, c, d, tx, ty) {
         const { _data } = this;
         _data[0] = a;
         _data[1] = b;
@@ -321,8 +287,7 @@ export default class Matrix {
         _data[5] = ty;
     }
 
-    copyFrom(matrix)
-    {
+    copyFrom(matrix) {
         const { _data } = this;
         _data[0] = matrix.a;
         _data[1] = matrix.b;
@@ -332,18 +297,15 @@ export default class Matrix {
         _data[5] = matrix.ty;
     }
 
-    concat(matrix)
-    {
+    concat(matrix) {
         this.copyFromAndConcat(this, matrix);
     }
 
-    prepend(matrix)
-    {
+    prepend(matrix) {
         this.copyFromAndConcat(matrix, this);
     }
 
-    copyFromAndConcat(copyMatrix, concatMatrix)
-    {
+    copyFromAndConcat(copyMatrix, concatMatrix) {
         const { _data } = this;
         const a1 = copyMatrix.a;
         const b1 = copyMatrix.b;
@@ -367,8 +329,7 @@ export default class Matrix {
         _data[5] = tx1 * b2 + ty1 * d2 + ty2;
     }
 
-    invertAndConcat(concatMatrix)
-    {
+    invertAndConcat(concatMatrix) {
         const { _data } = this;
         const det = this.det;
         const a1 = this.d / det;
@@ -392,8 +353,7 @@ export default class Matrix {
         _data[5] = tx1 * b2 + ty1 * d2 + ty2;
     }
 
-    copyFromAndInvert(matrix)
-    {
+    copyFromAndInvert(matrix) {
         const { _data } = this;
         const a = matrix.a;
         const b = matrix.b;

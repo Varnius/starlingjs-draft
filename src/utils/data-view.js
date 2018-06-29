@@ -12,7 +12,7 @@ export function copyFromDataView(source, target, sourceStartPos = 0, numBytes = 
     }
 
     while (numBytesToCopy > 0) {
-        target.setUint32(targetPos, source.getUint32(sourcePos))
+        target.setUint32(targetPos, source.getUint32(sourcePos));
         targetPos += 4;
         sourcePos += 4;
         numBytesToCopy -= 4;

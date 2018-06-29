@@ -1,9 +1,7 @@
 import DisplayObject from './display-object';
-
 import MeshStyle from '../styles/mesh-style';
-
 import VertexData from '../rendering/vertex-data';
-
+import IndexData from '../rendering/index-data';
 import MeshUtil from '../utils/mesh-util';
 import MatrixUtil from '../utils/matrix-util';
 

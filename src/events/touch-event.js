@@ -52,8 +52,7 @@ export default class TouchEvent extends Event {
     static sTouches = [];
 
     /** Creates a new TouchEvent instance. */
-    constructor(type, touches = null, shiftKey = false, ctrlKey = false, bubbles = true)
-    {
+    constructor(type, touches = null, shiftKey = false, ctrlKey = false, bubbles = true) {
         super(type, bubbles, touches);
 
         this._shiftKey = shiftKey;
@@ -63,8 +62,7 @@ export default class TouchEvent extends Event {
         this.updateTimestamp(touches);
     }
 
-    resetTo(type, touches = null, shiftKey = false, ctrlKey = false, bubbles = true)
-    {
+    resetTo(type, touches = null, shiftKey = false, ctrlKey = false, bubbles = true) {
         super.reset(type, bubbles, touches);
 
         this._shiftKey = shiftKey;
@@ -75,8 +73,7 @@ export default class TouchEvent extends Event {
         return this;
     }
 
-    updateTimestamp(touches)
-    {
+    updateTimestamp(touches) {
         this._timestamp = -1.0;
         const numTouches = touches ? touches.length : 0;
 
@@ -88,14 +85,12 @@ export default class TouchEvent extends Event {
     /** Returns a list of touches that originated over a certain target. If you pass an
      *  <code>out</code>-vector, the touches will be added to this vector instead of creating
      *  a new object. */
-    getTouches(target, phase = null, out = null)
-    {
+    getTouches(target, phase = null, out = null) {
         if (!out) out = [];
         const allTouches = this.data;
         const numTouches = allTouches.length;
 
-        for (let i = 0; i < numTouches; ++i)
-        {
+        for (let i = 0; i < numTouches; ++i) {
             const touch = allTouches[i];
             const correctTarget = touch.isTouching(target);
             const correctPhase = (!phase || phase === touch.phase);
@@ -113,23 +108,19 @@ export default class TouchEvent extends Event {
      *  @param phase    The phase the touch must be in, or null if you don't care.
      *  @param id       The ID of the requested touch, or -1 if you don't care.
      */
-    getTouch(target, phase = null, id = -1)
-    {
+    getTouch(target, phase = null, id = -1) {
         this.getTouches(target, phase, TouchEvent.sTouches);
 
         const { sTouches } = TouchEvent;
         const numTouches = sTouches.length;
 
-        if (numTouches > 0)
-        {
+        if (numTouches > 0) {
             let touch = null;
 
             if (id < 0) touch = sTouches[0];
-            else
-            {
+            else {
                 for (let i = 0; i < numTouches; ++i)
-                    if (sTouches[i].id === id)
-                    {
+                    if (sTouches[i].id === id) {
                         touch = sTouches[i];
                         break;
                     }
@@ -137,21 +128,17 @@ export default class TouchEvent extends Event {
 
             sTouches.length = 0;
             return touch;
-        }
-        else return null;
+        } else return null;
     }
 
     /** Indicates if a target is currently being touched or hovered over. */
-    interactsWith(target)
-    {
+    interactsWith(target) {
         let result = false;
         const { sTouches } = TouchEvent;
         this.getTouches(target, null, sTouches);
 
-        for (let i = sTouches.length - 1; i >= 0; --i)
-        {
-            if (TouchEvent.sTouches[i].phase !== TouchPhase.ENDED)
-            {
+        for (let i = sTouches.length - 1; i >= 0; --i) {
+            if (TouchEvent.sTouches[i].phase !== TouchPhase.ENDED) {
                 result = true;
                 break;
             }
@@ -165,19 +152,15 @@ export default class TouchEvent extends Event {
 
     /** Dispatches the event along a custom bubble chain. During the lifetime of the event,
      *  each object is visited only once. */
-    dispatch(chain)
-    {
-        if (chain && chain.length)
-        {
+    dispatch(chain) {
+        if (chain && chain.length) {
             const chainLength = this.bubbles ? chain.length : 1;
             const previousTarget = this.target;
             this.setTarget(chain[0]);
 
-            for (let i = 0; i < chainLength; ++i)
-            {
+            for (let i = 0; i < chainLength; ++i) {
                 const chainElement = chain[i];
-                if (this._visitedObjects.indexOf(chainElement) === -1)
-                {
+                if (this._visitedObjects.indexOf(chainElement) === -1) {
                     const stopPropagation = chainElement.invokeEvent(this);
                     this._visitedObjects[this._visitedObjects.length] = chainElement;
                     if (stopPropagation) break;
@@ -191,26 +174,22 @@ export default class TouchEvent extends Event {
     // properties
 
     /** The time the event occurred (in seconds since application launch). */
-    get timestamp()
-    {
+    get timestamp() {
         return this._timestamp;
     }
 
     /** All touches that are currently available. */
-    get touches()
-    {
+    get touches() {
         return this.data.concat();
     }
 
     /** Indicates if the shift key was pressed when the event occurred. */
-    get shiftKey()
-    {
+    get shiftKey() {
         return this._shiftKey;
     }
 
     /** Indicates if the ctrl key was pressed when the event occurred. (Mac OS: Cmd or Ctrl) */
-    get ctrlKey()
-    {
+    get ctrlKey() {
         return this._ctrlKey;
     }
 }

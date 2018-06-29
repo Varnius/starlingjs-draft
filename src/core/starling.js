@@ -230,9 +230,9 @@ export default class Starling extends EventDispatcher {
         let globalY;
         let touchID;
         let phase;
-        let pressure = 1.0;
-        let width = 1.0;
-        let height = 1.0;
+        const pressure = 1.0;
+        const width = 1.0;
+        const height = 1.0;
 
         // figure out general touch properties
         if (event.constructor.name === 'MouseEvent') {
@@ -248,7 +248,7 @@ export default class Starling extends EventDispatcher {
             if (event.type === MouseEventType.MOUSE_DOWN) this._leftMouseDown = true;
             else if (event.type === MouseEventType.MOUSE_UP) this._leftMouseDown = false;
         } else {
-            console.log('todo: implement touch events')
+            console.log('todo: implement touch events'); // todo: touch events
             //const touchEvent = event;
             //
             //// On a system that supports both mouse and touch input, the primary touch point

@@ -22,11 +22,9 @@ export default class Pool {
     static sRectangles = [];
 
     /** Retrieves a Point instance from the pool. */
-    static getPoint(x = 0, y = 0)
-    {
+    static getPoint(x = 0, y = 0) {
         if (Pool.sPoints.length === 0) return new Point(x, y);
-        else
-        {
+        else {
             const point = Pool.sPoints.pop();
             point.x = x;
             point.y = y;
@@ -36,17 +34,14 @@ export default class Pool {
 
     /** Stores a Point instance in the pool.
      *  Don't keep any references to the object after moving it to the pool! */
-    static putPoint(point)
-    {
+    static putPoint(point) {
         if (point) Pool.sPoints[Pool.sPoints.length] = point;
     }
 
     /** Retrieves a Vector3D instance from the pool. */
-    static getPoint3D(x = 0, y = 0, z = 0)
-    {
+    static getPoint3D(x = 0, y = 0, z = 0) {
         if (Pool.sPoints3D.length === 0) return new Vector3D(x, y, z);
-        else
-        {
+        else {
             const point = Pool.sPoints3D.pop();
             point.x = x;
             point.y = y;
@@ -57,17 +52,14 @@ export default class Pool {
 
     /** Stores a Vector3D instance in the pool.
      *  Don't keep any references to the object after moving it to the pool! */
-    static putPoint3D(point)
-    {
+    static putPoint3D(point) {
         if (point) Pool.sPoints3D[Pool.sPoints3D.length] = point;
     }
 
     /** Retrieves a Matrix instance from the pool. */
-    static getMatrix(a = 1, b = 0, c = 0, d = 1, tx = 0, ty = 0)
-    {
+    static getMatrix(a = 1, b = 0, c = 0, d = 1, tx = 0, ty = 0) {
         if (Pool.sMatrices.length === 0) return new Matrix(a, b, c, d, tx, ty);
-        else
-        {
+        else {
             const matrix = Pool.sMatrices.pop();
             matrix.setTo(a, b, c, d, tx, ty);
             return matrix;
@@ -76,8 +68,7 @@ export default class Pool {
 
     /** Stores a Matrix instance in the pool.
      *  Don't keep any references to the object after moving it to the pool! */
-    static putMatrix(matrix)
-    {
+    static putMatrix(matrix) {
         if (matrix) Pool.sMatrices[Pool.sMatrices.length] = matrix;
     }
 
@@ -86,11 +77,9 @@ export default class Pool {
      *  @param identity   If enabled, the matrix will be reset to the identity.
      *                    Otherwise, its contents is undefined.
      */
-    static getMatrix3D(identity = true)
-    {
+    static getMatrix3D(identity = true) {
         if (Pool.sMatrices3D.length === 0) return new Matrix3D();
-        else
-        {
+        else {
             const matrix = Pool.sMatrices3D.pop();
             if (identity) matrix.identity();
             return matrix;
@@ -99,17 +88,14 @@ export default class Pool {
 
     /** Stores a Matrix3D instance in the pool.
      *  Don't keep any references to the object after moving it to the pool! */
-    static putMatrix3D(matrix)
-    {
+    static putMatrix3D(matrix) {
         if (matrix) Pool.sMatrices3D[Pool.sMatrices3D.length] = matrix;
     }
 
     /** Retrieves a Rectangle instance from the pool. */
-    static getRectangle(x = 0, y = 0, width = 0, height = 0)
-    {
+    static getRectangle(x = 0, y = 0, width = 0, height = 0) {
         if (Pool.sRectangles.length === 0) return new Rectangle(x, y, width, height);
-        else
-        {
+        else {
             const rectangle = Pool.sRectangles.pop();
             rectangle.setTo(x, y, width, height);
             return rectangle;
@@ -118,8 +104,7 @@ export default class Pool {
 
     /** Stores a Rectangle instance in the pool.
      *  Don't keep any references to the object after moving it to the pool! */
-    static putRectangle(rectangle)
-    {
+    static putRectangle(rectangle) {
         if (rectangle) Pool.sRectangles[Pool.sRectangles.length] = rectangle;
     }
 }

@@ -163,7 +163,7 @@ export default class Effect {
      *  <code>afterDraw</code>, in this order. */
     render(firstIndex = 0, numTriangles = -1) {
         if (numTriangles < 0) {
-            console.log('is this possible?')
+            console.log('is this possible?'); // todo:
             numTriangles = this._indexBufferSize / 3;
         }
         if (numTriangles === 0) return;

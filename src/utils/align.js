@@ -18,20 +18,17 @@ export default class Align {
     static CENTER = 'center';
 
     /** Indicates whether the given alignment string is valid. */
-    static isValid(align)
-    {
+    static isValid(align) {
         return align === Align.LEFT || align === Align.RIGHT || align === Align.CENTER || align === Align.TOP || align === Align.BOTTOM;
     }
 
     /** Indicates if the given string is a valid horizontal alignment. */
-    static isValidHorizontal(align)
-    {
+    static isValidHorizontal(align) {
         return align === Align.LEFT || align === Align.CENTER || align === Align.RIGHT;
     }
 
     /** Indicates if the given string is a valid vertical alignment. */
-    static isValidVertical(align)
-    {
+    static isValidVertical(align) {
         return align === Align.TOP || align === Align.CENTER || align === Align.BOTTOM;
     }
 }

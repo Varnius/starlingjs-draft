@@ -212,7 +212,7 @@ export default class FilterHelper {
     }
 
     set textureScale(value) {
-        this._preferredScale = value > 0 ? value : Starling.contentScaleFactor;
+        this._preferredScale = value > 0 ? value : window.StarlingContextManager.current.contentScaleFactor;
     }
 
     /** The texture format of the returned textures. @default BGRA */

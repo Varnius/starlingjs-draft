@@ -1,4 +1,4 @@
-import { FRONT, BACK, FRONT_AND_BACK, NEVER, LESS, EQUAL, LEQUAL, GREATER, NOTEQUAL, GEQUAL, ALWAYS } from 'gl-constants';
+import { BACK, NEVER, LESS, EQUAL, LEQUAL, GREATER, NOTEQUAL, GEQUAL, ALWAYS } from 'gl-constants';
 
 import Matrix3D from '../math/matrix3d';
 import Matrix from '../math/matrix';

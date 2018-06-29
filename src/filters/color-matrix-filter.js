@@ -43,7 +43,7 @@ export default class ColorMatrixFilter extends FragmentFilter {
     }
 
     /** @private */
-    createEffect() {2
+    createEffect() {
         return new ColorMatrixEffect();
     }
 

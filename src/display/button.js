@@ -268,8 +268,7 @@ export default class Button extends DisplayObjectContainer {
                 this._textField.text = value;
                 this._textField.removeFromParent();
             }
-        }
-        else {
+        } else {
             this.createTextField();
             this._textField.text = value;
 

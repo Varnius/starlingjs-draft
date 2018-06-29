@@ -15,8 +15,7 @@ export default class ScaleMode {
     static SHOW_ALL = 'showAll';
 
     /** Indicates whether the given scale mode string is valid. */
-    static isValid(scaleMode)
-    {
+    static isValid(scaleMode) {
         return scaleMode === ScaleMode.NONE || scaleMode === ScaleMode.NO_BORDER || scaleMode === ScaleMode.SHOW_ALL;
     }
 }

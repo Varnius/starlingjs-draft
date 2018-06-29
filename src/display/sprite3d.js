@@ -4,7 +4,6 @@ import Matrix3D from '../math/matrix3d';
 import SystemUtil from '../utils/system-util';
 import MathUtil from '../utils/math-util';
 import MatrixUtil from '../utils/matrix-util';
-import rad2deg from '../utils/rad2deg';
 
 /** A container that allows you to position objects in three-dimensional space.
  *

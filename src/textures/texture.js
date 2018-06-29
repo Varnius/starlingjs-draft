@@ -97,15 +97,6 @@ export default class Texture {
     static sMatrix = new Matrix();
     static sPoint = new Point();
 
-    /** @private */
-    constructor() {
-        //if (Capabilities.isDebugger &&
-        //    getQualifiedClassName(this) == "starling.textures:")
-        //{
-        //    throw new AbstractClassError();
-        //}
-    }
-
     /** Disposes the underlying texture data. Note that not all textures need to be disposed:
      *  SubTextures (created with 'Texture.fromTexture') just reference other textures and
      *  and do not take up resources themselves; this is also true for textures from an

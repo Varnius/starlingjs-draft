@@ -6,8 +6,7 @@ export default class MathUtil {
 
     /** Calculates the intersection point between the xy-plane and an infinite line
      *  that is defined by two 3D points in the same coordinate system. */
-    static intersectLineWithXYPlane(pointA, pointB, out = null)
-    {
+    static intersectLineWithXYPlane(pointA, pointB, out = null) {
         if (!out) out = new Point();
 
         const vectorX = pointB.x - pointA.x;
@@ -22,8 +21,7 @@ export default class MathUtil {
     }
 
     /** Calculates if the point <code>p</code> is inside the triangle <code>a-b-c</code>. */
-    static isPointInTriangle(p, a, b, c)
-    {
+    static isPointInTriangle(p, a, b, c) {
         // This algorithm is described well in this article:
         // http://www.blackpawn.com/texts/pointinpoly/default.html
 
@@ -48,8 +46,7 @@ export default class MathUtil {
     }
 
     /** Moves a radian angle into the range [-PI, +PI], while keeping the direction intact. */
-    static normalizeAngle(angle)
-    {
+    static normalizeAngle(angle) {
         // move to equivalent value in range [0 deg, 360 deg] without a loop
         angle %= MathUtil.TWO_PI;
 
@@ -61,8 +58,7 @@ export default class MathUtil {
     }
 
     /** Returns the next power of two that is equal to or bigger than the specified number. */
-    static getNextPowerOfTwo(number)
-    {
+    static getNextPowerOfTwo(number) {
         // if (number is int && number > 0 && (number & (number - 1)) == 0) todo: original line, is type check necessary?
         if (number > 0 && (number & (number - 1)) === 0) // see: http://goo.gl/D9kPj
             return number;
@@ -75,28 +71,24 @@ export default class MathUtil {
     }
 
     /** Indicates if two float (Number) values are equal, give or take <code>epsilon</code>. */
-    static isEquivalent(a, b, epsilon = 0.0001)
-    {
+    static isEquivalent(a, b, epsilon = 0.0001) {
         return (a - epsilon < b) && (a + epsilon > b);
     }
 
     /** Returns the larger of the two values. Different to the native <code>Math.max</code>,
      *  this doesn't create any temporary objects when using the AOT compiler. */
-    static max(a, b)
-    {
+    static max(a, b) {
         return a > b ? a : b;
     }
 
     /** Returns the smaller of the two values. Different to the native <code>Math.min</code>,
      *  this doesn't create any temporary objects when using the AOT compiler. */
-    static min(a, b)
-    {
+    static min(a, b) {
         return a < b ? a : b;
     }
 
     /** Moves <code>value</code> into the range between <code>min</code> and <code>max</code>. */
-    static clamp(value, min, max)
-    {
+    static clamp(value, min, max) {
         return value < min ? min : (value > max ? max : value);
     }
 }

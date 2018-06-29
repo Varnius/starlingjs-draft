@@ -258,8 +258,7 @@ export default class MatrixUtil {
             aSq = matrix.a * matrix.a;
             dSq = matrix.d * matrix.d;
             doSnap = aSq + E > 1 && aSq - E < 1 && dSq + E > 1 && dSq - E < 1;
-        }
-        else if (matrix.a + E > 0 && matrix.a - E < 0 && matrix.d + E > 0 && matrix.d - E < 0) {
+        } else if (matrix.a + E > 0 && matrix.a - E < 0 && matrix.d + E > 0 && matrix.d - E < 0) {
             bSq = matrix.b * matrix.b;
             cSq = matrix.c * matrix.c;
             doSnap = bSq + E > 1 && bSq - E < 1 && cSq + E > 1 && cSq - E < 1;

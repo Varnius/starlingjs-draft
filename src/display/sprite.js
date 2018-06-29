@@ -8,8 +8,7 @@ import DisplayObjectContainer from './display-object-container';
  */
 
 export default class Sprite extends DisplayObjectContainer {
-    constructor()
-    {
+    constructor() { // eslint-disable-line
         super();
     }
 }

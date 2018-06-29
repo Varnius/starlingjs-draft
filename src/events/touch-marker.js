@@ -20,8 +20,7 @@ export default class TouchMarker extends Sprite {
         }
     }
 
-    dispose()
-    {
+    dispose() {
         super.dispose();
     }
 

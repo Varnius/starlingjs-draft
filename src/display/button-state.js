@@ -11,4 +11,4 @@ export default
 
     /** The button was disabled altogether. */
     DISABLED: 'disabled',
-}
+};

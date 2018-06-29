@@ -375,7 +375,7 @@ export default class IndexData {
 
     /** Uploads the complete data (or a section of it) to the given index buffer. */
     uploadToIndexBuffer(bufferUsage = STATIC_DRAW) {
-        if (this._numIndices === 0) return null;
+        if (this._numIndices === 0) return;
         const gl = window.StarlingContextManager.current.context;
 
         const indexBuffer = gl.createBuffer();
@@ -459,8 +459,7 @@ export default class IndexData {
                 IndexData.ensureQuadDataCapacity(this._numIndices);
                 this._rawData = null; // todo: was previously _rawData.length = 0
                 this._useQuadLayout = true;
-            }
-            else this.switchToGenericData();
+            } else this.switchToGenericData();
         }
     }
 

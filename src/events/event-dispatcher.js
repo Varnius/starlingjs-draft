@@ -15,8 +15,7 @@ export default class EventDispatcher {
 
         if (!listeners) {
             this._eventListeners[type] = [listener];
-        }
-        else if (listeners.indexOf(listener) === -1) { // check for duplicates
+        } else if (listeners.indexOf(listener) === -1) { // check for duplicates
             listeners[listeners.length] = listener;  // avoid 'push'
         }
     }
@@ -72,8 +71,7 @@ export default class EventDispatcher {
 
         if (bubbles && SystemUtil.isBaseClass(this.constructor, 'DisplayObject')) {
             this.bubbleEvent(event);
-        }
-        else {
+        } else {
             this.invokeEvent(event);
         }
 
@@ -125,8 +123,7 @@ export default class EventDispatcher {
         if (EventDispatcher._bubbleChains.length > 0) {
             chain = EventDispatcher._bubbleChains.pop();
             chain[0] = element;
-        }
-        else {
+        } else {
             chain = [element];
         }
 

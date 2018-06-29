@@ -13,15 +13,13 @@ export default class MeshSubset {
     numIndices;
 
     /** Creates a new MeshSubset. */
-    constructor(vertexID = 0, numVertices = -1, indexID = 0, numIndices = -1)
-    {
+    constructor(vertexID = 0, numVertices = -1, indexID = 0, numIndices = -1) {
         this.setTo(vertexID, numVertices, indexID, numIndices);
     }
 
     /** Changes all properties at once.
      *  Call without any arguments to reference a complete mesh. */
-    setTo(vertexID = 0, numVertices = -1, indexID = 0, numIndices = -1)
-    {
+    setTo(vertexID = 0, numVertices = -1, indexID = 0, numIndices = -1) {
         this.vertexID = vertexID;
         this.numVertices = numVertices;
         this.indexID = indexID;

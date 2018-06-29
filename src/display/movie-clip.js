@@ -151,7 +151,7 @@ export default class MovieClip extends Image {
     /** Reverses the order of all frames, making the clip run from end to start.
      *  Makes sure that the currently visible frame stays the same. */
     reverseFrames() {
-        this._frames.reverse()
+        this._frames.reverse();
         this.updateStartTimes();
         this._currentTime = this.totalTime - this._currentTime;
         this._currentFrameID = this.numFrames - this._currentFrameID - 1;

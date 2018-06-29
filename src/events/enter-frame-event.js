@@ -12,14 +12,12 @@ export default class EnterFrameEvent extends Event {
     static ENTER_FRAME = 'enterFrame';
 
     /** Creates an enter frame event with the passed time. */
-    constructor(type, passedTime, bubbles = false)
-    {
+    constructor(type, passedTime, bubbles = false) {
         super(type, bubbles, passedTime);
     }
 
     /** The time that has passed since the last frame (in seconds). */
-    get passedTime()
-    {
+    get passedTime() {
         return this.data;
     }
 }

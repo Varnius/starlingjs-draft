@@ -11,7 +11,7 @@ export function vertexDataToSomethingReadable(vertexData) {
         const curr = [];
         let offset = 0;
 
-        vertexData._attributes.forEach(attribute => {
+        vertexData._attributes.forEach(attribute => { // eslint-disable-line
             times(() => {
                 curr.push(attribute.isColor ? '#' + rawData.getUint32(i + offset, true).toString(16) : rawData.getFloat32(i + offset, true).toFixed(2));
                 offset += 4; // bytes

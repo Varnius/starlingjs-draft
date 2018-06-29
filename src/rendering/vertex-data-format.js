@@ -1,5 +1,3 @@
-import Starling from '../core/starling';
-
 import VertexDataAttribute from './vertex-data-attribute';
 
 /** Describes the memory layout of VertexData instances, as used for every single vertex.
@@ -145,7 +143,7 @@ export default class VertexDataFormat {
      *  <code>bufferOffset</code> and <code>format</code>. */
     setVertexBufferAt(index, buffer, attrName) {
         const attribute = this.getAttribute(attrName);
-        Starling.context.setVertexBufferAt(index, buffer, attribute.offset / 4, attribute.format);
+        window.StarlingContextManager.current.context.setVertexBufferAt(index, buffer, attribute.offset / 4, attribute.format);
     }
 
     // parsing

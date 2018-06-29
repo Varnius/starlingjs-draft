@@ -8,9 +8,7 @@ import MatrixUtil from '../utils/matrix-util';
 import MathUtil from '../utils/math-util';
 import Color, { premultiplyAlpha, unmultiplyAlpha } from '../utils/color';
 import MeshStyle from '../styles/mesh-style';
-import Starling from '../core/starling';
 import { copyFromDataView, getDataViewOfLength } from '../utils/data-view';
-import { vertexDataToSomethingReadable } from '../utils/debug';
 
 /** The VertexData class manages a raw list of vertex information, allowing direct upload
  *  to Stage3D vertex buffers. <em>You only have to work with this class if you're writing
@@ -773,7 +771,7 @@ export default class VertexData {
      *  Optionally, the current data is uploaded right away. */
     uploadToVertexBuffer(bufferUsage = STATIC_DRAW) {
         if (this._numVertices === 0) return;
-        const gl = Starling.context;
+        const gl = window.StarlingContextManager.current.context;
         if (!gl) throw new Error('[MissingContextError]');
         const { _numAttributes, _rawData, _attributes, _format } = this;
 

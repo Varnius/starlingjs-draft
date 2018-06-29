@@ -1,26 +1,35 @@
 import 'regenerator-runtime/runtime';
 import { expect } from 'chai';
-import Starling from '../src/core/starling';
-import Sprite from '../src/display/sprite';
 import { FakeContext } from './test-utils/fake-context';
 import fetch from 'node-fetch';
+import Sprite from '../src/display/sprite';
 
 const mockWindow = {
     fetch,
-    createImageBitmap: input => input,
+    createImageBitmap: input => Promise.resolve(input),
     document: {
         getElementById: id =>
             id === 'text-canvas' ? { getContext: () => ({
                 measureText: () => ({}),
                 fillText: () => {},
-                clearRect: () => {}
+                clearRect: () => {},
             }) } : null,
     },
     requestAnimationFrame() {
     },
+    navigator: {
+        userAgent: '',
+    },
 };
 
-new Starling(
+global.expect = expect;
+global.window = mockWindow;
+global.navigator = {};
+global.Blob = require('blob-polyfill').Blob;
+
+const Starling = require('../src/core/starling').default;
+
+const starling = new Starling( // eslint-disable-line
     Sprite,
     // mock canvas
     {
@@ -31,7 +40,3 @@ new Starling(
     null,
     mockWindow
 );
-
-global.expect = expect;
-global.window = mockWindow;
-global.navigator = {};

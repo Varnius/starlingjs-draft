@@ -1,4 +1,4 @@
-import { Sprite, Quad, Starling, TouchEvent, Image, TouchPhase, Canvas, TextField } from '../../../../src/index';
+import { Sprite, Quad, TouchEvent, Image, TouchPhase, Canvas, TextField } from '../../../../src/index';
 
 import Scene from './scene';
 import Game from '../game';
@@ -15,8 +15,9 @@ export default class MaskScene extends Scene {
         this._contents = new Sprite();
         this.addChild(this._contents);
 
-        const stageWidth = Starling.current.stage.stageWidth;
-        const stageHeight = Starling.current.stage.stageHeight;
+        const starling = window.StarlingContextManager.current;
+        const stageWidth = starling.stage.stageWidth;
+        const stageHeight = starling.stage.stageHeight;
 
         const touchQuad = new Quad(stageWidth, stageHeight);
         touchQuad.alpha = 0; // only used to get touch events

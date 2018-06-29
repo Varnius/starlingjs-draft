@@ -1,6 +1,5 @@
 import { RGBA } from 'gl-constants';
 
-import Starling from '../core/starling';
 import Event from '../events/event';
 import TextFieldAutoSize from './text-field-auto-size';
 import EventDispatcher from '../events/event-dispatcher';
@@ -26,7 +25,7 @@ export default class TextOptions extends EventDispatcher {
         this._wordWrap = wordWrap;
         this._autoScale = autoScale;
         this._autoSize = TextFieldAutoSize.NONE;
-        this._textureScale = Starling.contentScaleFactor;
+        this._textureScale = window.StarlingContextManager.current.contentScaleFactor;
         this._textureFormat = RGBA;
         this._isHtmlText = false;
         this._padding = 0.0;

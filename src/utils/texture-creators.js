@@ -1,6 +1,5 @@
 import { RGBA, LINEAR_MIPMAP_LINEAR, LINEAR } from 'gl-constants';
 
-import Starling from '../core/starling';
 import SubTexture from '../textures/subtexture';
 import ConcreteTexture from '../textures/concrete-texture';
 import Rectangle from '../math/rectangle';
@@ -52,9 +51,9 @@ const createWithData = ({
     minFilter = LINEAR_MIPMAP_LINEAR,
     magFilter = LINEAR,
     }) => {
-    if (scale <= 0) scale = Starling.contentScaleFactor;
+    if (scale <= 0) scale = window.StarlingContextManager.current.contentScaleFactor;
 
-    const gl = Starling.context;
+    const gl = window.StarlingContextManager.current.context;
 
     if (!gl) throw new Error('[ContextError] Missing context');
 

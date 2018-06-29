@@ -1,4 +1,3 @@
-import Starling from '../core/starling';
 import Color from './color';
 
 /** A utility class containing methods related to Stage3D and rendering in general. */
@@ -6,7 +5,7 @@ export default class RenderUtil {
 
     /** Clears the render context with a certain color and alpha value. */
     static clear(rgb = 0, alpha = 0.0, depth = 1.0, stencil = 0) {
-        const gl = Starling.context;
+        const gl = window.StarlingContextManager.current.context;
         gl.clearColor(
             Color.getRed(rgb) / 255.0,
             Color.getGreen(rgb) / 255.0,

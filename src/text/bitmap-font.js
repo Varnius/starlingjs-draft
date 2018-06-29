@@ -2,6 +2,7 @@ import TextOptions from './text-options';
 import BitmapCharLocation from './bitmap-char-location';
 import BitmapChar from './bitmap-char';
 import BitmapFontType from './bitmap-font-type';
+import { getMiniBitmapFont } from './mini-bitmap-font';
 import Sprite from '../display/sprite';
 import Image from '../display/image';
 import Align from '../utils/align';
@@ -69,7 +70,7 @@ export default class BitmapFont {
 
     // helper objects
     static sLines = [];
-    static sDefaultOptions = new TextOptions();
+    static sDefaultOptions;
 
     /** Creates a bitmap font from the given texture and font data.
      *  If you don't pass any data, the "mini" font will be created.
@@ -79,10 +80,12 @@ export default class BitmapFont {
      *                 the 'parseFontData' method to add support for additional formats.
      */
     constructor(texture = null, fontData = null) {
+        if (!BitmapFont.sDefaultOptions) BitmapFont.sDefaultOptions = new TextOptions();
         // if no texture is passed in, we create the minimal, embedded font
         if (!texture && !fontData) {
-            texture = MiniBitmapFont.texture;
-            fontData = MiniBitmapFont.xml;
+            const miniBitmapFont = getMiniBitmapFont();
+            texture = miniBitmapFont.texture;
+            fontData = miniBitmapFont.fontData;
         } else if (!texture || !fontData) {
             throw new Error(
                 `[ArgumentError] Set both of the 'texture' and 'fontData' arguments
@@ -101,6 +104,7 @@ export default class BitmapFont {
         this._distanceFieldSpread = 0.0;
 
         this.addChar(CHAR_MISSING, new BitmapChar(CHAR_MISSING, null, 0, 0, 0));
+
         this.parseFontData(fontData);
     }
 
@@ -146,7 +150,7 @@ export default class BitmapFont {
         }
 
         for (const charElement of fontXml.font.chars.char) {
-            const id = parseInt(charElement._attributes.id);
+            const id = parseInt(charElement._attributes.id, 10);
             const xOffset = parseFloat(charElement._attributes.xoffset) / scale;
             const yOffset = parseFloat(charElement._attributes.yoffset) / scale;
             const xAdvance = parseFloat(charElement._attributes.xadvance) / scale;
@@ -162,11 +166,13 @@ export default class BitmapFont {
             this.addChar(id, bitmapChar);
         }
 
-        for (const kerningElement of fontXml.font.kernings.kerning) {
-            const first = parseInt(kerningElement._attributes.first);
-            const second = parseInt(kerningElement._attributes.second);
-            const amount = parseFloat(kerningElement._attributes.amount) / scale;
-            if (this._chars.has(second)) this.getChar(second).addKerning(first, amount);
+        if (fontXml.font.kernings) {
+            for (const kerningElement of fontXml.font.kernings.kerning) {
+                const first = parseInt(kerningElement._attributes.first, 10);
+                const second = parseInt(kerningElement._attributes.second, 10);
+                const amount = parseFloat(kerningElement._attributes.amount, 10) / scale;
+                if (this._chars.has(second)) this.getChar(second).addKerning(first, amount);
+            }
         }
     }
 

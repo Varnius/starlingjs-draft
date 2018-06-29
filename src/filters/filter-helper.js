@@ -4,7 +4,6 @@ import MathUtil from '../utils/math-util';
 import Rectangle from '../math/rectangle';
 import Texture from '../textures/texture';
 import SubTexture from '../textures/subtexture';
-import Starling from '../core/starling';
 import Pool from '../utils/pool';
 import Matrix3D from '../math/matrix3d';
 import { createEmptyTexture } from '../utils/texture-creators';
@@ -38,7 +37,7 @@ export default class FilterHelper {
     /** Creates a new, empty instance. */
     constructor(textureFormat = RGBA) {
         //this._usePotTextures = Starling.current.profile == Context3DProfile.BASELINEthis._CONSTRAINED;
-        this._preferredScale = Starling.contentScaleFactor;
+        this._preferredScale = window.StarlingContextManager.current.contentScaleFactor;
         this._textureFormat = textureFormat;
         this._sizeStep = 64; // must be POT!
         this._pool = [];

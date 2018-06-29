@@ -1,7 +1,6 @@
 import FragmentFilter from './fragment-filter';
 import FilterEffect from '../rendering/filter-effect';
 import Program from '../rendering/program';
-import Starling from '../core/starling';
 
 /** The BlurFilter applies a Gaussian blur to an object. The strength of the blur can be
  *  set for x- and y-axis separately. */
@@ -110,11 +109,11 @@ export default class BlurFilter extends FragmentFilter {
 
     /** The blur values scaled by the current contentScaleFactor. */
     get totalBlurX() {
-        return this._blurX * Starling.contentScaleFactor;
+        return this._blurX * window.StarlingContextManager.current.contentScaleFactor;
     }
 
     get totalBlurY() {
-        return this._blurY * Starling.contentScaleFactor;
+        return this._blurY * window.StarlingContextManager.current.contentScaleFactor;
     }
 
     /** The blur factor in x-direction. */

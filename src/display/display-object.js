@@ -1,4 +1,3 @@
-import Starling from '../core/starling';
 import BlendMode from './blend-mode';
 import EventDispatcher from '../events/event-dispatcher';
 import Event from '../events/event';
@@ -401,7 +400,7 @@ export default class DisplayObject extends EventDispatcher {
     setRequiresRedraw() {
         const { _parent, _maskee, _alpha, _scaleX, _scaleY, _visible } = this;
         let parent = _parent || _maskee;
-        const frameID = Starling.frameID;
+        const frameID = window.StarlingContextManager.current.frameID;
 
         this._lastParentOrSelfChangeFrameID = frameID;
 
@@ -423,7 +422,7 @@ export default class DisplayObject extends EventDispatcher {
      *  changed its location relative to the stage or some other aspect of its appearance
      *  since it was last rendered. */
     get requiresRedraw() {
-        const frameID = Starling.frameID;
+        const frameID = window.StarlingContextManager.current.frameID;
         return this._lastParentOrSelfChangeFrameID === frameID || this._lastChildChangeFrameID === frameID;
     }
 
@@ -557,11 +556,11 @@ export default class DisplayObject extends EventDispatcher {
     }
 
     addEnterFrameListenerToStage() {
-        Starling.current.stage.addEnterFrameListener(this);
+        window.StarlingContextManager.current.stage.addEnterFrameListener(this);
     }
 
     removeEnterFrameListenerFromStage() {
-        Starling.current.stage.removeEnterFrameListener(this);
+        window.StarlingContextManager.current.stage.removeEnterFrameListener(this);
     }
 
     // properties
@@ -636,7 +635,7 @@ export default class DisplayObject extends EventDispatcher {
 
         if (this._transformationChanged) {
             this._transformationChanged = false;
-            console.log('opa')
+
             this.updateTransformationMatrices(
                 this._x, this._y, this._pivotX, this._pivotY, this._scaleX, this._scaleY, this._skewX, this._skewY, this._rotation,
                 this._transformationMatrix, this._transformationMatrix3D);

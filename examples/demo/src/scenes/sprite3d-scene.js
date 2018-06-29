@@ -1,4 +1,4 @@
-import { Image, Starling, Sprite3D, Event, Quad, Sprite } from '../../../../src/index';
+import { Image, Sprite3D, Event } from '../../../../src/index';
 import { BACK } from 'gl-constants';
 
 import Scene from './scene';
@@ -7,6 +7,7 @@ import Constants from '../constants';
 
 export default class Sprite3DScene extends Scene {
     _cube;
+    _juggler;
 
     constructor() {
         super();
@@ -22,16 +23,17 @@ export default class Sprite3DScene extends Scene {
 
         this.addEventListener(Event.ENTER_FRAME, this.start);
         this.addEventListener(Event.REMOVED_FROM_STAGE, this.stop);
+        this._juggler = window.StarlingContextManager.current.juggler;
     }
 
     start = () => {
-        Starling.juggler.tween(this._cube, 6, { rotationX: 2 * Math.PI, repeatCount: 0 });
-        Starling.juggler.tween(this._cube, 7, { rotationY: 2 * Math.PI, repeatCount: 0 });
-        Starling.juggler.tween(this._cube, 8, { rotationZ: 2 * Math.PI, repeatCount: 0 });
+        this._juggler.tween(this._cube, 6, { rotationX: 2 * Math.PI, repeatCount: 0 });
+        this._juggler.tween(this._cube, 7, { rotationY: 2 * Math.PI, repeatCount: 0 });
+        this._juggler.tween(this._cube, 8, { rotationZ: 2 * Math.PI, repeatCount: 0 });
     };
 
     stop = () => {
-        Starling.juggler.removeTweens(this._cube);
+        this._juggler.removeTweens(this._cube);
     };
 
     createCube(texture) {

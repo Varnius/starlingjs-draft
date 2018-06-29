@@ -1,5 +1,3 @@
-import Starling from '../core/starling';
-
 /** The TextureOptions class specifies options for loading textures with the
  *  <code>Texture.fromData</code> and <code>Texture.fromTextureBase</code> methods. */
 export default class TextureOptions {
@@ -12,8 +10,7 @@ export default class TextureOptions {
     _onReady = null;
 
     /** Creates a new instance with the given options. */
-    constructor(scale = 1.0, mipMapping = false, format = 'bgra', premultipliedAlpha = true, forcePotTexture = false)
-    {
+    constructor(scale = 1.0, mipMapping = false, format = 'bgra', premultipliedAlpha = true, forcePotTexture = false) {
         this._scale = scale;
         this._format = format;
         this._mipMapping = mipMapping;
@@ -22,8 +19,7 @@ export default class TextureOptions {
     }
 
     /** Creates a clone of the TextureOptions object with the exact same properties. */
-    clone()
-    {
+    clone() {
         const clone = new TextureOptions(this._scale, this._mipMapping, this._format);
         clone._optimizeForRenderToTexture = this._optimizeForRenderToTexture;
         clone._premultipliedAlpha = this._premultipliedAlpha;
@@ -34,48 +30,40 @@ export default class TextureOptions {
 
     /** The scale factor, which influences width and height properties. If you pass '-1',
      *  the current global content scale factor will be used. @default 1.0 */
-    get scale()
-    {
+    get scale() {
         return this._scale;
     }
 
-    set scale(value)
-    {
-        this._scale = value > 0 ? value : Starling.contentScaleFactor;
+    set scale(value) {
+        this._scale = value > 0 ? value : window.StarlingContextManager.current.contentScaleFactor;
     }
 
     /** The <code>Context3DTextureFormat</code> of the underlying texture data. Only used
      *  for textures that are created from Bitmaps; the format of ATF files is set when they
      *  are created. @default BGRA */
-    get format()
-    {
+    get format() {
         return this._format;
     }
 
-    set format(value)
-    {
+    set format(value) {
         this._format = value;
     }
 
     /** Indicates if the texture contains mip maps. @default false */
-    get mipMapping()
-    {
+    get mipMapping() {
         return this._mipMapping;
     }
 
-    set mipMapping(value)
-    {
+    set mipMapping(value) {
         this._mipMapping = value;
     }
 
     /** Indicates if the texture will be used as render target. */
-    get optimizeForRenderToTexture()
-    {
+    get optimizeForRenderToTexture() {
         return this._optimizeForRenderToTexture;
     }
 
-    set optimizeForRenderToTexture(value)
-    {
+    set optimizeForRenderToTexture(value) {
         this._optimizeForRenderToTexture = value;
     }
 
@@ -83,13 +71,11 @@ export default class TextureOptions {
      *  <code>Texture</code> class instead of the more memory efficient <code>RectangleTexture</code>.
      *  That might be useful when you need to render the texture with wrap mode <code>repeat</code>.
      *  @default false */
-    get forcePotTexture()
-    {
+    get forcePotTexture() {
         return this._forcePotTexture;
     }
 
-    set forcePotTexture(value)
-    {
+    set forcePotTexture(value) {
         this._forcePotTexture = value;
     }
 
@@ -101,13 +87,11 @@ export default class TextureOptions {
      *
      *  @default null
      */
-    get onReady()
-    {
+    get onReady() {
         return this._onReady;
     }
 
-    set onReady(value)
-    {
+    set onReady(value) {
         this._onReady = value;
     }
 
@@ -115,13 +99,11 @@ export default class TextureOptions {
      *  true for textures created from BitmapData and false for textures created from ATF data.
      *  This property will only be read by the <code>Texture.fromTextureBase</code> factory
      *  method. @default true */
-    get premultipliedAlpha()
-    {
+    get premultipliedAlpha() {
         return this._premultipliedAlpha;
     }
 
-    set premultipliedAlpha(value)
-    {
+    set premultipliedAlpha(value) {
         this._premultipliedAlpha = value;
     }
 }

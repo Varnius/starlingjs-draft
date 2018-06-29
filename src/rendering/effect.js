@@ -1,4 +1,3 @@
-import Starling from '../core/starling';
 import { STATIC_DRAW } from 'gl-constants';
 import VertexDataFormat from './vertex-data-format';
 import Matrix3D from '../math/matrix3d';
@@ -112,7 +111,7 @@ export default class Effect {
 
     /** Purges one or both of the vertex- and index-buffers. */
     purgeBuffers() {
-        const gl = Starling.context;
+        const gl = window.StarlingContextManager.current.context;
         gl.deleteVertexArray(this._vertexArray);
         this._vertexArray = null;
     }
@@ -126,7 +125,7 @@ export default class Effect {
      *                     causes the creation of a new index buffer.
      */
     uploadIndexData(indexData, bufferUsage = STATIC_DRAW) {
-        const gl = Starling.context;
+        const gl = window.StarlingContextManager.current.context;
 
         if (!this._vertexArray) {
             this._vertexArray = gl.createVertexArray();
@@ -146,7 +145,7 @@ export default class Effect {
      *                     causes the creation of a new vertex buffer.
      */
     uploadVertexData(vertexData, bufferUsage = STATIC_DRAW) {
-        const gl = Starling.context;
+        const gl = window.StarlingContextManager.current.context;
 
         if (!this._vertexArray) {
             this._vertexArray = gl.createVertexArray();
@@ -169,7 +168,7 @@ export default class Effect {
         }
         if (numTriangles === 0) return;
 
-        const gl = Starling.context;
+        const gl = window.StarlingContextManager.current.context;
         if (!gl) throw new Error('[MissingContextError]');
 
         this.beforeDraw(gl);
@@ -301,7 +300,7 @@ export default class Effect {
      *  Do not override this method! Instead, implement <code>createProgram</code>. */
     get program() {
         const name = this.programName;
-        const painter = Starling.painter;
+        const painter = window.StarlingContextManager.current.painter;
         let program = painter.getProgram(name);
 
         if (!program) {

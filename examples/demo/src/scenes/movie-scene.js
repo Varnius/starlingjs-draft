@@ -1,4 +1,4 @@
-import { Starling, MovieClip, Event } from '../../../../src/index';
+import { MovieClip, Event } from '../../../../src/index';
 
 import Scene from './scene';
 import Game from '../game';
@@ -6,9 +6,12 @@ import Constants from '../constants';
 
 export default class MovieScene extends Scene {
     _movie;
+    _juggler;
 
     constructor() {
         super();
+
+        this._juggler = window.StarlingContextManager.current.juggler;
 
         const frames = Game.assets.getTextures('flight');
         const movie = this._movie = new MovieClip(frames, 15);
@@ -29,11 +32,11 @@ export default class MovieScene extends Scene {
     }
 
     onAddedToStage = () => {
-        Starling.juggler.add(this._movie);
+        this._juggler.add(this._movie);
     };
 
     onRemovedFromStage = () => {
-        Starling.juggler.remove(this._movie);
+        this._juggler.remove(this._movie);
     };
 
     dispose() {

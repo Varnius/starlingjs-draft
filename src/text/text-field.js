@@ -2,7 +2,6 @@ import Event from '../events/event';
 import Matrix from '../math/matrix';
 import Rectangle from '../math/rectangle';
 import MeshBatch from '../display/mesh-batch';
-import Starling from '../core/starling';
 import RectangleUtil from '../utils/rectangle-util';
 import DisplayObjectContainer from '../display/display-object-container';
 import Quad from '../display/quad';
@@ -90,12 +89,14 @@ export default class TextField extends DisplayObjectContainer {
 
     // helper objects
     static sMatrix = new Matrix();
-    static sDefaultCompositor = new TrueTypeCompositor();
+    static sDefaultCompositor;
 
     /** Create a new text field with the given properties. */
     constructor(width, height, text = '', format = null, options = null) {
-
         super();
+
+        if (!TextField.sDefaultCompositor) TextField.sDefaultCompositor = new TrueTypeCompositor();
+
         this._text = text || '';
         this._hitArea = new Rectangle(0, 0, width, height);
         this._requiresRecomposition = true;
@@ -140,7 +141,7 @@ export default class TextField extends DisplayObjectContainer {
 
             if (!compositor && fontName === BitmapFont.MINI) {
                 compositor = new BitmapFont();
-                this.registerCompositor(compositor, fontName);
+                TextField.registerCompositor(compositor, fontName);
             }
 
             this._compositor = compositor || TextField.sDefaultCompositor;
@@ -166,7 +167,7 @@ export default class TextField extends DisplayObjectContainer {
         if (this.isVerticalAutoSize) height = 100000;
 
         this._meshBatch.x = this._meshBatch.y = 0;
-        this._options.textureScale = Starling.contentScaleFactor;
+        this._options.textureScale = window.StarlingContextManager.current.contentScaleFactor;
         this._compositor.fillMeshBatch(this._meshBatch, width, height, this._text, this._format, this._options);
 
         if (this._customStyle) this._meshBatch.style = this._customStyle;
@@ -510,11 +511,11 @@ export default class TextField extends DisplayObjectContainer {
     /** Stores the currently available text compositors. Since compositors will only work
      *  in one Stage3D context, they are saved in Starling's 'contextData' property. */
     static get compositors() {
-        let compositors = Starling.painter.sharedData[TextField.COMPOSITOR_DATA_NAME];
+        let compositors = window.StarlingContextManager.current.painter.sharedData[TextField.COMPOSITOR_DATA_NAME];
 
         if (!compositors) {
             compositors = new Map();
-            Starling.painter.sharedData[TextField.COMPOSITOR_DATA_NAME] = compositors;
+            window.StarlingContextManager.current.painter.sharedData[TextField.COMPOSITOR_DATA_NAME] = compositors;
         }
 
         return compositors;

@@ -1,4 +1,3 @@
-import Starling from '../core/starling';
 import Color from '../utils/color';
 import Texture from './texture';
 
@@ -59,7 +58,7 @@ export default class ConcreteTexture extends Texture {
 
     /** Disposes the TextureBase object. */
     dispose() {
-        const gl = Starling.current.context;
+        const gl = window.StarlingContextManager.current.context;
         if (this._base) gl.deleteTexture(this._base);
 
         this.onRestore = null; // removes event listener
@@ -142,7 +141,7 @@ export default class ConcreteTexture extends Texture {
                 Color.getGreen(color) * alpha,
                 Color.getBlue(color) * alpha);
 
-        const painter = Starling.painter;
+        const painter = window.StarlingContextManager.current.painter;
 
         painter.pushState();
         painter.state.renderTarget = this;

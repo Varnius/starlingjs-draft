@@ -1,5 +1,4 @@
 import { STATIC_DRAW } from 'gl-constants';
-import Starling from '../core/starling';
 
 /** The IndexData class manages a raw list of vertex indices, allowing direct upload
  *  to Stage3D index buffers. <em>You only have to work with this class if you're writing
@@ -377,7 +376,7 @@ export default class IndexData {
     /** Uploads the complete data (or a section of it) to the given index buffer. */
     uploadToIndexBuffer(bufferUsage = STATIC_DRAW) {
         if (this._numIndices === 0) return null;
-        const gl = Starling.context;
+        const gl = window.StarlingContextManager.current.context;
 
         const indexBuffer = gl.createBuffer();
 

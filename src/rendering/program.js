@@ -1,5 +1,3 @@
-import Starling from '../core/starling';
-
 /** A Program represents a pair of a fragment- and vertex-shader.
  *
  *  <p>This class is a convenient replacement for Stage3Ds "Program3D" class. Its main
@@ -18,8 +16,7 @@ export default class Program {
     _program3D;
 
     /** Creates a program from the given AGAL (Adobe Graphics Assembly Language) bytecode. */
-    constructor(vertexShader, fragmentShader)
-    {
+    constructor(vertexShader, fragmentShader) {
         this._vertexShader = vertexShader;
         this._fragmentShader = fragmentShader;
 
@@ -29,30 +26,25 @@ export default class Program {
     }
 
     /** Disposes the internal Program3D instance. */
-    dispose()
-    {
+    dispose() {
         //Starling.current.stage3D.removeEventListener(Event.CONTEXT3D_CREATE, onContextCreated);
         this.disposeProgram();
     }
 
     /** Creates a new Program instance from GLSL */
-    static fromSource(vertexShader, fragmentShader)
-    {
+    static fromSource(vertexShader, fragmentShader) {
         return new Program(vertexShader, fragmentShader);
     }
 
     /** Activates the program on the given context. If you don't pass a context, the current
      *  Starling context will be used. */
-    activate(gl = null)
-    {
-        if (!gl)
-        {
-            gl = Starling.context;
+    activate(gl = null) {
+        if (!gl) {
+            gl = window.StarlingContextManager.current.context;
             if (!gl) throw new Error('[MissingContextError]');
         }
 
-        if (!this._program3D)
-        {
+        if (!this._program3D) {
             const program = gl.createProgram();
             const vertexShader = this.createShader(gl, this._vertexShader, gl.VERTEX_SHADER);
             const fragmentShader = this.createShader(gl, this._fragmentShader, gl.FRAGMENT_SHADER);
@@ -81,18 +73,15 @@ export default class Program {
         return this._program3D;
     }
 
-    createShader(gl, source, type)
-    {
+    createShader(gl, source, type) {
         const shader = gl.createShader(type);
         gl.shaderSource(shader, source);
         gl.compileShader(shader);
         return shader;
     }
 
-    disposeProgram()
-    {
-        if (this._program3D)
-        {
+    disposeProgram() {
+        if (this._program3D) {
             this._program3D.dispose();
             this._program3D = null;
         }

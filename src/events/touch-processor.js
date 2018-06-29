@@ -1,4 +1,3 @@
-import Starling from '../core/starling';
 import Point from '../math/point';
 import Touch from './touch';
 import TouchPhase from './touch-phase';
@@ -352,7 +351,7 @@ export default class TouchProcessor {
         if (this.simulateMultitouch === value) return; // no change
 
         this._simulateMultitouch = value;
-        const target = Starling.current;
+        const target = window.StarlingContextManager.current;
 
         const createTouchMarker = () => {
             target.removeEventListener(Event.CONTEXT3D_CREATE, createTouchMarker); // todo: probably should be removed
@@ -364,7 +363,7 @@ export default class TouchProcessor {
         };
 
         if (value && !this._touchMarker) {
-            if (Starling.current.contextValid)
+            if (window.StarlingContextManager.current.contextValid)
                 createTouchMarker();
             else
                 target.addEventListener(Event.CONTEXT3D_CREATE, createTouchMarker);

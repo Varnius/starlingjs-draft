@@ -1,4 +1,4 @@
-import { Image, Starling, Color, Utils, Transitions, Tween, Event, TextField } from '../../../../src/index';
+import { Image, Color, Utils, Transitions, Tween, Event, TextField } from '../../../../src/index';
 
 import Scene from './scene';
 import Game from '../game';
@@ -11,10 +11,12 @@ export default class AnimationScene extends Scene {
     _egg;
     _transitionLabel;
     _transitions;
+    _juggler;
 
     constructor() {
         super();
 
+        this._juggler = window.StarlingContextManager.current.juggler;
         this._transitions = [Transitions.LINEAR, Transitions.EASE_IN_OUT,
             Transitions.EASE_OUT_BACK, Transitions.EASE_OUT_BOUNCE,
             Transitions.EASE_OUT_ELASTIC];
@@ -80,7 +82,7 @@ export default class AnimationScene extends Scene {
         // This is done by the 'Juggler'. It receives the tween and will carry it out.
         // We use the default juggler here, but you can create your own jugglers, as well.            
         // That way, you can group animations into logical parts.  
-        Starling.juggler.add(tween);
+        this._juggler.add(tween);
 
         // show which tweening function is used
         //this._transitionLabel.text = transition;
@@ -98,9 +100,9 @@ export default class AnimationScene extends Scene {
         // you use your own juggler in a component of your game, because it gives you perfect 
         // control over the flow of time and animations. 
 
-        Starling.juggler.delayCall(this.colorizeEgg, 1.0, true);
-        Starling.juggler.delayCall(this.colorizeEgg, 2.0, false);
-        Starling.juggler.delayCall(() => {
+        this._juggler.delayCall(this.colorizeEgg, 1.0, true);
+        this._juggler.delayCall(this.colorizeEgg, 2.0, false);
+        this._juggler.delayCall(() => {
             this._delayButton.enabled = true;
         }, 2.0);
     };

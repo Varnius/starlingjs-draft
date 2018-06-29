@@ -1,4 +1,4 @@
-import { Starling, Sprite, Image, Event, KeyboardEvent } from '../../../src/index';
+import { Sprite, Image, Event, KeyboardEvent } from '../../../src/index';
 import MainMenu from './main-menu';
 
 export default class Game extends Sprite {
@@ -23,8 +23,9 @@ export default class Game extends Sprite {
     }
 
     onKey = event => {
-        if (event.key === 'Space')
-            Starling.current.showStats = !Starling.current.showStats;
+        const starling = window.StarlingContextManager.current;
+        if (event.key === ' ')
+            starling.showStats = !starling.showStats;
     };
 
     onButtonTriggered = event => {

@@ -4,7 +4,6 @@ import Matrix3D from '../math/matrix3d';
 import Matrix from '../math/matrix';
 import VertexData from '../rendering/vertex-data';
 import IndexData from '../rendering/index-data';
-import Starling from '../core/starling';
 import RectangleUtil from '../utils/rectangle-util';
 import Pool from '../utils/pool';
 import Stage from '../display/stage';
@@ -155,7 +154,7 @@ export default class FragmentFilter extends EventDispatcher {
         const origResolution = this._resolution;
         const renderSpace = this._target.stage || this._target.parent;
         const isOnStage = renderSpace instanceof Stage;
-        const stage = Starling.current.stage;
+        const stage = window.StarlingContextManager.current.stage;
         let stageBounds;
 
         if (!forCache && (this._alwaysDrawToBackBuffer || this._target.requiresRedraw)) {
@@ -170,7 +169,7 @@ export default class FragmentFilter extends EventDispatcher {
             painter.excludeFromCache(this._target);
         }
 
-        if (this._target === Starling.current.root) {
+        if (this._target === window.StarlingContextManager.current.root) {
             // full-screen filters use exactly the stage bounds
             stage.getStageBounds(this._target, bounds);
         } else {
@@ -198,9 +197,9 @@ export default class FragmentFilter extends EventDispatcher {
             this._padding.left, this._padding.right, this._padding.top, this._padding.bottom);
 
         // extend to actual pixel bounds for maximum sharpness + to avoid jiggling
-        RectangleUtil.extendToWholePixels(bounds, Starling.contentScaleFactor);
+        RectangleUtil.extendToWholePixels(bounds, window.StarlingContextManager.current.contentScaleFactor);
 
-        this._helper.textureScale = Starling.contentScaleFactor * this._resolution;
+        this._helper.textureScale = window.StarlingContextManager.current.contentScaleFactor * this._resolution;
         this._helper.projectionMatrix3D = painter.state.projectionMatrix3D;
         this._helper.renderTarget = painter.state.renderTarget;
         this._helper.clipRect = painter.state.clipRect;

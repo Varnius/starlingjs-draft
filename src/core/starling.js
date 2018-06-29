@@ -1,6 +1,7 @@
 import detectIt from 'detect-it';
 
 import Stage from '../display/stage';
+import ContextManager from './context-manager';
 import EventDispatcher from '../events/event-dispatcher';
 import Event from '../events/event';
 import KeyboardEvent from '../events/keyboard-event';
@@ -10,6 +11,10 @@ import Painter from '../rendering/painter';
 import Rectangle from '../math/rectangle';
 import RectangleUtil from '../utils/rectangle-util';
 import Juggler from '../animation/juggler';
+import Align from '../utils/align';
+import StatsDisplay from './stats-display';
+
+window.StarlingContextManager = new ContextManager();
 
 const MouseEventType = {
     MOUSE_DOWN: 'mousedown',
@@ -65,7 +70,6 @@ export default class Starling extends EventDispatcher {
         //SystemUtil.initialize();
         Starling.sAll.push(this);
         this.makeCurrent();
-
         this._rootClass = rootClass;
         this._viewPort = viewPort;
         this._previousViewPort = new Rectangle();
@@ -185,13 +189,10 @@ export default class Starling extends EventDispatcher {
                 this._painter.present();
         }
 
-        //console.log('[Starling] Draw count:', this._painter.drawCount);
-
-        //if (_statsDisplay)
-        //{
-        //    _statsDisplay.drawCount = _painter.drawCount;
-        //    if (!doRedraw) _statsDisplay.markFrameAsSkipped();
-        //}
+        if (this._statsDisplay) {
+            this._statsDisplay.drawCount = this._painter.drawCount;
+            if (!doRedraw) this._statsDisplay.markFrameAsSkipped();
+        }
     }
 
     updateViewPort(forceUpdate = false) {
@@ -235,7 +236,7 @@ export default class Starling extends EventDispatcher {
 
         // figure out general touch properties
         if (event.constructor.name === 'MouseEvent') {
-            const mouseEvent = event
+            const mouseEvent = event;
 
             globalX = mouseEvent.offsetX;
             globalY = mouseEvent.offsetY;
@@ -327,7 +328,7 @@ export default class Starling extends EventDispatcher {
     }
 
     makeCurrent = () => {
-        Starling.sCurrent = this;
+        window.StarlingContextManager.current = this;
     };
 
     // Public API
@@ -347,6 +348,69 @@ export default class Starling extends EventDispatcher {
 
     get contentScaleFactor() {
         return (this._viewPort.width * this._painter.backBufferScaleFactor) / this._stage.stageWidth;
+    }
+
+    /** Indicates if a small statistics box (with FPS, memory usage and draw count) is
+     *  displayed.
+     *
+     *  <p>When the box turns dark green, more than 50% of the frames since the box' last
+     *  update could skip rendering altogether. This will only happen if the property
+     *  <code>skipUnchangedFrames</code> is enabled.</p>
+     *
+     *  <p>Beware that the memory usage should be taken with a grain of salt. The value is
+     *  determined via <code>System.totalMemory</code> and does not take texture memory
+     *  into account. It is recommended to use Adobe Scout for reliable and comprehensive
+     *  memory analysis.</p>
+     */
+    get showStats() {
+        return this._showStats;
+    }
+
+    set showStats(value) {
+        this._showStats = value;
+
+        if (value) {
+            if (this._statsDisplay) this._stage.addChild(this._statsDisplay);
+            else this.showStatsAt();
+        } else if (this._statsDisplay) {
+            this._statsDisplay.removeFromParent();
+        }
+    }
+
+    /** Displays the statistics box at a certain position. */
+    showStatsAt(horizontalAlign = 'left', verticalAlign = 'top', scale = 1) {
+        this._showStats = true;
+
+        if (this.context == null) {
+            // Starling is not yet ready - we postpone this until it's initialized.
+            this.addEventListener(Event.ROOT_CREATED, onRootCreated);
+        } else {
+            const stageWidth = this._stage.stageWidth;
+            const stageHeight = this._stage.stageHeight;
+
+            if (!this._statsDisplayl) {
+                this._statsDisplay = new StatsDisplay();
+                this._statsDisplay.touchable = false;
+            }
+
+            this._stage.addChild(this._statsDisplay);
+            this._statsDisplay.scaleX = this._statsDisplay.scaleY = scale;
+
+            if (horizontalAlign === Align.LEFT) this._statsDisplay.x = 0;
+            else if (horizontalAlign === Align.RIGHT) this._statsDisplay.x = stageWidth - this._statsDisplay.width;
+            else if (horizontalAlign === Align.CENTER) this._statsDisplay.x = (stageWidth - this._statsDisplay.width) / 2;
+            else throw new Error('[ArgumentError] Invalid horizontal alignment: ' + horizontalAlign);
+
+            if (verticalAlign === Align.TOP) this._statsDisplay.y = 0;
+            else if (verticalAlign === Align.BOTTOM) this._statsDisplay.y = stageHeight - this._statsDisplay.height;
+            else if (verticalAlign === Align.CENTER) this._statsDisplay.y = (stageHeight - this._statsDisplay.height) / 2;
+            else throw new Error('[ArgumentError] Invalid vertical alignment: ' + verticalAlign);
+        }
+
+        function onRootCreated() {
+            if (this._showStats) this.showStatsAt(horizontalAlign, verticalAlign, scale);
+            this.removeEventListener(Event.ROOT_CREATED, onRootCreated);
+        }
     }
 
     get stage() {
@@ -383,31 +447,11 @@ export default class Starling extends EventDispatcher {
         return this._juggler;
     }
 
-    static get current() {
-        return Starling.sCurrent;
+    get painter() {
+        return this._painter;
     }
 
-    static get context() {
-        return Starling.sCurrent ? Starling.sCurrent.context : null;
-    }
-
-    static get painter() {
-        return Starling.sCurrent ? Starling.sCurrent._painter : null;
-    }
-
-    static get contentScaleFactor() {
-        return Starling.sCurrent ? Starling.sCurrent.contentScaleFactor : 1.0;
-    }
-
-    static get frameID() {
-        return Starling.sCurrent ? Starling.sCurrent._frameID : 0;
-    }
-
-    static get multitouchEnabled() {
+    get multitouchEnabled() {
         return detectIt.hasTouch;
-    }
-
-    static get juggler() {
-        return Starling.sCurrent ? Starling.sCurrent._juggler : null;
     }
 }

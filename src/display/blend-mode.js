@@ -1,4 +1,3 @@
-import Starling from '../core/starling';
 import { ONE, ZERO, ONE_MINUS_DST_ALPHA, ONE_MINUS_SRC_ALPHA, DST_COLOR,
     ONE_MINUS_SRC_COLOR, DST_ALPHA, SRC_ALPHA } from 'gl-constants';
 
@@ -102,7 +101,7 @@ export default class BlendMode {
 
     /** Sets the appropriate blend factors for source and destination on the current context. */
     activate() {
-        const gl = Starling.context;
+        const gl = window.StarlingContextManager.current.context;
 
         gl.enable(gl.BLEND);
         gl.blendFunc(this._sourceFactor, this._destinationFactor);

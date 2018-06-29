@@ -1,6 +1,5 @@
 import { times } from 'ramda';
 
-import Starling from '../core/starling';
 import Quad from '../display/quad';
 import Align from '../utils/align';
 import { createTextureFromData } from '../utils/texture-creators';
@@ -14,8 +13,12 @@ import { toCssRgbString } from '../utils/color';
  */
 export default class TrueTypeCompositor {
 
-    static sHelperQuad = new Quad(100, 100);
+    static sHelperQuad;
     static sLines = [];
+
+    constructor() {
+        if (!TrueTypeCompositor.sHelperQuad) TrueTypeCompositor.sHelperQuad = new Quad(100, 100);
+    }
 
     /** @inheritDoc */
     fillMeshBatch(meshBatch, width, height, text, format, options = null) {
@@ -67,7 +70,7 @@ export default class TrueTypeCompositor {
     }
 
     composeLines(text, width, format, padding, result = []) {
-        const ctx = Starling.current.textContext;
+        const ctx = window.StarlingContextManager.current.textContext;
         const textParts = text.split(/(\s+)/);
 
         result.push('');
@@ -95,7 +98,7 @@ export default class TrueTypeCompositor {
     renderText(width, height, text, format, options) {
         const { sLines } = TrueTypeCompositor;
         const { font, size, italic, color, horizontalAlign, verticalAlign } = format;
-        const ctx = Starling.current.textContext;
+        const ctx = window.StarlingContextManager.current.textContext;
         const scale = options.textureScale;
         const padding = options.padding * scale;
         const textureWidth = width * scale;
@@ -136,12 +139,12 @@ export default class TrueTypeCompositor {
         }
 
         const texture = createTextureFromData({
-            data: Starling.current.textCanvas,
+            data: window.StarlingContextManager.current.textCanvas,
             width: textureWidth,
             height: textureHeight,
         });
 
-        ctx.clearRect(0, 0, Starling.current.textCanvas.width, Starling.current.textCanvas.height);
+        ctx.clearRect(0, 0, window.StarlingContextManager.current.textCanvas.width, window.StarlingContextManager.current.textCanvas.height);
         sLines.splice(0);
 
         return texture;

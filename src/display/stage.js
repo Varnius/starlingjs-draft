@@ -52,8 +52,7 @@ export default class Stage extends DisplayObjectContainer {
     static sMatrix3D = new Matrix3D();
 
     /** @private */
-    constructor(width, height, color = 0)
-    {
+    constructor(width, height, color = 0) {
         super();
 
         this._width = width;
@@ -67,16 +66,14 @@ export default class Stage extends DisplayObjectContainer {
     }
 
     /** @inheritDoc */
-    advanceTime(passedTime)
-    {
+    advanceTime(passedTime) {
         this._enterFrameEvent.reset(Event.ENTER_FRAME, false, passedTime);
         this.broadcastEvent(this._enterFrameEvent);
     }
 
     /** Returns the object that is found topmost beneath a point in stage coordinates, or
      *  the stage itself if nothing else is found. */
-    hitTest(localPoint)
-    {
+    hitTest(localPoint) {
         if (!this.visible || !this.touchable) return null;
 
         // locations outside of the stage area shouldn't be accepted
@@ -134,8 +131,7 @@ export default class Stage extends DisplayObjectContainer {
 
     /** Returns the stage bounds (i.e. not the bounds of its contents, but the rectangle
      *  spawned up by 'stageWidth' and 'stageHeight') in another coordinate system. */
-    getStageBounds(targetSpace, out = null)
-    {
+    getStageBounds(targetSpace, out = null) {
         if (!out) out = new Rectangle();
 
         out.setTo(0, 0, this._width, this._height);
@@ -151,8 +147,7 @@ export default class Stage extends DisplayObjectContainer {
      *  To change the position of the camera, you can modify the properties 'fieldOfView',
      *  'focalDistance' and 'projectionOffset'.
      */
-    getCameraPosition(space = null, out = null)
-    {
+    getCameraPosition(space = null, out = null) {
         this.getTransformationMatrix3D(space, Stage.sMatrix3D);
         return MatrixUtil.transformCoords3D(
             Stage.sMatrix3D,
@@ -165,28 +160,23 @@ export default class Stage extends DisplayObjectContainer {
     // enter frame event optimization
 
     /** @private */
-    addEnterFrameListener(listener)
-    {
+    addEnterFrameListener(listener) {
         const index = this._enterFrameListeners.indexOf(listener);
         if (index < 0) this._enterFrameListeners[this._enterFrameListeners.length] = listener;
     }
 
     /** @private */
-    removeEnterFrameListener(listener)
-    {
+    removeEnterFrameListener(listener) {
         const index = this._enterFrameListeners.indexOf(listener);
         if (index >= 0) this._enterFrameListeners.splice(index, 1);
     }
 
     /** @private */
-    getChildEventListeners(object, eventType, listeners)
-    {
-        if (eventType === Event.ENTER_FRAME && object === this)
-        {
+    getChildEventListeners(object, eventType, listeners) {
+        if (eventType === Event.ENTER_FRAME && object === this) {
             for (let i = 0, length = this._enterFrameListeners.length; i < length; ++i)
                 listeners[listeners.length] = this._enterFrameListeners[i]; // avoiding 'push'
-        }
-        else
+        } else
             super.getChildEventListeners(object, eventType, listeners);
     }
 
@@ -253,38 +243,32 @@ export default class Stage extends DisplayObjectContainer {
     //}
 
     /** The background color of the stage. */
-    get color()
-    {
+    get color() {
         return this._color;
     }
 
-    set color(value)
-    {
+    set color(value) {
         this._color = value;
     }
 
     /** The width of the stage coordinate system. Change it to scale its contents relative
      *  to the <code>viewPort</code> property of the Starling object. */
-    get stageWidth()
-    {
+    get stageWidth() {
         return this._width;
     }
 
-    set stageWidth(value)
-    {
+    set stageWidth(value) {
         this._width = value;
         this.setRequiresRedraw();
     }
 
     /** The height of the stage coordinate system. Change it to scale its contents relative
      *  to the <code>viewPort</code> property of the Starling object. */
-    get stageHeight()
-    {
+    get stageHeight() {
         return this._height;
     }
 
-    set stageHeight(value)
-    {
+    set stageHeight(value) {
         this._height = value;
         this.setRequiresRedraw();
     }
@@ -304,13 +288,11 @@ export default class Stage extends DisplayObjectContainer {
 
     /** The distance between the stage and the camera. Changing this value will update the
      *  field of view accordingly. */
-    get focalLength()
-    {
+    get focalLength() {
         return this._width / (2 * Math.tan(this._fieldOfView / 2));
     }
 
-    set focalLength(value)
-    {
+    set focalLength(value) {
         this._fieldOfView = 2 * Math.atan(this.stageWidth / (2 * value));
     }
 
@@ -324,13 +306,11 @@ export default class Stage extends DisplayObjectContainer {
      *
      *  @default 1.0
      */
-    get fieldOfView()
-    {
+    get fieldOfView() {
         return this._fieldOfView;
     }
 
-    set fieldOfView(value)
-    {
+    set fieldOfView(value) {
         this._fieldOfView = value;
     }
 
@@ -338,13 +318,11 @@ export default class Stage extends DisplayObjectContainer {
      *  stage. Use this property to change the center of projection, i.e. the vanishing
      *  point for 3D display objects. <p>CAUTION: not a copy, but the actual object!</p>
      */
-    get projectionOffset()
-    {
+    get projectionOffset() {
         return this._projectionOffset;
     }
 
-    set projectionOffset(value)
-    {
+    set projectionOffset(value) {
         this._projectionOffset.setTo(value.x, value.y);
     }
 
@@ -355,8 +333,7 @@ export default class Stage extends DisplayObjectContainer {
      *
      *  <p>CAUTION: not a copy, but the actual object!</p>
      */
-    get cameraPosition()
-    {
+    get cameraPosition() {
         return this.getCameraPosition(null, this._cameraPosition);
     }
 }

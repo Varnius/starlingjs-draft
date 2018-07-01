@@ -18,6 +18,7 @@ export { default as MovieClip } from './display/movie-clip';
 export { default as Canvas } from './display/canvas';
 
 export { default as Texture } from './textures/texture';
+export { default as RenderTexture } from './textures/render-texture';
 
 export { default as FragmentFilter } from './filters/fragment-filter';
 export { default as ColorMatrixFilter } from './filters/color-matrix-filter';

@@ -4,7 +4,6 @@ module.exports = {
     devtool: '#eval-cheap-module-source-map',
     entry: {
         demo: './examples/demo/src/index.js',
-        quads: './examples/quads/index.js',
     },
     output: {
         path: '/dist',

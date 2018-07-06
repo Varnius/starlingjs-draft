@@ -101,8 +101,7 @@ export default class RenderTexture extends SubTexture {
     constructor(width, height, persistent = true) {
         const activeTexture = createEmptyTexture({ width, height });
         activeTexture.root.onRestore = activeTexture.root.clear;
-        activeTexture.fbo = false;
-
+        activeTexture.fbo = true;
 
         super(activeTexture, new Rectangle(0, 0, width, height), true, null, false);
         this.fbo = true;
@@ -111,6 +110,7 @@ export default class RenderTexture extends SubTexture {
 
         if (persistent && RenderTexture.useDoubleBuffering) {
             this._bufferTexture = createEmptyTexture({ width, height });
+            this._bufferTexture.fbo = true;
             this._bufferTexture.root.onRestore = this._bufferTexture.root.clear;
             this._helperImage = new Image(this._bufferTexture);
             this._helperImage.textureSmoothing = TextureSmoothing.NONE; // solves some aliasing-issues
@@ -284,7 +284,6 @@ export default class RenderTexture extends SubTexture {
      *  @default true for "baseline" and "baselineConstrained", false otherwise
      */
     static get useDoubleBuffering() {
-        return false;
         const starling = window.StarlingContextManager.current;
         if (starling) {
             const painter = starling.painter;

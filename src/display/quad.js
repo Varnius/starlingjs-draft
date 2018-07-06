@@ -77,7 +77,7 @@ export default class Quad extends Mesh {
 
         if (texture) {
             texture.setupVertexPositions(vertexData, 0, 'position', _bounds);
-            texture.setupTextureCoordinates(vertexData, 0, texAttr);
+            texture.setupTextureCoordinates(vertexData, 0, texAttr, !!this.fbo);
         } else {
             vertexData.setPoint(0, posAttr, _bounds.left, _bounds.top);
             vertexData.setPoint(1, posAttr, _bounds.right, _bounds.top);

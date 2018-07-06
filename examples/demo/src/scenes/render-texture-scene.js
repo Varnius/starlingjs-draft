@@ -59,9 +59,9 @@ export default class RenderTextureScene extends Scene {
                 const location = touch.getLocation(this._canvas);
                 this._brush.x = location.x;
                 this._brush.y = location.y;
+
                 this._brush.color = this._colors[touch.id];
                 this._brush.rotation = Math.random() * Math.PI * 2.0;
-
                 this._renderTexture.draw(this._brush);
 
                 // necessary because 'Starling.skipUnchangedFrames === true'

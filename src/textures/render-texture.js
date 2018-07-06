@@ -101,9 +101,11 @@ export default class RenderTexture extends SubTexture {
     constructor(width, height, persistent = true) {
         const activeTexture = createEmptyTexture({ width, height });
         activeTexture.root.onRestore = activeTexture.root.clear;
+        activeTexture.fbo = false;
+
 
         super(activeTexture, new Rectangle(0, 0, width, height), true, null, false);
-
+        this.fbo = true;
         this._isPersistent = persistent;
         this._activeTexture = activeTexture;
 
@@ -139,8 +141,7 @@ export default class RenderTexture extends SubTexture {
      *                      Beginning with AIR 22, this feature is supported on all platforms
      *                      (except for software rendering mode).
      */
-    draw(object, matrix = null, alpha = 1.0,
-         antiAliasing = 0) {
+    draw(object, matrix = null, alpha = 1.0, antiAliasing = 0) {
         if (!object) return;
 
         if (this._drawing)
@@ -227,6 +228,7 @@ export default class RenderTexture extends SubTexture {
             painter.clear();
 
         // draw buffer
+
         if (this.isDoubleBuffered && this._bufferReady)
             this._helperImage.render(painter);
         else
@@ -282,6 +284,7 @@ export default class RenderTexture extends SubTexture {
      *  @default true for "baseline" and "baselineConstrained", false otherwise
      */
     static get useDoubleBuffering() {
+        return false;
         const starling = window.StarlingContextManager.current;
         if (starling) {
             const painter = starling.painter;

@@ -188,7 +188,7 @@ export default class Texture {
     setTexCoords(vertexData, vertexID, attrName, u, v, fbo = false) {
         const { sPoint } = Texture;
         this.localToGlobal(u, v, sPoint);
-        vertexData.setPoint(vertexID, attrName, sPoint.x, fbo ? 1 - sPoint.y : sPoint.y);
+        vertexData.setPoint(vertexID, attrName, sPoint.x, (fbo || this.fbo) ? 1 - sPoint.y : sPoint.y);
     }
 
     /** Reads a pair of texture coordinates from the given VertexData instance and transforms

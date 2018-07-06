@@ -4,17 +4,25 @@ import { FakeContext } from './test-utils/fake-context';
 import fetch from 'node-fetch';
 import Sprite from '../src/display/sprite';
 
+const document = {
+    getElementById: id =>
+        id === 'starling-text-canvas' ? {
+            getContext: () => ({
+                measureText: () => ({}),
+                fillText: () => {
+                },
+                clearRect: () => {
+                },
+                setTransform: () => {
+                },
+            }),
+        } : null,
+};
+
 const mockWindow = {
     fetch,
     createImageBitmap: input => Promise.resolve(input),
-    document: {
-        getElementById: id =>
-            id === 'text-canvas' ? { getContext: () => ({
-                measureText: () => ({}),
-                fillText: () => {},
-                clearRect: () => {},
-            }) } : null,
-    },
+    document,
     requestAnimationFrame() {
     },
     navigator: {
@@ -26,6 +34,8 @@ global.expect = expect;
 global.window = mockWindow;
 global.navigator = {};
 global.Blob = require('blob-polyfill').Blob;
+
+global.document = document;
 
 const Starling = require('../src/core/starling').default;
 

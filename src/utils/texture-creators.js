@@ -67,7 +67,7 @@ const createWithData = ({
     gl.bindTexture(gl.TEXTURE_2D, nativeTexture);
 
     const border = 0;
-    gl.texImage2D(gl.TEXTURE_2D, 0, format, width, height, border, format, gl.UNSIGNED_BYTE, data);
+    gl.texImage2D(gl.TEXTURE_2D, 0, format, actualWidth, actualHeight, border, format, gl.UNSIGNED_BYTE, data);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
 
@@ -75,8 +75,8 @@ const createWithData = ({
         gl.generateMipmap(gl.TEXTURE_2D);
     }
 
-    const concreteTexture = new ConcreteTexture(nativeTexture, format, actualWidth, actualHeight, premultipliedAlpha, scale);
-    concreteTexture.onRestore = concreteTexture.clear; //todo: check if this works
+    const concreteTexture = new ConcreteTexture(nativeTexture, format, width, height, premultipliedAlpha, scale);
+    concreteTexture.onRestore = concreteTexture.clear;
 
     if (actualWidth - origWidth < 0.001 && actualHeight - origHeight < 0.001)
         return concreteTexture;

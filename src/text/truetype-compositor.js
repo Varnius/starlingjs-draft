@@ -104,6 +104,9 @@ export default class TrueTypeCompositor {
         const textureWidth = width * scale;
         const textureHeight = height * scale;
 
+        const textRenderScale = 2;
+        ctx.setTransform(textRenderScale, 0, 0, textRenderScale, 0, 0);
+        ctx.imageSmoothingEnabled = false;
         ctx.fillStyle = toCssRgbString(color);
         ctx.font = `${size}px ${font} ${italic ? 'italic' : ''}`;
 
@@ -111,7 +114,7 @@ export default class TrueTypeCompositor {
 
         let textY = 0; // Align.TOP
         const measuredHeight = size * sLines.length;
-        const lineHeight = size; // todo: ???
+        const lineHeight = size;
 
         if (verticalAlign === Align.CENTER) {
             textY = height / 2 - measuredHeight / 2;
@@ -135,13 +138,16 @@ export default class TrueTypeCompositor {
             // Also, add additional -2px offset
             // Finally, add line offset
             const offsetY = lineHeight - 2 + lineHeight * i;
-            ctx.fillText(line, textX, textY + offsetY);
+            ctx.fillText(line, Math.round(textX), Math.round(textY + offsetY));
         }
+
+        console.log(textureWidth, textureHeight)
 
         const texture = createTextureFromData({
             data: window.StarlingContextManager.current.textCanvas,
             width: textureWidth,
             height: textureHeight,
+            scale: textRenderScale,
         });
 
         ctx.clearRect(0, 0, window.StarlingContextManager.current.textCanvas.width, window.StarlingContextManager.current.textCanvas.height);

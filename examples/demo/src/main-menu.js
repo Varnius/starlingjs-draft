@@ -61,6 +61,7 @@ export default class MainMenu extends Sprite {
             ++count;
         }
 
+        // todo:
         // show information about rendering method (hardware/software)
 
         //var driverInfo = Starling.context.driverInfo;

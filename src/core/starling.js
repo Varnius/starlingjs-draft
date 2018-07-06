@@ -82,9 +82,17 @@ export default class Starling extends EventDispatcher {
         this._frameTimestamp = new Date().getTime() / 1000.0;
         this._frameID = 1;
 
-        // todo:
-        this.textCanvas = window.document.getElementById('text-canvas');
-        this.textContext = this.textCanvas.getContext('2d');
+        this._textCanvas = document.getElementById('starling-text-canvas');
+
+        if (!this._textCanvas) {
+            const textCanvas = document.createElement('canvas');
+            textCanvas.setAttribute('width', canvas.width * 2);
+            textCanvas.setAttribute('height', canvas.height * 2);
+            textCanvas.setAttribute('style', 'display: none');
+            this._textCanvas = document.body.appendChild(textCanvas);
+        }
+
+        this.textContext = this._textCanvas.getContext('2d');
 
         // register touch/mouse event handlers            
         for (const touchEventType of this.touchEventTypes)
@@ -453,5 +461,9 @@ export default class Starling extends EventDispatcher {
 
     get multitouchEnabled() {
         return detectIt.hasTouch;
+    }
+
+    get textCanvas() {
+        return this._textCanvas;
     }
 }

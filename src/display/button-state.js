@@ -1,14 +1,13 @@
-export default
-{
-    /** The button's default state. */
-    UP: 'up',
+export default {
+  /** The button's default state. */
+  UP: 'up',
 
-    /** The button is pressed. */
-    DOWN: 'down',
+  /** The button is pressed. */
+  DOWN: 'down',
 
-    /** The mouse hovers over the button. */
-    OVER: 'over',
+  /** The mouse hovers over the button. */
+  OVER: 'over',
 
-    /** The button was disabled altogether. */
-    DISABLED: 'disabled',
-};
+  /** The button was disabled altogether. */
+  DISABLED: 'disabled'
+}

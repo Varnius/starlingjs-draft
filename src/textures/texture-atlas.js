@@ -1,5 +1,5 @@
-import Rectangle from '../math/rectangle';
-import SubTexture from '../textures/subtexture';
+import Rectangle from '../math/rectangle'
+import SubTexture from '../textures/subtexture'
 
 /** A texture atlas is a collection of many smaller textures in one big image. This class
  *  is used to access textures from such an atlas.
@@ -56,146 +56,151 @@ import SubTexture from '../textures/subtexture';
  *
  */
 export default class TextureAtlas {
-    _atlasTexture;
-    _subTextures;
-    _subTextureNames;
+  _atlasTexture
+  _subTextures
+  _subTextureNames
 
-    static sNames = [];
+  static sNames = []
 
-    /** Create a texture atlas from a texture by parsing the regions from an JSON file. */
-    constructor(texture, atlasData) {
-        this._subTextures = new Map();
-        this._atlasTexture = texture;
+  /** Create a texture atlas from a texture by parsing the regions from an JSON file. */
+  constructor(texture, atlasData) {
+    this._subTextures = new Map()
+    this._atlasTexture = texture
 
-        if (atlasData)
-            this.parseAtlasData(atlasData);
+    if (atlasData) this.parseAtlasData(atlasData)
+  }
+
+  /** Disposes the atlas texture. */
+  dispose() {
+    this._atlasTexture.dispose()
+  }
+
+  parseBoolean(value) {
+    return (
+      value === 'true' || value === 'TRUE' || value === 'True' || value === '1'
+    )
+  }
+
+  /** This function is called by the constructor and will parse JSON in Starling's
+   *  default atlas file format. Override this method to create custom parsing logic
+   *  (e.g. to support a different file format). */
+  parseAtlasData(atlasData) {
+    const scale = this._atlasTexture.scale
+    const region = new Rectangle()
+    const frame = new Rectangle()
+
+    for (const subTexture of atlasData.TextureAtlas.SubTexture) {
+      const { _attributes } = subTexture
+      const name = _attributes.name
+      const x = parseFloat(_attributes.x) / scale
+      const y = parseFloat(_attributes.y) / scale
+      const width = parseFloat(_attributes.width) / scale
+      const height = parseFloat(_attributes.height) / scale
+      const frameX = parseFloat(_attributes.frameX) / scale
+      const frameY = parseFloat(_attributes.frameY) / scale
+      const frameWidth = parseFloat(_attributes.frameWidth) / scale
+      const frameHeight = parseFloat(_attributes.frameHeight) / scale
+      const rotated = this.parseBoolean(_attributes.rotated)
+
+      region.setTo(x, y, width, height)
+      frame.setTo(frameX, frameY, frameWidth, frameHeight)
+
+      if (frameWidth > 0 && frameHeight > 0)
+        this.addRegion(name, region, frame, rotated)
+      else this.addRegion(name, region, null, rotated)
+    }
+  }
+
+  /** Retrieves a SubTexture by name. Returns <code>null</code> if it is not found. */
+  getTexture(name) {
+    return this._subTextures.get(name)
+  }
+
+  /** Returns all textures that start with a certain string, sorted alphabetically
+   *  (especially useful for "MovieClip"). */
+  getTextures(prefix = '', out = null) {
+    if (!out) out = []
+
+    for (const name of this.getNames(prefix, TextureAtlas.sNames))
+      out[out.length] = this.getTexture(name) // avoid 'push'
+
+    TextureAtlas.sNames.length = 0
+    return out
+  }
+
+  /** Returns all texture names that start with a certain string, sorted alphabetically. */
+  getNames(prefix = '', out = null) {
+    if (!out) out = []
+
+    if (!this._subTextureNames) {
+      // optimization: store sorted list of texture names
+      this._subTextureNames = []
+      for (const name of this._subTextures.keys()) {
+        this._subTextureNames[this._subTextureNames.length] = name
+      }
+      this._subTextureNames.sort()
     }
 
-    /** Disposes the atlas texture. */
-    dispose() {
-        this._atlasTexture.dispose();
+    for (const name of this._subTextureNames) {
+      if (name.indexOf(prefix) === 0) {
+        out[out.length] = name
+      }
     }
 
-    parseBoolean(value) {
-        return value === 'true' || value === 'TRUE' || value === 'True' || value === '1';
-    }
+    return out
+  }
 
-    /** This function is called by the constructor and will parse JSON in Starling's
-     *  default atlas file format. Override this method to create custom parsing logic
-     *  (e.g. to support a different file format). */
-    parseAtlasData(atlasData) {
-        const scale = this._atlasTexture.scale;
-        const region = new Rectangle();
-        const frame = new Rectangle();
+  /** Returns the region rectangle associated with a specific name, or <code>null</code>
+   *  if no region with that name has been registered. */
+  getRegion(name) {
+    const subTexture = this._subTextures.get(name)
+    return subTexture ? subTexture.region : null
+  }
 
-        for (const subTexture of atlasData.TextureAtlas.SubTexture) {
-            const { _attributes } = subTexture;
-            const name = _attributes.name;
-            const x = parseFloat(_attributes.x) / scale;
-            const y = parseFloat(_attributes.y) / scale;
-            const width = parseFloat(_attributes.width) / scale;
-            const height = parseFloat(_attributes.height) / scale;
-            const frameX = parseFloat(_attributes.frameX) / scale;
-            const frameY = parseFloat(_attributes.frameY) / scale;
-            const frameWidth = parseFloat(_attributes.frameWidth) / scale;
-            const frameHeight = parseFloat(_attributes.frameHeight) / scale;
-            const rotated = this.parseBoolean(_attributes.rotated);
+  /** Returns the frame rectangle of a specific region, or <code>null</code> if that region
+   *  has no frame. */
+  getFrame(name) {
+    const subTexture = this._subTextures.get(name)
+    return subTexture ? subTexture.frame : null
+  }
 
-            region.setTo(x, y, width, height);
-            frame.setTo(frameX, frameY, frameWidth, frameHeight);
+  /** If true, the specified region in the atlas is rotated by 90 degrees (clockwise). The
+   *  SubTexture is thus rotated counter-clockwise to cancel out that transformation. */
+  getRotation(name) {
+    const subTexture = this._subTextures.get(name)
+    return subTexture ? subTexture.rotated : false
+  }
 
-            if (frameWidth > 0 && frameHeight > 0)
-                this.addRegion(name, region, frame, rotated);
-            else
-                this.addRegion(name, region, null, rotated);
-        }
-    }
+  /** Adds a named region for a SubTexture (described by rectangle with coordinates in
+   *  points) with an optional frame. */
+  addRegion(name, region, frame = null, rotated = false) {
+    this.addSubTexture(
+      name,
+      new SubTexture(this._atlasTexture, region, false, frame, rotated)
+    )
+  }
 
-    /** Retrieves a SubTexture by name. Returns <code>null</code> if it is not found. */
-    getTexture(name) {
-        return this._subTextures.get(name);
-    }
+  /** Adds a named region for an instance of SubTexture or an instance of its sub-classes.*/
+  addSubTexture(name, subTexture) {
+    if (subTexture.root !== this._atlasTexture.root)
+      throw new Error(
+        '[ArgumentError] SubTexture`s root must be atlas texture.'
+      )
 
-    /** Returns all textures that start with a certain string, sorted alphabetically
-     *  (especially useful for "MovieClip"). */
-    getTextures(prefix = '', out = null) {
-        if (!out) out = [];
+    this._subTextures.set(name, subTexture)
+    this._subTextureNames = null
+  }
 
-        for (const name of this.getNames(prefix, TextureAtlas.sNames))
-            out[out.length] = this.getTexture(name); // avoid 'push'
+  /** Removes a region with a certain name. */
+  removeRegion(name) {
+    const subTexture = this._subTextures.get(name)
+    if (subTexture) subTexture.dispose()
+    this._subTextures.delete(name)
+    this._subTextureNames = null
+  }
 
-        TextureAtlas.sNames.length = 0;
-        return out;
-    }
-
-    /** Returns all texture names that start with a certain string, sorted alphabetically. */
-    getNames(prefix = '', out = null) {
-        if (!out) out = [];
-
-        if (!this._subTextureNames) {
-            // optimization: store sorted list of texture names
-            this._subTextureNames = [];
-            for (const name of this._subTextures.keys()) {
-                this._subTextureNames[this._subTextureNames.length] = name;
-            }
-            this._subTextureNames.sort();
-        }
-
-        for (const name of this._subTextureNames) {
-            if (name.indexOf(prefix) === 0) {
-                out[out.length] = name;
-            }
-        }
-
-        return out;
-    }
-
-    /** Returns the region rectangle associated with a specific name, or <code>null</code>
-     *  if no region with that name has been registered. */
-    getRegion(name) {
-        const subTexture = this._subTextures.get(name);
-        return subTexture ? subTexture.region : null;
-    }
-
-    /** Returns the frame rectangle of a specific region, or <code>null</code> if that region
-     *  has no frame. */
-    getFrame(name) {
-        const subTexture = this._subTextures.get(name);
-        return subTexture ? subTexture.frame : null;
-    }
-
-    /** If true, the specified region in the atlas is rotated by 90 degrees (clockwise). The
-     *  SubTexture is thus rotated counter-clockwise to cancel out that transformation. */
-    getRotation(name) {
-        const subTexture = this._subTextures.get(name);
-        return subTexture ? subTexture.rotated : false;
-    }
-
-    /** Adds a named region for a SubTexture (described by rectangle with coordinates in
-     *  points) with an optional frame. */
-    addRegion(name, region, frame = null, rotated = false) {
-        this.addSubTexture(name, new SubTexture(this._atlasTexture, region, false, frame, rotated));
-    }
-
-    /** Adds a named region for an instance of SubTexture or an instance of its sub-classes.*/
-    addSubTexture(name, subTexture) {
-        if (subTexture.root !== this._atlasTexture.root)
-            throw new Error('[ArgumentError] SubTexture`s root must be atlas texture.');
-
-        this._subTextures.set(name, subTexture);
-        this._subTextureNames = null;
-    }
-
-    /** Removes a region with a certain name. */
-    removeRegion(name) {
-        const subTexture = this._subTextures.get(name);
-        if (subTexture) subTexture.dispose();
-        this._subTextures.delete(name);
-        this._subTextureNames = null;
-    }
-
-    /** The base texture that makes up the atlas. */
-    get texture() {
-        return this._atlasTexture;
-    }
+  /** The base texture that makes up the atlas. */
+  get texture() {
+    return this._atlasTexture
+  }
 }

@@ -1,5 +1,5 @@
-import FilterEffect from './filter-effect';
-import Program from './program';
+import FilterEffect from './filter-effect'
+import Program from './program'
 
 /** An effect drawing a mesh of textured, colored vertices.
  *  This is the standard effect that is the base for all mesh styles;
@@ -13,45 +13,46 @@ import Program from './program';
  *  @see starling.styles.MeshStyle
  */
 export default class MeshEffect extends FilterEffect {
-    /** The vertex format expected by <code>uploadVertexData</code>:
-     *  <code>'position:float2, texCoords:float2, color:bytes4'</code> */
-    static VERTEX_FORMAT = FilterEffect.VERTEX_FORMAT.extend('color:bytes4');
+  /** The vertex format expected by <code>uploadVertexData</code>:
+   *  <code>'position:float2, texCoords:float2, color:bytes4'</code> */
+  static VERTEX_FORMAT = FilterEffect.VERTEX_FORMAT.extend('color:bytes4')
 
-    _alpha;
-    _tinted;
-    _optimizeIfNotTinted;
+  _alpha
+  _tinted
+  _optimizeIfNotTinted
 
-    // helper objects
-    static sRenderAlpha = [];
+  // helper objects
+  static sRenderAlpha = []
 
-    /** Creates a new MeshEffect instance. */
-    constructor() {
-        // Non-tinted meshes may be rendered with a simpler fragment shader, which brings
-        // a huge performance benefit on some low-end hardware. However, I don't want
-        // subclasses to become any more complicated because of this optimization (they
-        // probably use much longer shaders, anyway), so I only apply this optimization if
-        // this is actually the 'MeshEffect' class.
+  /** Creates a new MeshEffect instance. */
+  constructor() {
+    // Non-tinted meshes may be rendered with a simpler fragment shader, which brings
+    // a huge performance benefit on some low-end hardware. However, I don't want
+    // subclasses to become any more complicated because of this optimization (they
+    // probably use much longer shaders, anyway), so I only apply this optimization if
+    // this is actually the 'MeshEffect' class.
 
-        super();
-        this._alpha = 1.0;
-        this._optimizeIfNotTinted = false; // todo: optimize or not?
-    }
+    super()
+    this._alpha = 1.0
+    this._optimizeIfNotTinted = false // todo: optimize or not?
+  }
 
-    /** @private */
-    get programVariantName() {
-        const noTinting = (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0) >>> 0; // todo: uint()
-        return super.programVariantName | (noTinting << 3);
-    }
+  /** @private */
+  get programVariantName() {
+    const noTinting =
+      (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0) >>> 0 // todo: uint()
+    return super.programVariantName | (noTinting << 3)
+  }
 
-    /** @private */
-    createProgram() {
-        let vertexShader, fragmentShader;
+  /** @private */
+  createProgram() {
+    let vertexShader, fragmentShader
 
-        if (this.texture) {
-            if (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0)
-                return super.createProgram();
+    if (this.texture) {
+      if (this._optimizeIfNotTinted && !this._tinted && this._alpha === 1.0)
+        return super.createProgram()
 
-            vertexShader = `#version 300 es
+      vertexShader = `#version 300 es
                 layout(location = 0) in vec2 aPosition;
                 layout(location = 1) in vec2 aTexCoords;
                 layout(location = 2) in vec4 aColor;
@@ -71,9 +72,9 @@ export default class MeshEffect extends FilterEffect {
 
                     vTexCoords = aTexCoords;
                 }
-            `;
+            `
 
-            fragmentShader = `#version 300 es
+      fragmentShader = `#version 300 es
                 precision highp float;
 
                 uniform sampler2D sTexture;
@@ -87,9 +88,9 @@ export default class MeshEffect extends FilterEffect {
                     vec4 textureColor = texture(sTexture, vTexCoords);
                     color = vColor * textureColor;
                 }
-            `;
-        } else {
-            vertexShader = `#version 300 es
+            `
+    } else {
+      vertexShader = `#version 300 es
                 layout(location = 0) in vec2 aPosition;
                 layout(location = 2) in vec4 aColor;
 
@@ -105,9 +106,9 @@ export default class MeshEffect extends FilterEffect {
                     // Reverse components because WebGL expects data as little-endian
                     vColor = aColor.wzyx * uAlpha;
                 }
-            `;
+            `
 
-            fragmentShader = `#version 300 es
+      fragmentShader = `#version 300 es
                 precision highp float;
 
                 in vec4 vColor;
@@ -117,66 +118,71 @@ export default class MeshEffect extends FilterEffect {
                 void main() {
                    color = vColor;
                 }
-            `;
-        }
-
-        return Program.fromSource(vertexShader, fragmentShader);
+            `
     }
 
-    /** This method is called by <code>render</code>, directly before
-     *  <code>context.drawTriangles</code>. It activates the program and sets up
-     *  the context with the following constants and attributes:
-     *
-     *  <ul>
-     *    <li><code>vc0-vc3</code> — MVP matrix</li>
-     *    <li><code>vc4</code> — alpha value (same value for all components)</li>
-     *    <li><code>va0</code> — vertex position (xy)</li>
-     *    <li><code>va1</code> — texture coordinates (uv)</li>
-     *    <li><code>va2</code> — vertex color (rgba), using premultiplied alpha</li>
-     *    <li><code>fs0</code> — texture</li>
-     *  </ul>
-     */
-    beforeDraw(gl) {
-        super.beforeDraw(gl);
+    return Program.fromSource(vertexShader, fragmentShader)
+  }
 
-        const nativeProgram = this.program.nativeProgram;
-        const alphaUniformLoc = gl.getUniformLocation(nativeProgram, 'uAlpha');
-        gl.uniform1f(alphaUniformLoc, this._alpha);
+  /** This method is called by <code>render</code>, directly before
+   *  <code>context.drawTriangles</code>. It activates the program and sets up
+   *  the context with the following constants and attributes:
+   *
+   *  <ul>
+   *    <li><code>vc0-vc3</code> — MVP matrix</li>
+   *    <li><code>vc4</code> — alpha value (same value for all components)</li>
+   *    <li><code>va0</code> — vertex position (xy)</li>
+   *    <li><code>va1</code> — texture coordinates (uv)</li>
+   *    <li><code>va2</code> — vertex color (rgba), using premultiplied alpha</li>
+   *    <li><code>fs0</code> — texture</li>
+   *  </ul>
+   */
+  beforeDraw(gl) {
+    super.beforeDraw(gl)
 
-        if (this._tinted || this._alpha !== 1.0 || !this._optimizeIfNotTinted || !this.texture) {
-            gl.bindAttribLocation(nativeProgram, 2, 'aColor');
-        }
+    const nativeProgram = this.program.nativeProgram
+    const alphaUniformLoc = gl.getUniformLocation(nativeProgram, 'uAlpha')
+    gl.uniform1f(alphaUniformLoc, this._alpha)
+
+    if (
+      this._tinted ||
+      this._alpha !== 1.0 ||
+      !this._optimizeIfNotTinted ||
+      !this.texture
+    ) {
+      gl.bindAttribLocation(nativeProgram, 2, 'aColor')
     }
+  }
 
-    afterDraw(gl) {
-        super.afterDraw(gl);
-    }
+  afterDraw(gl) {
+    super.afterDraw(gl)
+  }
 
-    /** The data format that this effect requires from the VertexData that it renders:
-     *  <code>'position:float2, texCoords:float2, color:bytes4'</code> */
-    get vertexFormat() {
-        return MeshEffect.VERTEX_FORMAT;
-    }
+  /** The data format that this effect requires from the VertexData that it renders:
+   *  <code>'position:float2, texCoords:float2, color:bytes4'</code> */
+  get vertexFormat() {
+    return MeshEffect.VERTEX_FORMAT
+  }
 
-    /** The alpha value of the object rendered by the effect. Must be taken into account
-     *  by all subclasses. */
-    get alpha() {
-        return this._alpha;
-    }
+  /** The alpha value of the object rendered by the effect. Must be taken into account
+   *  by all subclasses. */
+  get alpha() {
+    return this._alpha
+  }
 
-    set alpha(value) {
-        this._alpha = value;
-    }
+  set alpha(value) {
+    this._alpha = value
+  }
 
-    /** Indicates if the rendered vertices are tinted in any way, i.e. if there are vertices
-     *  that have a different color than fully opaque white. The base <code>MeshEffect</code>
-     *  class uses this information to simplify the fragment shader if possible. May be
-     *  ignored by subclasses. */
-    get tinted() {
-        return this._tinted;
-    }
+  /** Indicates if the rendered vertices are tinted in any way, i.e. if there are vertices
+   *  that have a different color than fully opaque white. The base <code>MeshEffect</code>
+   *  class uses this information to simplify the fragment shader if possible. May be
+   *  ignored by subclasses. */
+  get tinted() {
+    return this._tinted
+  }
 
-    set tinted(value) {
-        this._tinted = value;
-    }
+  set tinted(value) {
+    this._tinted = value
+  }
 }

@@ -1,5 +1,13 @@
-import { ONE, ZERO, ONE_MINUS_DST_ALPHA, ONE_MINUS_SRC_ALPHA, DST_COLOR,
-    ONE_MINUS_SRC_COLOR, DST_ALPHA, SRC_ALPHA } from 'gl-constants';
+import {
+  ONE,
+  ZERO,
+  ONE_MINUS_DST_ALPHA,
+  ONE_MINUS_SRC_ALPHA,
+  DST_COLOR,
+  ONE_MINUS_SRC_COLOR,
+  DST_ALPHA,
+  SRC_ALPHA
+} from 'gl-constants'
 
 /** A class that provides constant values for visual blend mode effects.
  *
@@ -20,110 +28,111 @@ import { ONE, ZERO, ONE_MINUS_DST_ALPHA, ONE_MINUS_SRC_ALPHA, DST_COLOR,
  *  @see flash.display3D.Context3DBlendFactor
  */
 export default class BlendMode {
-    _name;
-    _sourceFactor;
-    _destinationFactor;
+  _name
+  _sourceFactor
+  _destinationFactor
 
-    static sBlendModes;
+  static sBlendModes
 
-    /** Creates a new BlendMode instance. Don't call this method directly; instead,
-     *  register a new blend mode using <code>BlendMode.register</code>. */
-    constructor(name, sourceFactor, destinationFactor) {
-        this._name = name;
-        this._sourceFactor = sourceFactor;
-        this._destinationFactor = destinationFactor;
-    }
+  /** Creates a new BlendMode instance. Don't call this method directly; instead,
+   *  register a new blend mode using <code>BlendMode.register</code>. */
+  constructor(name, sourceFactor, destinationFactor) {
+    this._name = name
+    this._sourceFactor = sourceFactor
+    this._destinationFactor = destinationFactor
+  }
 
-    /** Inherits the blend mode from this display object's parent. */
-    static AUTO = 'auto';
+  /** Inherits the blend mode from this display object's parent. */
+  static AUTO = 'auto'
 
-    /** Deactivates blending, i.e. disabling any transparency. */
-    static NONE = 'none';
+  /** Deactivates blending, i.e. disabling any transparency. */
+  static NONE = 'none'
 
-    /** The display object appears in front of the background. */
-    static NORMAL = 'normal';
+  /** The display object appears in front of the background. */
+  static NORMAL = 'normal'
 
-    /** Adds the values of the colors of the display object to the colors of its background. */
-    static ADD = 'add';
+  /** Adds the values of the colors of the display object to the colors of its background. */
+  static ADD = 'add'
 
-    /** Multiplies the values of the display object colors with the the background color. */
-    static MULTIPLY = 'multiply';
+  /** Multiplies the values of the display object colors with the the background color. */
+  static MULTIPLY = 'multiply'
 
-    /** Multiplies the complement (inverse) of the display object color with the complement of
-     * the background color, resulting in a bleaching effect. */
-    static SCREEN = 'screen';
+  /** Multiplies the complement (inverse) of the display object color with the complement of
+   * the background color, resulting in a bleaching effect. */
+  static SCREEN = 'screen'
 
-    /** Erases the background when drawn on a RenderTexture. */
-    static ERASE = 'erase';
+  /** Erases the background when drawn on a RenderTexture. */
+  static ERASE = 'erase'
 
-    /** When used on a RenderTexture, the drawn object will act as a mask for the current
-     *  content, i.e. the source alpha overwrites the destination alpha. */
-    static MASK = 'mask';
+  /** When used on a RenderTexture, the drawn object will act as a mask for the current
+   *  content, i.e. the source alpha overwrites the destination alpha. */
+  static MASK = 'mask'
 
-    /** Draws under/below existing objects; useful especially on RenderTextures. */
-    static BELOW = 'below';
+  /** Draws under/below existing objects; useful especially on RenderTextures. */
+  static BELOW = 'below'
 
-    // static access methods
+  // static access methods
 
-    /** Returns the blend mode with the given name.
-     *  Throws an ArgumentError if the mode does not exist. */
-    static get(modeName) {
-        if (!BlendMode.sBlendModes) BlendMode.registerDefaults();
-        if (modeName in BlendMode.sBlendModes) return BlendMode.sBlendModes[modeName];
-        else throw new Error('[ArgumentError] Blend mode not found: ' + modeName);
-    }
+  /** Returns the blend mode with the given name.
+   *  Throws an ArgumentError if the mode does not exist. */
+  static get(modeName) {
+    if (!BlendMode.sBlendModes) BlendMode.registerDefaults()
+    if (modeName in BlendMode.sBlendModes)
+      return BlendMode.sBlendModes[modeName]
+    else throw new Error('[ArgumentError] Blend mode not found: ' + modeName)
+  }
 
-    /** Registers a blending mode under a certain name. */
-    static register(name, srcFactor, dstFactor) {
-        if (!BlendMode.sBlendModes) BlendMode.registerDefaults();
-        const blendMode = new BlendMode(name, srcFactor, dstFactor);
-        BlendMode.sBlendModes[name] = blendMode;
-        return blendMode;
-    }
+  /** Registers a blending mode under a certain name. */
+  static register(name, srcFactor, dstFactor) {
+    if (!BlendMode.sBlendModes) BlendMode.registerDefaults()
+    const blendMode = new BlendMode(name, srcFactor, dstFactor)
+    BlendMode.sBlendModes[name] = blendMode
+    return blendMode
+  }
 
-    static registerDefaults() {
-        const { register } = BlendMode;
-        if (BlendMode.sBlendModes) return;
+  static registerDefaults() {
+    const { register } = BlendMode
+    if (BlendMode.sBlendModes) return
 
-        BlendMode.sBlendModes = {};
+    BlendMode.sBlendModes = {}
 
-        register('none', ONE, ZERO);
-        register('normal', ONE, ONE_MINUS_SRC_ALPHA);
-        register('add', ONE, ONE);
-        register('multiply', DST_COLOR, ONE_MINUS_SRC_ALPHA);
-        register('screen', ONE, ONE_MINUS_SRC_COLOR);
-        register('erase', ZERO, ONE_MINUS_SRC_ALPHA);
-        register('mask', ZERO, SRC_ALPHA);
-        register('below', ONE_MINUS_DST_ALPHA, DST_ALPHA);
-    }
+    register('none', ONE, ZERO)
+    register('normal', ONE, ONE_MINUS_SRC_ALPHA)
+    register('add', ONE, ONE)
+    register('multiply', DST_COLOR, ONE_MINUS_SRC_ALPHA)
+    register('screen', ONE, ONE_MINUS_SRC_COLOR)
+    register('erase', ZERO, ONE_MINUS_SRC_ALPHA)
+    register('mask', ZERO, SRC_ALPHA)
+    register('below', ONE_MINUS_DST_ALPHA, DST_ALPHA)
+  }
 
-    // instance methods / properties
+  // instance methods / properties
 
-    /** Sets the appropriate blend factors for source and destination on the current context. */
-    activate() {
-        const gl = window.StarlingContextManager.current.context;
+  /** Sets the appropriate blend factors for source and destination on the current context. */
+  activate() {
+    const gl = window.StarlingContextManager.current.context
 
-        gl.enable(gl.BLEND);
-        gl.blendFunc(this._sourceFactor, this._destinationFactor);
-    }
+    gl.enable(gl.BLEND)
+    gl.blendFunc(this._sourceFactor, this._destinationFactor)
+  }
 
-    /** Returns the name of the blend mode. */
-    toString() {
-        return this._name;
-    }
+  /** Returns the name of the blend mode. */
+  toString() {
+    return this._name
+  }
 
-    /** The source blend factor of this blend mode. */
-    get sourceFactor() {
-        return this._sourceFactor;
-    }
+  /** The source blend factor of this blend mode. */
+  get sourceFactor() {
+    return this._sourceFactor
+  }
 
-    /** The destination blend factor of this blend mode. */
-    get destinationFactor() {
-        return this._destinationFactor;
-    }
+  /** The destination blend factor of this blend mode. */
+  get destinationFactor() {
+    return this._destinationFactor
+  }
 
-    /** Returns the name of the blend mode. */
-    get name() {
-        return this._name;
-    }
+  /** Returns the name of the blend mode. */
+  get name() {
+    return this._name
+  }
 }

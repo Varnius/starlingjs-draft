@@ -1,70 +1,70 @@
-import Quad from '../display/quad';
-import Point from '../math/point';
-import Sprite from '../display/sprite';
+import Quad from '../display/quad'
+import Point from '../math/point'
+import Sprite from '../display/sprite'
 
 /** The TouchMarker is used internally to mark touches created through "simulateMultitouch". */
 export default class TouchMarker extends Sprite {
-    _center;
+  _center
 
-    constructor() {
-        super();
+  constructor() {
+    super()
 
-        this._center = new Point();
+    this._center = new Point()
 
-        for (let i = 0; i < 2; ++i) {
-            const marker = new Quad(15, 15);
-            marker.pivotX = marker.width / 2;
-            marker.pivotY = marker.height / 2;
-            marker.touchable = false;
-            this.addChild(marker);
-        }
+    for (let i = 0; i < 2; ++i) {
+      const marker = new Quad(15, 15)
+      marker.pivotX = marker.width / 2
+      marker.pivotY = marker.height / 2
+      marker.touchable = false
+      this.addChild(marker)
+    }
+  }
+
+  dispose() {
+    super.dispose()
+  }
+
+  moveMarker(x, y, withCenter = false) {
+    const { _center, realMarker, mockMarker } = this
+
+    if (withCenter) {
+      _center.x += x - realMarker.x
+      _center.y += y - realMarker.y
     }
 
-    dispose() {
-        super.dispose();
-    }
+    realMarker.x = x
+    realMarker.y = y
+    mockMarker.x = 2 * _center.x - x
+    mockMarker.y = 2 * _center.y - y
+  }
 
-    moveMarker(x, y, withCenter = false) {
-        const { _center, realMarker, mockMarker } = this;
+  moveCenter(x, y) {
+    this._center.x = x
+    this._center.y = y
+    this.moveMarker(this.realX, this.realY) // reset mock position
+  }
 
-        if (withCenter) {
-            _center.x += x - realMarker.x;
-            _center.y += y - realMarker.y;
-        }
+  get realMarker() {
+    return this.getChildAt(0)
+  }
 
-        realMarker.x = x;
-        realMarker.y = y;
-        mockMarker.x = 2 * _center.x - x;
-        mockMarker.y = 2 * _center.y - y;
-    }
+  get mockMarker() {
+    return this.getChildAt(1)
+  }
 
-    moveCenter(x, y) {
-        this._center.x = x;
-        this._center.y = y;
-        this.moveMarker(this.realX, this.realY); // reset mock position
-    }
+  get realX() {
+    return this.realMarker.x
+  }
 
-    get realMarker() {
-        return this.getChildAt(0);
-    }
+  get realY() {
+    return this.realMarker.y
+  }
 
-    get mockMarker() {
-        return this.getChildAt(1);
-    }
+  get mockX() {
+    return this.mockMarker.x
+  }
 
-    get realX() {
-        return this.realMarker.x;
-    }
-
-    get realY() {
-        return this.realMarker.y;
-    }
-
-    get mockX() {
-        return this.mockMarker.x;
-    }
-
-    get mockY() {
-        return this.mockMarker.y;
-    }
+  get mockY() {
+    return this.mockMarker.y
+  }
 }

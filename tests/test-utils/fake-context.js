@@ -1,38 +1,20 @@
 // eslint-disable
 export class FakeContext {
-    depthFunc()
-    {
-    }
+  depthFunc() {}
 
-    depthMask()
-    {
-    }
+  depthMask() {}
 
-    enable()
-    {
-    }
+  enable() {}
 
-    frontFace()
-    {
-    }
+  frontFace() {}
 
-    viewport()
-    {
-    }
+  viewport() {}
 
-    createTexture()
-    {
-    }
+  createTexture() {}
 
-    bindTexture()
-    {
-    }
+  bindTexture() {}
 
-    texImage2D()
-    {
-    }
+  texImage2D() {}
 
-    texParameteri()
-    {
-    }
+  texParameteri() {}
 }

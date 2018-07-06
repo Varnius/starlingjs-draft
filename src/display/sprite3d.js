@@ -1,9 +1,9 @@
-import DisplayObjectContainer from './display-object-container';
-import Vector3D from '../math/vector3d';
-import Matrix3D from '../math/matrix3d';
-import SystemUtil from '../utils/system-util';
-import MathUtil from '../utils/math-util';
-import MatrixUtil from '../utils/matrix-util';
+import DisplayObjectContainer from './display-object-container'
+import Vector3D from '../math/vector3d'
+import Matrix3D from '../math/matrix3d'
+import SystemUtil from '../utils/system-util'
+import MathUtil from '../utils/math-util'
+import MatrixUtil from '../utils/matrix-util'
 
 /** A container that allows you to position objects in three-dimensional space.
  *
@@ -47,234 +47,293 @@ import MatrixUtil from '../utils/matrix-util';
  *
  */
 export default class Sprite3D extends DisplayObjectContainer {
-    static E = 0.00001;
+  static E = 0.00001
 
-    _rotationX;
-    _rotationY;
-    _scaleZ;
-    _pivotZ;
-    _z;
+  _rotationX
+  _rotationY
+  _scaleZ
+  _pivotZ
+  _z
 
-    /** Helper objects. */
-    static sHelperPoint = new Vector3D();
-    static sHelperPointAlt = new Vector3D();
-    static sHelperMatrix = new Matrix3D();
+  /** Helper objects. */
+  static sHelperPoint = new Vector3D()
+  static sHelperPointAlt = new Vector3D()
+  static sHelperMatrix = new Matrix3D()
 
-    /** Creates an empty Sprite3D. */
-    constructor() {
-        super();
+  /** Creates an empty Sprite3D. */
+  constructor() {
+    super()
 
-        this._scaleZ = 1.0;
-        this._rotationX = this._rotationY = this._pivotZ = this._z = 0.0;
-        this.setIs3D(true);
+    this._scaleZ = 1.0
+    this._rotationX = this._rotationY = this._pivotZ = this._z = 0.0
+    this.setIs3D(true)
 
-        addEventListener(Event.ADDED, this.onAddedChild);
-        addEventListener(Event.REMOVED, this.onRemovedChild);
+    addEventListener(Event.ADDED, this.onAddedChild)
+    addEventListener(Event.REMOVED, this.onRemovedChild)
+  }
+
+  /** @inheritDoc */
+  render(painter) {
+    if (this.isFlat) super.render(painter)
+    else {
+      painter.finishMeshBatch()
+      painter.pushState()
+      painter.state.transformModelviewMatrix3D(this.transformationMatrix3D)
+
+      super.render(painter)
+
+      painter.finishMeshBatch()
+      painter.excludeFromCache(this)
+      painter.popState()
+    }
+  }
+
+  /** @inheritDoc */
+  hitTest(localPoint) {
+    const { sHelperPoint, sHelperPointAlt, sHelperMatrix } = Sprite3D
+    if (this.isFlat) return super.hitTest(localPoint)
+    else {
+      if (!this.visible || !this.touchable) return null
+
+      // We calculate the interception point between the 3D plane that is spawned up
+      // by this sprite3D and the straight line between the camera and the hit point.
+
+      sHelperMatrix.copyFrom(this.transformationMatrix3D)
+      sHelperMatrix.invert()
+
+      this.stage.getCameraPosition(this, sHelperPoint)
+      MatrixUtil.transformCoords3D(
+        sHelperMatrix,
+        localPoint.x,
+        localPoint.y,
+        0,
+        sHelperPointAlt
+      )
+      MathUtil.intersectLineWithXYPlane(
+        sHelperPoint,
+        sHelperPointAlt,
+        localPoint
+      )
+
+      return super.hitTest(localPoint)
+    }
+  }
+
+  // helpers
+
+  onAddedChild(event) {
+    this.recursivelySetIs3D(event.target, true)
+  }
+
+  onRemovedChild(event) {
+    this.recursivelySetIs3D(event.target, false)
+  }
+
+  recursivelySetIs3D(object, value) {
+    if (object instanceof Sprite3D) return
+
+    if (SystemUtil.isBaseClass(this.constructor, 'DisplayObjectContainer')) {
+      const container = object
+      const numChildren = container.numChildren
+
+      for (let i = 0; i < numChildren; ++i)
+        this.recursivelySetIs3D(container.getChildAt(i), value)
     }
 
-    /** @inheritDoc */
-    render(painter) {
-        if (this.isFlat) super.render(painter);
-        else {
-            painter.finishMeshBatch();
-            painter.pushState();
-            painter.state.transformModelviewMatrix3D(this.transformationMatrix3D);
+    object.setIs3D(value)
+  }
 
-            super.render(painter);
+  updateTransformationMatrices(
+    x,
+    y,
+    pivotX,
+    pivotY,
+    scaleX,
+    scaleY,
+    skewX,
+    skewY,
+    rotation,
+    out,
+    out3D
+  ) {
+    if (this.isFlat)
+      super.updateTransformationMatrices(
+        x,
+        y,
+        pivotX,
+        pivotY,
+        scaleX,
+        scaleY,
+        skewX,
+        skewY,
+        rotation,
+        out,
+        out3D
+      )
+    else
+      this.updateTransformationMatrices3D(
+        x,
+        y,
+        this._z,
+        pivotX,
+        pivotY,
+        this._pivotZ,
+        scaleX,
+        scaleY,
+        this._scaleZ,
+        this._rotationX,
+        this._rotationY,
+        rotation,
+        out,
+        out3D
+      )
+  }
 
-            painter.finishMeshBatch();
-            painter.excludeFromCache(this);
-            painter.popState();
-        }
-    }
+  updateTransformationMatrices3D(
+    x,
+    y,
+    z,
+    pivotX,
+    pivotY,
+    pivotZ,
+    scaleX,
+    scaleY,
+    scaleZ,
+    rotationX,
+    rotationY,
+    rotationZ,
+    out,
+    out3D
+  ) {
+    out.identity()
+    out3D.identity()
 
-    /** @inheritDoc */
-    hitTest(localPoint) {
-        const { sHelperPoint, sHelperPointAlt, sHelperMatrix } = Sprite3D;
-        if (this.isFlat) return super.hitTest(localPoint);
-        else {
-            if (!this.visible || !this.touchable) return null;
+    const E = Sprite3D.E
 
-            // We calculate the interception point between the 3D plane that is spawned up
-            // by this sprite3D and the straight line between the camera and the hit point.
+    if (scaleX !== 1.0 || scaleY !== 1.0 || scaleZ !== 1.0)
+      out3D.scale(scaleX || E, scaleY || E, scaleZ || E)
+    if (rotationX !== 0.0) out3D.rotateX(rotationX)
+    if (rotationY !== 0.0) out3D.rotateY(rotationY)
+    if (rotationZ !== 0.0) out3D.rotateZ(rotationZ)
+    if (x !== 0.0 || y !== 0.0 || z !== 0.0) out3D.appendTranslation(x, y, z)
+    if (pivotX !== 0.0 || pivotY !== 0.0 || pivotZ !== 0.0)
+      out3D.prependTranslation(-pivotX, -pivotY, -pivotZ)
+  }
 
-            sHelperMatrix.copyFrom(this.transformationMatrix3D);
-            sHelperMatrix.invert();
+  // properties
 
-            this.stage.getCameraPosition(this, sHelperPoint);
-            MatrixUtil.transformCoords3D(sHelperMatrix, localPoint.x, localPoint.y, 0, sHelperPointAlt);
-            MathUtil.intersectLineWithXYPlane(sHelperPoint, sHelperPointAlt, localPoint);
+  get transformationMatrix() {
+    return super.transformationMatrix
+  }
 
-            return super.hitTest(localPoint);
-        }
-    }
+  set transformationMatrix(value) {
+    super.transformationMatrix = value
+    this._rotationX = this._rotationY = this._pivotZ = this._z = 0
+    this.setTransformationChanged()
+  }
 
-    // helpers
+  /** The z coordinate of the object relative to the local coordinates of the parent.
+   *  The z-axis points away from the camera, i.e. positive z-values will move the object further
+   *  away from the viewer. */
+  get z() {
+    return this._z
+  }
 
-    onAddedChild(event) {
-        this.recursivelySetIs3D(event.target, true);
-    }
+  set z(value) {
+    this._z = value
+    this.setTransformationChanged()
+  }
 
-    onRemovedChild(event) {
-        this.recursivelySetIs3D(event.target, false);
-    }
+  /** The z coordinate of the object's origin in its own coordinate space (default: 0). */
+  get pivotZ() {
+    return this._pivotZ
+  }
 
-    recursivelySetIs3D(object, value) {
-        if (object instanceof Sprite3D)
-            return;
+  set pivotZ(value) {
+    this._pivotZ = value
+    this.setTransformationChanged()
+  }
 
-        if (SystemUtil.isBaseClass(this.constructor, 'DisplayObjectContainer')) {
-            const container = object;
-            const numChildren = container.numChildren;
+  /** The depth scale factor. '1' means no scale, negative values flip the object. */
+  get scaleZ() {
+    return this._scaleZ
+  }
 
-            for (let i = 0; i < numChildren; ++i)
-                this.recursivelySetIs3D(container.getChildAt(i), value);
-        }
+  set scaleZ(value) {
+    this._scaleZ = value
+    this.setTransformationChanged()
+  }
 
-        object.setIs3D(value);
-    }
+  /** @private */
+  get scale() {
+    return super.scale
+  }
 
-    updateTransformationMatrices(x, y, pivotX, pivotY, scaleX, scaleY,
-                                 skewX, skewY, rotation, out, out3D) {
-        if (this.isFlat) super.updateTransformationMatrices(
-            x, y, pivotX, pivotY, scaleX, scaleY, skewX, skewY, rotation, out, out3D);
-        else this.updateTransformationMatrices3D(
-            x, y, this._z, pivotX, pivotY, this._pivotZ, scaleX, scaleY, this._scaleZ,
-            this._rotationX, this._rotationY, rotation, out, out3D);
-    }
+  set scale(value) {
+    this.scaleX = this.scaleY = this.scaleZ = value
+  }
 
-    updateTransformationMatrices3D(x, y, z,
-                                   pivotX, pivotY, pivotZ,
-                                   scaleX, scaleY, scaleZ,
-                                   rotationX, rotationY, rotationZ,
-                                   out, out3D) {
-        out.identity();
-        out3D.identity();
+  /** @private */
+  set skewX(value) {
+    throw new Error('3D objects do not support skewing')
 
-        const E = Sprite3D.E;
+    // super.skewX = value;
+    // _orientationChanged = true;
+  }
 
-        if (scaleX !== 1.0 || scaleY !== 1.0 || scaleZ !== 1.0)
-            out3D.scale(scaleX || E, scaleY || E, scaleZ || E);
-        if (rotationX !== 0.0)
-            out3D.rotateX(rotationX);
-        if (rotationY !== 0.0)
-            out3D.rotateY(rotationY);
-        if (rotationZ !== 0.0)
-            out3D.rotateZ(rotationZ);
-        if (x !== 0.0 || y !== 0.0 || z !== 0.0)
-            out3D.appendTranslation(x, y, z);
-        if (pivotX !== 0.0 || pivotY !== 0.0 || pivotZ !== 0.0)
-            out3D.prependTranslation(-pivotX, -pivotY, -pivotZ);
-    }
+  /** @private */
+  set skewY(value) {
+    throw new Error('3D objects do not support skewing')
 
-    // properties
+    // super.skewY = value;
+    // _orientationChanged = true;
+  }
 
-    get transformationMatrix() {
-        return super.transformationMatrix;
-    }
+  /** The rotation of the object about the x axis, in radians.
+   *  (In Starling, all angles are measured in radians.) */
+  get rotationX() {
+    return this._rotationX
+  }
 
-    set transformationMatrix(value) {
-        super.transformationMatrix = value;
-        this._rotationX = this._rotationY = this._pivotZ = this._z = 0;
-        this.setTransformationChanged();
-    }
+  set rotationX(value) {
+    this._rotationX = MathUtil.normalizeAngle(value)
+    this.setTransformationChanged()
+  }
 
-    /** The z coordinate of the object relative to the local coordinates of the parent.
-     *  The z-axis points away from the camera, i.e. positive z-values will move the object further
-     *  away from the viewer. */
-    get z() {
-        return this._z;
-    }
+  /** The rotation of the object about the y axis, in radians.
+   *  (In Starling, all angles are measured in radians.) */
+  get rotationY() {
+    return this._rotationY
+  }
 
-    set z(value) {
-        this._z = value;
-        this.setTransformationChanged();
-    }
+  set rotationY(value) {
+    this._rotationY = MathUtil.normalizeAngle(value)
+    this.setTransformationChanged()
+  }
 
-    /** The z coordinate of the object's origin in its own coordinate space (default: 0). */
-    get pivotZ() {
-        return this._pivotZ;
-    }
+  /** The rotation of the object about the z axis, in radians.
+   *  (In Starling, all angles are measured in radians.) */
+  get rotationZ() {
+    return this.rotation
+  }
 
-    set pivotZ(value) {
-        this._pivotZ = value;
-        this.setTransformationChanged();
-    }
+  set rotationZ(value) {
+    this.rotation = value
+  }
 
-    /** The depth scale factor. '1' means no scale, negative values flip the object. */
-    get scaleZ() {
-        return this._scaleZ;
-    }
-
-    set scaleZ(value) {
-        this._scaleZ = value;
-        this.setTransformationChanged();
-    }
-
-    /** @private */
-    get scale() {
-        return super.scale;
-    }
-
-    set scale(value) {
-        this.scaleX = this.scaleY = this.scaleZ = value;
-    }
-
-    /** @private */
-    set skewX(value) {
-        throw new Error('3D objects do not support skewing');
-
-        // super.skewX = value;
-        // _orientationChanged = true;
-    }
-
-    /** @private */
-    set skewY(value) {
-        throw new Error('3D objects do not support skewing');
-
-        // super.skewY = value;
-        // _orientationChanged = true;
-    }
-
-    /** The rotation of the object about the x axis, in radians.
-     *  (In Starling, all angles are measured in radians.) */
-    get rotationX() {
-        return this._rotationX;
-    }
-
-    set rotationX(value) {
-        this._rotationX = MathUtil.normalizeAngle(value);
-        this.setTransformationChanged();
-    }
-
-    /** The rotation of the object about the y axis, in radians.
-     *  (In Starling, all angles are measured in radians.) */
-    get rotationY() {
-        return this._rotationY;
-    }
-
-    set rotationY(value) {
-        this._rotationY = MathUtil.normalizeAngle(value);
-        this.setTransformationChanged();
-    }
-
-    /** The rotation of the object about the z axis, in radians.
-     *  (In Starling, all angles are measured in radians.) */
-    get rotationZ() {
-        return this.rotation;
-    }
-
-    set rotationZ(value) {
-        this.rotation = value;
-    }
-
-    /** If <code>true</code>, this 3D object contains only 2D content.
-     *  This means that rendering will be just as efficient as for a standard 2D object. */
-    get isFlat() {
-        const E = Sprite3D.E;
-        return this._z > -E && this._z < E &&
-            this._rotationX > -E && this._rotationX < E &&
-            this._rotationY > -E && this._rotationY < E &&
-            this._pivotZ > -E && this._pivotZ < E;
-    }
+  /** If <code>true</code>, this 3D object contains only 2D content.
+   *  This means that rendering will be just as efficient as for a standard 2D object. */
+  get isFlat() {
+    const E = Sprite3D.E
+    return (
+      this._z > -E &&
+      this._z < E &&
+      this._rotationX > -E &&
+      this._rotationX < E &&
+      this._rotationY > -E &&
+      this._rotationY < E &&
+      this._pivotZ > -E &&
+      this._pivotZ < E
+    )
+  }
 }

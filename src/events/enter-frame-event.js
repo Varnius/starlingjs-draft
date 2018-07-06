@@ -1,4 +1,4 @@
-import Event from './event';
+import Event from './event'
 
 /** An EnterFrameEvent is triggered once per frame and is dispatched to all objects in the
  *  display tree.
@@ -8,16 +8,16 @@ import Event from './event';
  *  into account.
  */
 export default class EnterFrameEvent extends Event {
-    /** Event type for a display object that is entering a new frame. */
-    static ENTER_FRAME = 'enterFrame';
+  /** Event type for a display object that is entering a new frame. */
+  static ENTER_FRAME = 'enterFrame'
 
-    /** Creates an enter frame event with the passed time. */
-    constructor(type, passedTime, bubbles = false) {
-        super(type, bubbles, passedTime);
-    }
+  /** Creates an enter frame event with the passed time. */
+  constructor(type, passedTime, bubbles = false) {
+    super(type, bubbles, passedTime)
+  }
 
-    /** The time that has passed since the last frame (in seconds). */
-    get passedTime() {
-        return this.data;
-    }
+  /** The time that has passed since the last frame (in seconds). */
+  get passedTime() {
+    return this.data
+  }
 }

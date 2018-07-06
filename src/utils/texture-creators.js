@@ -1,8 +1,8 @@
-import { RGBA, LINEAR_MIPMAP_LINEAR, LINEAR } from 'gl-constants';
+import { RGBA, LINEAR_MIPMAP_LINEAR, LINEAR } from 'gl-constants'
 
-import SubTexture from '../textures/subtexture';
-import ConcreteTexture from '../textures/concrete-texture';
-import Rectangle from '../math/rectangle';
+import SubTexture from '../textures/subtexture'
+import ConcreteTexture from '../textures/concrete-texture'
+import Rectangle from '../math/rectangle'
 
 /** Creates a texture with a certain size and color.
  *
@@ -14,15 +14,28 @@ import Rectangle from '../math/rectangle';
  *  @param format  the context3D texture format to use. Pass one of the packed or
  *                 compressed formats to save memory.
  */
-export const createTextureFromColor = ({ width, height, color = 0xffffff, alpha = 1.0, scale = -1, format = RGBA }) => {
-    const texture = createEmptyTexture({ width, height, premultipliedAlpha: true, scale, format });
-    texture.root.clear(color, alpha);
-    texture.root.onRestore = function () {
-        texture.root.clear(color, alpha);
-    };
+export const createTextureFromColor = ({
+  width,
+  height,
+  color = 0xffffff,
+  alpha = 1.0,
+  scale = -1,
+  format = RGBA
+}) => {
+  const texture = createEmptyTexture({
+    width,
+    height,
+    premultipliedAlpha: true,
+    scale,
+    format
+  })
+  texture.root.clear(color, alpha)
+  texture.root.onRestore = function() {
+    texture.root.clear(color, alpha)
+  }
 
-    return texture;
-};
+  return texture
+}
 
 /** Creates an empty texture of a certain size.
  *  Beware that the texture can only be used after you either upload some color data
@@ -36,53 +49,76 @@ export const createTextureFromColor = ({ width, height, color = 0xffffff, alpha 
  *  @param format  the context3D texture format to use. Pass one of the packed or
  *                 compressed formats to save memory (at the price of reduced image quality).
  */
-export const createEmptyTexture = params => createWithData({ ...params, data: null });
+export const createEmptyTexture = params =>
+  createWithData({ ...params, data: null })
 
-export const createTextureFromData = params => createWithData({ ...params });
+export const createTextureFromData = params => createWithData({ ...params })
 
 const createWithData = ({
-    data,
-    width = 1,
-    height = 1,
-    premultipliedAlpha = true,
-    generateMipMaps = false,
-    scale = -1,
-    format = RGBA,
-    minFilter = LINEAR_MIPMAP_LINEAR,
-    magFilter = LINEAR,
-    }) => {
-    if (scale <= 0) scale = window.StarlingContextManager.current.contentScaleFactor;
+  data,
+  width = 1,
+  height = 1,
+  premultipliedAlpha = true,
+  generateMipMaps = false,
+  scale = -1,
+  format = RGBA,
+  minFilter = LINEAR_MIPMAP_LINEAR,
+  magFilter = LINEAR
+}) => {
+  if (scale <= 0)
+    scale = window.StarlingContextManager.current.contentScaleFactor
 
-    const gl = window.StarlingContextManager.current.context;
+  const gl = window.StarlingContextManager.current.context
 
-    if (!gl) throw new Error('[ContextError] Missing context');
+  if (!gl) throw new Error('[ContextError] Missing context')
 
-    const origWidth = width * scale;
-    const origHeight = height * scale;
+  const origWidth = width * scale
+  const origHeight = height * scale
 
-    const actualWidth = Math.ceil(origWidth - 0.000000001); // avoid floating point errors
-    const actualHeight = Math.ceil(origHeight - 0.000000001);
+  const actualWidth = Math.ceil(origWidth - 0.000000001) // avoid floating point errors
+  const actualHeight = Math.ceil(origHeight - 0.000000001)
 
-    const nativeTexture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, nativeTexture);
+  const nativeTexture = gl.createTexture()
+  gl.bindTexture(gl.TEXTURE_2D, nativeTexture)
 
-    const border = 0;
-    gl.texImage2D(gl.TEXTURE_2D, 0, format, actualWidth, actualHeight, border, format, gl.UNSIGNED_BYTE, data);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter);
+  const border = 0
+  gl.texImage2D(
+    gl.TEXTURE_2D,
+    0,
+    format,
+    actualWidth,
+    actualHeight,
+    border,
+    format,
+    gl.UNSIGNED_BYTE,
+    data
+  )
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, minFilter)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, magFilter)
 
-    if (generateMipMaps) {
-        gl.generateMipmap(gl.TEXTURE_2D);
-    }
+  if (generateMipMaps) {
+    gl.generateMipmap(gl.TEXTURE_2D)
+  }
 
-    const concreteTexture = new ConcreteTexture(nativeTexture, format, width, height, premultipliedAlpha, scale);
-    concreteTexture.onRestore = concreteTexture.clear;
+  const concreteTexture = new ConcreteTexture(
+    nativeTexture,
+    format,
+    width,
+    height,
+    premultipliedAlpha,
+    scale
+  )
+  concreteTexture.onRestore = concreteTexture.clear
 
-    if (actualWidth - origWidth < 0.001 && actualHeight - origHeight < 0.001)
-        return concreteTexture;
-    else
-        return new SubTexture(concreteTexture, new Rectangle(0, 0, width, height), true);
-};
+  if (actualWidth - origWidth < 0.001 && actualHeight - origHeight < 0.001)
+    return concreteTexture
+  else
+    return new SubTexture(
+      concreteTexture,
+      new Rectangle(0, 0, width, height),
+      true
+    )
+}
 
 /** Creates a video texture from a NetStream.
  *
@@ -98,8 +134,8 @@ const createWithData = ({
  *  var ns:NetStream = new NetStream(nc);
  *  var texture = Texture.fromNetStream(ns, 1, function()
  *  {
-         *      addChild(new Image(texture));
-         *  });
+ *      addChild(new Image(texture));
+ *  });
  *
  *  var file:File = File.applicationDirectory.resolvePath("bugs-bunny.m4v");
  *  ns.play(file.url);</listing>
@@ -132,8 +168,8 @@ const createWithData = ({
  *  var camera:Camera = Camera.getCamera();
  *  var texture = Texture.fromCamera(camera, 1, function()
  *  {
-         *      addChild(new Image(texture));
-         *  });</listing>
+ *      addChild(new Image(texture));
+ *  });</listing>
  *
  *  @param camera  the camera from which the video data is streamed.
  *  @param scale   the scale factor of the created texture. This affects the reported
@@ -179,5 +215,10 @@ const createWithData = ({
  *  @param scaleModifier  The scale factor of the new texture will be calculated by
  *                  multiplying the parent texture's scale factor with this value.
  */
-export const createSubtexture = ({ texture, region, frame, rotated, scaleModifier = 1.0 }) =>
-    new SubTexture(texture, region, false, frame, rotated, scaleModifier);
+export const createSubtexture = ({
+  texture,
+  region,
+  frame,
+  rotated,
+  scaleModifier = 1.0
+}) => new SubTexture(texture, region, false, frame, rotated, scaleModifier)

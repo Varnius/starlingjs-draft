@@ -1,3 +1,3 @@
-export default function (rad) {
-    return rad / Math.PI * 180.0;
+export default function(rad) {
+  return (rad / Math.PI) * 180.0
 }

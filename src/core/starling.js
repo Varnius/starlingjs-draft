@@ -388,7 +388,7 @@ export default class Starling extends EventDispatcher {
             const stageWidth = this._stage.stageWidth;
             const stageHeight = this._stage.stageHeight;
 
-            if (!this._statsDisplayl) {
+            if (!this._statsDisplay) {
                 this._statsDisplay = new StatsDisplay();
                 this._statsDisplay.touchable = false;
             }

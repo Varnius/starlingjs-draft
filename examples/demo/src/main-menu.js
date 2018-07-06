@@ -1,4 +1,4 @@
-import { Sprite, Image } from '../../../src/index';
+import { Sprite, Image, TouchPhase } from '../../../src/index';
 
 import MenuButton from './utils/menu-button';
 import Game from './game';
@@ -73,9 +73,8 @@ export default class MainMenu extends Sprite {
         //addChildAt(infoText, 0);
     }
 
-    //onInfoTextTouched(event)
-    //{
+    //onInfoTextTouched(event) {
     //    if (event.getTouch(this, TouchPhase.ENDED))
-    //        Starling.current.showStats = !Starling.current.showStats;
+    //        window.StarlingContextManager.current.showStats = !window.StarlingContextManager.current.showStats;
     //}
 }

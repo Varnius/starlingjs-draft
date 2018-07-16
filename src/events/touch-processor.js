@@ -508,7 +508,7 @@ export default class TouchProcessor {
   }
 
   // interruption handling
-  // todo: maybe use for tab switches?
+  // todo: maybe use for active browser tab changes?
   //monitorInterruptions(enable)
   //{
   //    // if the application moves into the background or is interrupted (e.g. through

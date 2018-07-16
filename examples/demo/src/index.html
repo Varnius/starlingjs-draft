@@ -3,9 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>StarlingJS Examples</title>
+    <style>
+        body {
+            background: #eee;
+            display: flex;
+            justify-content: center;
+            padding-top: 1rem;
+        }
+        .canvas {
+            background: black;
+            outline: 10px solid white;
+        }
+    </style>
 </head>
 <body>
 <script src="/static/demo.bundle.js" defer></script>
-<canvas id="starling-canvas" tabindex="1" style="background: black;" width="320" height="480"></canvas>
+<canvas id="starling-canvas" tabindex="1" class="canvas" width="320" height="480"></canvas>
 </body>
 </html>

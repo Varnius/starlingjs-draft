@@ -49,15 +49,11 @@ export default class Starling extends EventDispatcher {
   _leftMouseDown
   _statsDisplay
   _rendering
-  //_supportHighResolutions:Boolean;
-  _skipUnchangedFrames
   _showStats
-
+  _supportHighResolutions
   _viewPort
   _previousViewPort
-  _clippedViewPort
 
-  static sCurrent
   static sAll = []
 
   constructor(rootClass, canvas, viewPort = null, window) {
@@ -66,7 +62,6 @@ export default class Starling extends EventDispatcher {
     if (!canvas) throw new Error('[ArgumentError] Canvas must not be null')
     if (!viewPort) viewPort = new Rectangle(0, 0, canvas.width, canvas.height)
 
-    //SystemUtil.initialize();
     Starling.sAll.push(this)
     this.makeCurrent()
     this._rootClass = rootClass
@@ -95,13 +90,13 @@ export default class Starling extends EventDispatcher {
 
     // register touch/mouse event handlers
     for (const touchEventType of this.touchEventTypes)
-      canvas.addEventListener(touchEventType, this.onTouch, false) // todo: removed last two params
+      canvas.addEventListener(touchEventType, this.onTouch, false)
 
     // register other event handlers
 
     window.requestAnimationFrame(this.nextFrame)
-    canvas.addEventListener(KeyboardEventType.KEY_DOWN, this.onKey, false) // todo: removed last two params
-    canvas.addEventListener(KeyboardEventType.KEY_UP, this.onKey, false) // todo: removed last two params
+    canvas.addEventListener(KeyboardEventType.KEY_DOWN, this.onKey, false)
+    canvas.addEventListener(KeyboardEventType.KEY_UP, this.onKey, false)
     //stage.addEventListener(Event.RESIZE, onResize, false, 0, true);
     //stage.addEventListener(Event.MOUSE_LEAVE, onMouseLeave, false, 0, true);
 

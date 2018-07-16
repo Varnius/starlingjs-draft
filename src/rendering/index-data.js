@@ -462,7 +462,7 @@ export default class IndexData {
     if (value !== this._useQuadLayout) {
       if (value) {
         IndexData.ensureQuadDataCapacity(this._numIndices)
-        this._rawData = null // todo: was previously _rawData.length = 0
+        this._rawData = null
         this._useQuadLayout = true
       } else this.switchToGenericData()
     }

@@ -15,10 +15,11 @@ Other commands:
 Things to solve:
 
 - [ ] tech: handle text canvas in a more pretty fashion
-- [ ] tech: support WebGL 1?
+- [ ] tech: support WebGL1
+- [ ] tech: Typescript typings
 - [ ] bug: BlurFilter shows artifacts
 - [ ] bug: Opacity fucked up in Firefox
 - [ ] bug: back button in Sprite3D demo behaves weird
+- [ ] bug: Check why pivoting works different with Sprite3D demo
 - [ ] feat: DistanceField fonts
 - [ ] feat: DisplacementFilter
-- [ ] check: Check why pivoting works different with Sprite3D demo
